@@ -1,0 +1,9 @@
+FROM registry.svc.ci.openshift.org/openshift/release:golang-1.13 AS builder
+WORKDIR /go/src/sigs.k8s.io/external-dns
+COPY . .
+RUN go mod vendor
+RUN make build
+
+FROM registry.svc.ci.openshift.org/openshift/origin-v4.0:base
+COPY --from=builder /go/src/sigs.k8s.io/external-dns/build/external-dns /usr/bin/
+CMD ["/usr/bin/external-dns"]
