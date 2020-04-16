@@ -2,7 +2,4 @@
 #  https://github.com/kubernetes/community/blob/master/contributors/guide/owners.md
 
 approvers:
-  - hjacobs
-  - raffo
-  - linki
-  - njuettner
+  - seanmalloy
