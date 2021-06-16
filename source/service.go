@@ -18,6 +18,7 @@ package source
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -33,7 +34,6 @@ import (
 	coreinformers "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/kubernetes/pkg/util/async"
 
 	"sigs.k8s.io/external-dns/endpoint"
 )
@@ -65,7 +65,6 @@ type serviceSource struct {
 	podInformer                    coreinformers.PodInformer
 	nodeInformer                   coreinformers.NodeInformer
 	serviceTypeFilter              map[string]struct{}
-	runner                         *async.BoundedFrequencyRunner
 }
 
 // NewServiceSource creates a new serviceSource with the given config.
@@ -121,8 +120,11 @@ func NewServiceSource(kubeClient kubernetes.Interface, namespace, annotationFilt
 	informerFactory.Start(wait.NeverStop)
 
 	// wait for the local cache to be populated.
-	err = wait.Poll(time.Second, 60*time.Second, func() (bool, error) {
-		return serviceInformer.Informer().HasSynced(), nil
+	err = poll(time.Second, 60*time.Second, func() (bool, error) {
+		return serviceInformer.Informer().HasSynced() &&
+			endpointsInformer.Informer().HasSynced() &&
+			podInformer.Informer().HasSynced() &&
+			nodeInformer.Informer().HasSynced(), nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to sync cache: %v", err)
@@ -155,7 +157,7 @@ func NewServiceSource(kubeClient kubernetes.Interface, namespace, annotationFilt
 }
 
 // Endpoints returns endpoint objects for each service that should be processed.
-func (sc *serviceSource) Endpoints() ([]*endpoint.Endpoint, error) {
+func (sc *serviceSource) Endpoints(ctx context.Context) ([]*endpoint.Endpoint, error) {
 	services, err := sc.serviceInformer.Lister().Services(sc.namespace).List(labels.Everything())
 	if err != nil {
 		return nil, err
@@ -212,6 +214,35 @@ func (sc *serviceSource) Endpoints() ([]*endpoint.Endpoint, error) {
 		endpoints = append(endpoints, svcEndpoints...)
 	}
 
+	// this sorting is required to make merging work.
+	// after we merge endpoints that have same DNS, we want to ensure that we end up with the same service being an "owner"
+	// of all those records, as otherwise each time we update, we will end up with a different service that gets data merged in
+	// and that will cause external-dns to recreate dns record due to different service owner in TXT record.
+	// if new service is added or old one removed, that might cause existing record to get re-created due to potentially new
+	// owner being selected. Which is fine, since it shouldn't happen often and shouldn't cause any disruption.
+	if len(endpoints) > 1 {
+		sort.Slice(endpoints, func(i, j int) bool {
+			return endpoints[i].Labels[endpoint.ResourceLabelKey] < endpoints[j].Labels[endpoint.ResourceLabelKey]
+		})
+		// Use stable sort to not disrupt the order of services
+		sort.SliceStable(endpoints, func(i, j int) bool {
+			return endpoints[i].DNSName < endpoints[j].DNSName
+		})
+		mergedEndpoints := []*endpoint.Endpoint{}
+		mergedEndpoints = append(mergedEndpoints, endpoints[0])
+		for i := 1; i < len(endpoints); i++ {
+			lastMergedEndpoint := len(mergedEndpoints) - 1
+			if mergedEndpoints[lastMergedEndpoint].DNSName == endpoints[i].DNSName &&
+				mergedEndpoints[lastMergedEndpoint].RecordType == endpoints[i].RecordType &&
+				mergedEndpoints[lastMergedEndpoint].RecordTTL == endpoints[i].RecordTTL {
+				mergedEndpoints[lastMergedEndpoint].Targets = append(mergedEndpoints[lastMergedEndpoint].Targets, endpoints[i].Targets[0])
+			} else {
+				mergedEndpoints = append(mergedEndpoints, endpoints[i])
+			}
+		}
+		endpoints = mergedEndpoints
+	}
+
 	for _, ep := range endpoints {
 		sort.Sort(ep.Targets)
 	}
@@ -253,7 +284,7 @@ func (sc *serviceSource) extractHeadlessEndpoints(svc *v1.Service, hostname stri
 
 		for _, address := range addresses {
 			// find pod for this address
-			if address.TargetRef.APIVersion != "" || address.TargetRef.Kind != "Pod" {
+			if address.TargetRef == nil || address.TargetRef.APIVersion != "" || address.TargetRef.Kind != "Pod" {
 				log.Debugf("Skipping address because its target is not a pod: %v", address)
 				continue
 			}
@@ -331,7 +362,7 @@ func (sc *serviceSource) endpointsFromTemplate(svc *v1.Service) ([]*endpoint.End
 	providerSpecific, setIdentifier := getProviderSpecificAnnotations(svc.Annotations)
 	hostnameList := strings.Split(strings.Replace(buf.String(), " ", "", -1), ",")
 	for _, hostname := range hostnameList {
-		endpoints = append(endpoints, sc.generateEndpoints(svc, hostname, providerSpecific, setIdentifier)...)
+		endpoints = append(endpoints, sc.generateEndpoints(svc, hostname, providerSpecific, setIdentifier, false)...)
 	}
 
 	return endpoints, nil
@@ -343,9 +374,17 @@ func (sc *serviceSource) endpoints(svc *v1.Service) []*endpoint.Endpoint {
 	// Skip endpoints if we do not want entries from annotations
 	if !sc.ignoreHostnameAnnotation {
 		providerSpecific, setIdentifier := getProviderSpecificAnnotations(svc.Annotations)
-		hostnameList := getHostnamesFromAnnotations(svc.Annotations)
+		var hostnameList []string
+		var internalHostnameList []string
+
+		hostnameList = getHostnamesFromAnnotations(svc.Annotations)
 		for _, hostname := range hostnameList {
-			endpoints = append(endpoints, sc.generateEndpoints(svc, hostname, providerSpecific, setIdentifier)...)
+			endpoints = append(endpoints, sc.generateEndpoints(svc, hostname, providerSpecific, setIdentifier, false)...)
+		}
+
+		internalHostnameList = getInternalHostnamesFromAnnotations(svc.Annotations)
+		for _, hostname := range internalHostnameList {
+			endpoints = append(endpoints, sc.generateEndpoints(svc, hostname, providerSpecific, setIdentifier, true)...)
 		}
 	}
 	return endpoints
@@ -401,7 +440,7 @@ func (sc *serviceSource) setResourceLabel(service *v1.Service, endpoints []*endp
 	}
 }
 
-func (sc *serviceSource) generateEndpoints(svc *v1.Service, hostname string, providerSpecific endpoint.ProviderSpecific, setIdentifier string) []*endpoint.Endpoint {
+func (sc *serviceSource) generateEndpoints(svc *v1.Service, hostname string, providerSpecific endpoint.ProviderSpecific, setIdentifier string, useClusterIP bool) []*endpoint.Endpoint {
 	hostname = strings.TrimSuffix(hostname, ".")
 	ttl, err := getTTLFromAnnotations(svc.Annotations)
 	if err != nil {
@@ -429,7 +468,11 @@ func (sc *serviceSource) generateEndpoints(svc *v1.Service, hostname string, pro
 
 	switch svc.Spec.Type {
 	case v1.ServiceTypeLoadBalancer:
-		targets = append(targets, extractLoadBalancerTargets(svc)...)
+		if useClusterIP {
+			targets = append(targets, extractServiceIps(svc)...)
+		} else {
+			targets = append(targets, extractLoadBalancerTargets(svc)...)
+		}
 	case v1.ServiceTypeClusterIP:
 		if sc.publishInternal {
 			targets = append(targets, extractServiceIps(svc)...)
@@ -484,7 +527,10 @@ func extractServiceExternalName(svc *v1.Service) endpoint.Targets {
 }
 
 func extractLoadBalancerTargets(svc *v1.Service) endpoint.Targets {
-	var targets endpoint.Targets
+	var (
+		targets     endpoint.Targets
+		externalIPs endpoint.Targets
+	)
 
 	// Create a corresponding endpoint for each configured external entrypoint.
 	for _, lb := range svc.Status.LoadBalancer.Ingress {
@@ -494,6 +540,16 @@ func extractLoadBalancerTargets(svc *v1.Service) endpoint.Targets {
 		if lb.Hostname != "" {
 			targets = append(targets, lb.Hostname)
 		}
+	}
+
+	if svc.Spec.ExternalIPs != nil {
+		for _, ext := range svc.Spec.ExternalIPs {
+			externalIPs = append(externalIPs, ext)
+		}
+	}
+
+	if len(externalIPs) > 0 {
+		return externalIPs
 	}
 
 	return targets
@@ -509,6 +565,7 @@ func (sc *serviceSource) extractNodePortTargets(svc *v1.Service) (endpoint.Targe
 
 	switch svc.Spec.ExternalTrafficPolicy {
 	case v1.ServiceExternalTrafficPolicyTypeLocal:
+		nodesMap := map[*v1.Node]struct{}{}
 		labelSelector, err := metav1.ParseToLabelSelector(labels.Set(svc.Spec.Selector).AsSelectorPreValidated().String())
 		if err != nil {
 			return nil, err
@@ -529,7 +586,10 @@ func (sc *serviceSource) extractNodePortTargets(svc *v1.Service) (endpoint.Targe
 					log.Debugf("Unable to find node where Pod %s is running", v.Spec.Hostname)
 					continue
 				}
-				nodes = append(nodes, node)
+				if _, ok := nodesMap[node]; !ok {
+					nodesMap[node] = *new(struct{})
+					nodes = append(nodes, node)
+				}
 			}
 		}
 	default:
@@ -550,10 +610,16 @@ func (sc *serviceSource) extractNodePortTargets(svc *v1.Service) (endpoint.Targe
 		}
 	}
 
+	access := getAccessFromAnnotations(svc.Annotations)
+	if access == "public" {
+		return externalIPs, nil
+	}
+	if access == "private" {
+		return internalIPs, nil
+	}
 	if len(externalIPs) > 0 {
 		return externalIPs, nil
 	}
-
 	return internalIPs, nil
 }
 
@@ -562,14 +628,17 @@ func (sc *serviceSource) extractNodePortEndpoints(svc *v1.Service, nodeTargets e
 
 	for _, port := range svc.Spec.Ports {
 		if port.NodePort > 0 {
+			// following the RFC 2782, SRV record must have a following format
+			// _service._proto.name. TTL class SRV priority weight port
+			// see https://en.wikipedia.org/wiki/SRV_record
+
 			// build a target with a priority of 0, weight of 0, and pointing the given port on the given host
 			target := fmt.Sprintf("0 50 %d %s", port.NodePort, hostname)
 
-			// figure out the portname
-			portName := port.Name
-			if portName == "" {
-				portName = fmt.Sprintf("%d", port.NodePort)
-			}
+			// take the service name from the K8s Service object
+			// it is safe to use since it is DNS compatible
+			// see https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
+			serviceName := svc.ObjectMeta.Name
 
 			// figure out the protocol
 			protocol := strings.ToLower(string(port.Protocol))
@@ -577,7 +646,7 @@ func (sc *serviceSource) extractNodePortEndpoints(svc *v1.Service, nodeTargets e
 				protocol = "tcp"
 			}
 
-			recordName := fmt.Sprintf("_%s._%s.%s", portName, protocol, hostname)
+			recordName := fmt.Sprintf("_%s._%s.%s", serviceName, protocol, hostname)
 
 			var ep *endpoint.Endpoint
 			if ttl.IsConfigured() {
@@ -593,30 +662,21 @@ func (sc *serviceSource) extractNodePortEndpoints(svc *v1.Service, nodeTargets e
 	return endpoints
 }
 
-func (sc *serviceSource) AddEventHandler(handler func() error, stopChan <-chan struct{}, minInterval time.Duration) {
-	// Add custom resource event handler
-	log.Debug("Adding (bounded) event handler for service")
+func (sc *serviceSource) AddEventHandler(ctx context.Context, handler func()) {
+	log.Debug("Adding event handler for service")
 
-	maxInterval := 24 * time.Hour // handler will be called if it has not run in 24 hours
-	burst := 2                    // allow up to two handler burst calls
-	log.Debugf("Adding handler to BoundedFrequencyRunner with minInterval: %v, syncPeriod: %v, bursts: %d",
-		minInterval, maxInterval, burst)
-	sc.runner = async.NewBoundedFrequencyRunner("service-handler", func() {
-		_ = handler()
-	}, minInterval, maxInterval, burst)
-	go sc.runner.Loop(stopChan)
-
-	// run the handler function as soon as the BoundedFrequencyRunner will allow when an update occurs
+	// Right now there is no way to remove event handler from informer, see:
+	// https://github.com/kubernetes/kubernetes/issues/79610
 	sc.serviceInformer.Informer().AddEventHandler(
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
-				sc.runner.Run()
+				handler()
 			},
 			UpdateFunc: func(old interface{}, new interface{}) {
-				sc.runner.Run()
+				handler()
 			},
 			DeleteFunc: func(obj interface{}) {
-				sc.runner.Run()
+				handler()
 			},
 		},
 	)

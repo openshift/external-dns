@@ -26,7 +26,6 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
-
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"sigs.k8s.io/external-dns/controller"
@@ -35,6 +34,37 @@ import (
 	"sigs.k8s.io/external-dns/pkg/apis/externaldns/validation"
 	"sigs.k8s.io/external-dns/plan"
 	"sigs.k8s.io/external-dns/provider"
+	"sigs.k8s.io/external-dns/provider/akamai"
+	"sigs.k8s.io/external-dns/provider/alibabacloud"
+	"sigs.k8s.io/external-dns/provider/aws"
+	"sigs.k8s.io/external-dns/provider/awssd"
+	"sigs.k8s.io/external-dns/provider/azure"
+	"sigs.k8s.io/external-dns/provider/bluecat"
+	"sigs.k8s.io/external-dns/provider/cloudflare"
+	"sigs.k8s.io/external-dns/provider/coredns"
+	"sigs.k8s.io/external-dns/provider/designate"
+	"sigs.k8s.io/external-dns/provider/digitalocean"
+	"sigs.k8s.io/external-dns/provider/dnsimple"
+	"sigs.k8s.io/external-dns/provider/dyn"
+	"sigs.k8s.io/external-dns/provider/exoscale"
+	"sigs.k8s.io/external-dns/provider/godaddy"
+	"sigs.k8s.io/external-dns/provider/google"
+	"sigs.k8s.io/external-dns/provider/hetzner"
+	"sigs.k8s.io/external-dns/provider/infoblox"
+	"sigs.k8s.io/external-dns/provider/inmemory"
+	"sigs.k8s.io/external-dns/provider/linode"
+	"sigs.k8s.io/external-dns/provider/ns1"
+	"sigs.k8s.io/external-dns/provider/oci"
+	"sigs.k8s.io/external-dns/provider/ovh"
+	"sigs.k8s.io/external-dns/provider/pdns"
+	"sigs.k8s.io/external-dns/provider/rcode0"
+	"sigs.k8s.io/external-dns/provider/rdns"
+	"sigs.k8s.io/external-dns/provider/rfc2136"
+	"sigs.k8s.io/external-dns/provider/scaleway"
+	"sigs.k8s.io/external-dns/provider/transip"
+	"sigs.k8s.io/external-dns/provider/ultradns"
+	"sigs.k8s.io/external-dns/provider/vinyldns"
+	"sigs.k8s.io/external-dns/provider/vultr"
 	"sigs.k8s.io/external-dns/registry"
 	"sigs.k8s.io/external-dns/source"
 )
@@ -63,20 +93,20 @@ func main() {
 	}
 	log.SetLevel(ll)
 
-	ctx := context.Background()
-
-	stopChan := make(chan struct{}, 1)
+	ctx, cancel := context.WithCancel(context.Background())
 
 	go serveMetrics(cfg.MetricsAddress)
-	go handleSigterm(stopChan)
+	go handleSigterm(cancel)
 
 	// Create a source.Config from the flags passed by the user.
 	sourceCfg := &source.Config{
 		Namespace:                      cfg.Namespace,
 		AnnotationFilter:               cfg.AnnotationFilter,
+		LabelFilter:                    cfg.LabelFilter,
 		FQDNTemplate:                   cfg.FQDNTemplate,
 		CombineFQDNAndAnnotation:       cfg.CombineFQDNAndAnnotation,
 		IgnoreHostnameAnnotation:       cfg.IgnoreHostnameAnnotation,
+		IgnoreIngressTLSSpec:           cfg.IgnoreIngressTLSSpec,
 		Compatibility:                  cfg.Compatibility,
 		PublishInternal:                cfg.PublishInternal,
 		PublishHostIP:                  cfg.PublishHostIP,
@@ -85,21 +115,21 @@ func main() {
 		CRDSourceAPIVersion:            cfg.CRDSourceAPIVersion,
 		CRDSourceKind:                  cfg.CRDSourceKind,
 		KubeConfig:                     cfg.KubeConfig,
-		KubeMaster:                     cfg.Master,
+		APIServerURL:                   cfg.APIServerURL,
 		ServiceTypeFilter:              cfg.ServiceTypeFilter,
-		IstioIngressGatewayServices:    cfg.IstioIngressGatewayServices,
 		CFAPIEndpoint:                  cfg.CFAPIEndpoint,
 		CFUsername:                     cfg.CFUsername,
 		CFPassword:                     cfg.CFPassword,
 		ContourLoadBalancerService:     cfg.ContourLoadBalancerService,
+		GlooNamespace:                  cfg.GlooNamespace,
 		SkipperRouteGroupVersion:       cfg.SkipperRouteGroupVersion,
 		RequestTimeout:                 cfg.RequestTimeout,
 	}
 
 	// Lookup all the selected sources by names and pass them the desired configuration.
 	sources, err := source.ByNames(&source.SingletonClientGenerator{
-		KubeConfig: cfg.KubeConfig,
-		KubeMaster: cfg.Master,
+		KubeConfig:   cfg.KubeConfig,
+		APIServerURL: cfg.APIServerURL,
 		// If update events are enabled, disable timeout.
 		RequestTimeout: func() time.Duration {
 			if cfg.UpdateEvents {
@@ -115,7 +145,14 @@ func main() {
 	// Combine multiple sources into a single, deduplicated source.
 	endpointsSource := source.NewDedupSource(source.NewMultiSource(sources))
 
-	domainFilter := endpoint.NewDomainFilterWithExclusions(cfg.DomainFilter, cfg.ExcludeDomains)
+	// RegexDomainFilter overrides DomainFilter
+	var domainFilter endpoint.DomainFilter
+	if cfg.RegexDomainFilter.String() != "" {
+		domainFilter = endpoint.NewRegexDomainFilter(cfg.RegexDomainFilter, cfg.RegexDomainExclusion)
+	} else {
+		domainFilter = endpoint.NewDomainFilterWithExclusions(cfg.DomainFilter, cfg.ExcludeDomains)
+	}
+	zoneNameFilter := endpoint.NewDomainFilter(cfg.ZoneNameFilter)
 	zoneIDFilter := provider.NewZoneIDFilter(cfg.ZoneIDFilter)
 	zoneTypeFilter := provider.NewZoneTypeFilter(cfg.AWSZoneType)
 	zoneTagFilter := provider.NewZoneTagFilter(cfg.AWSZoneTagFilter)
@@ -123,22 +160,23 @@ func main() {
 	var p provider.Provider
 	switch cfg.Provider {
 	case "akamai":
-		p = provider.NewAkamaiProvider(
-			provider.AkamaiConfig{
+		p, err = akamai.NewAkamaiProvider(
+			akamai.AkamaiConfig{
 				DomainFilter:          domainFilter,
 				ZoneIDFilter:          zoneIDFilter,
 				ServiceConsumerDomain: cfg.AkamaiServiceConsumerDomain,
 				ClientToken:           cfg.AkamaiClientToken,
 				ClientSecret:          cfg.AkamaiClientSecret,
 				AccessToken:           cfg.AkamaiAccessToken,
+				EdgercPath:            cfg.AkamaiEdgercPath,
+				EdgercSection:         cfg.AkamaiEdgercSection,
 				DryRun:                cfg.DryRun,
-			},
-		)
+			}, nil)
 	case "alibabacloud":
-		p, err = provider.NewAlibabaCloudProvider(cfg.AlibabaCloudConfigFile, domainFilter, zoneIDFilter, cfg.AlibabaCloudZoneType, cfg.DryRun)
+		p, err = alibabacloud.NewAlibabaCloudProvider(cfg.AlibabaCloudConfigFile, domainFilter, zoneIDFilter, cfg.AlibabaCloudZoneType, cfg.DryRun)
 	case "aws":
-		p, err = provider.NewAWSProvider(
-			provider.AWSConfig{
+		p, err = aws.NewAWSProvider(
+			aws.AWSConfig{
 				DomainFilter:         domainFilter,
 				ZoneIDFilter:         zoneIDFilter,
 				ZoneTypeFilter:       zoneTypeFilter,
@@ -150,6 +188,7 @@ func main() {
 				APIRetries:           cfg.AWSAPIRetries,
 				PreferCNAME:          cfg.AWSPreferCNAME,
 				DryRun:               cfg.DryRun,
+				ZoneCacheDuration:    cfg.AWSZoneCacheDuration,
 			},
 		)
 	case "aws-sd":
@@ -158,30 +197,38 @@ func main() {
 			log.Infof("Registry \"%s\" cannot be used with AWS Cloud Map. Switching to \"aws-sd\".", cfg.Registry)
 			cfg.Registry = "aws-sd"
 		}
-		p, err = provider.NewAWSSDProvider(domainFilter, cfg.AWSZoneType, cfg.AWSAssumeRole, cfg.DryRun)
+		p, err = awssd.NewAWSSDProvider(domainFilter, cfg.AWSZoneType, cfg.AWSAssumeRole, cfg.DryRun)
 	case "azure-dns", "azure":
-		p, err = provider.NewAzureProvider(cfg.AzureConfigFile, domainFilter, zoneIDFilter, cfg.AzureResourceGroup, cfg.AzureUserAssignedIdentityClientID, cfg.DryRun)
+		p, err = azure.NewAzureProvider(cfg.AzureConfigFile, domainFilter, zoneNameFilter, zoneIDFilter, cfg.AzureResourceGroup, cfg.AzureUserAssignedIdentityClientID, cfg.DryRun)
 	case "azure-private-dns":
-		p, err = provider.NewAzurePrivateDNSProvider(domainFilter, zoneIDFilter, cfg.AzureResourceGroup, cfg.AzureSubscriptionID, cfg.DryRun)
+		p, err = azure.NewAzurePrivateDNSProvider(cfg.AzureConfigFile, domainFilter, zoneIDFilter, cfg.AzureResourceGroup, cfg.AzureUserAssignedIdentityClientID, cfg.DryRun)
+	case "bluecat":
+		p, err = bluecat.NewBluecatProvider(cfg.BluecatConfigFile, domainFilter, zoneIDFilter, cfg.DryRun)
 	case "vinyldns":
-		p, err = provider.NewVinylDNSProvider(domainFilter, zoneIDFilter, cfg.DryRun)
+		p, err = vinyldns.NewVinylDNSProvider(domainFilter, zoneIDFilter, cfg.DryRun)
+	case "vultr":
+		p, err = vultr.NewVultrProvider(ctx, domainFilter, cfg.DryRun)
+	case "ultradns":
+		p, err = ultradns.NewUltraDNSProvider(domainFilter, cfg.DryRun)
 	case "cloudflare":
-		p, err = provider.NewCloudFlareProvider(domainFilter, zoneIDFilter, cfg.CloudflareZonesPerPage, cfg.CloudflareProxied, cfg.DryRun)
+		p, err = cloudflare.NewCloudFlareProvider(domainFilter, zoneIDFilter, cfg.CloudflareZonesPerPage, cfg.CloudflareProxied, cfg.DryRun)
 	case "rcodezero":
-		p, err = provider.NewRcodeZeroProvider(domainFilter, cfg.DryRun, cfg.RcodezeroTXTEncrypt)
+		p, err = rcode0.NewRcodeZeroProvider(domainFilter, cfg.DryRun, cfg.RcodezeroTXTEncrypt)
 	case "google":
-		p, err = provider.NewGoogleProvider(ctx, cfg.GoogleProject, domainFilter, zoneIDFilter, cfg.GoogleBatchChangeSize, cfg.GoogleBatchChangeInterval, cfg.DryRun)
+		p, err = google.NewGoogleProvider(ctx, cfg.GoogleProject, domainFilter, zoneIDFilter, cfg.GoogleBatchChangeSize, cfg.GoogleBatchChangeInterval, cfg.DryRun)
 	case "digitalocean":
-		p, err = provider.NewDigitalOceanProvider(ctx, domainFilter, cfg.DryRun)
+		p, err = digitalocean.NewDigitalOceanProvider(ctx, domainFilter, cfg.DryRun, cfg.DigitalOceanAPIPageSize)
+	case "hetzner":
+		p, err = hetzner.NewHetznerProvider(ctx, domainFilter, cfg.DryRun)
 	case "ovh":
-		p, err = provider.NewOVHProvider(ctx, domainFilter, cfg.OVHEndpoint, cfg.DryRun)
+		p, err = ovh.NewOVHProvider(ctx, domainFilter, cfg.OVHEndpoint, cfg.OVHApiRateLimit, cfg.DryRun)
 	case "linode":
-		p, err = provider.NewLinodeProvider(domainFilter, cfg.DryRun, externaldns.Version)
+		p, err = linode.NewLinodeProvider(domainFilter, cfg.DryRun, externaldns.Version)
 	case "dnsimple":
-		p, err = provider.NewDnsimpleProvider(domainFilter, zoneIDFilter, cfg.DryRun)
+		p, err = dnsimple.NewDnsimpleProvider(domainFilter, zoneIDFilter, cfg.DryRun)
 	case "infoblox":
-		p, err = provider.NewInfobloxProvider(
-			provider.InfobloxConfig{
+		p, err = infoblox.NewInfobloxProvider(
+			infoblox.InfobloxConfig{
 				DomainFilter: domainFilter,
 				ZoneIDFilter: zoneIDFilter,
 				Host:         cfg.InfobloxGridHost,
@@ -196,8 +243,8 @@ func main() {
 			},
 		)
 	case "dyn":
-		p, err = provider.NewDynProvider(
-			provider.DynConfig{
+		p, err = dyn.NewDynProvider(
+			dyn.DynConfig{
 				DomainFilter:  domainFilter,
 				ZoneIDFilter:  zoneIDFilter,
 				DryRun:        cfg.DryRun,
@@ -209,29 +256,29 @@ func main() {
 			},
 		)
 	case "coredns", "skydns":
-		p, err = provider.NewCoreDNSProvider(domainFilter, cfg.CoreDNSPrefix, cfg.DryRun)
+		p, err = coredns.NewCoreDNSProvider(domainFilter, cfg.CoreDNSPrefix, cfg.DryRun)
 	case "rdns":
-		p, err = provider.NewRDNSProvider(
-			provider.RDNSConfig{
+		p, err = rdns.NewRDNSProvider(
+			rdns.RDNSConfig{
 				DomainFilter: domainFilter,
 				DryRun:       cfg.DryRun,
 			},
 		)
 	case "exoscale":
-		p, err = provider.NewExoscaleProvider(cfg.ExoscaleEndpoint, cfg.ExoscaleAPIKey, cfg.ExoscaleAPISecret, cfg.DryRun, provider.ExoscaleWithDomain(domainFilter), provider.ExoscaleWithLogging()), nil
+		p, err = exoscale.NewExoscaleProvider(cfg.ExoscaleEndpoint, cfg.ExoscaleAPIKey, cfg.ExoscaleAPISecret, cfg.DryRun, exoscale.ExoscaleWithDomain(domainFilter), exoscale.ExoscaleWithLogging()), nil
 	case "inmemory":
-		p, err = provider.NewInMemoryProvider(provider.InMemoryInitZones(cfg.InMemoryZones), provider.InMemoryWithDomain(domainFilter), provider.InMemoryWithLogging()), nil
+		p, err = inmemory.NewInMemoryProvider(inmemory.InMemoryInitZones(cfg.InMemoryZones), inmemory.InMemoryWithDomain(domainFilter), inmemory.InMemoryWithLogging()), nil
 	case "designate":
-		p, err = provider.NewDesignateProvider(domainFilter, cfg.DryRun)
+		p, err = designate.NewDesignateProvider(domainFilter, cfg.DryRun)
 	case "pdns":
-		p, err = provider.NewPDNSProvider(
+		p, err = pdns.NewPDNSProvider(
 			ctx,
-			provider.PDNSConfig{
+			pdns.PDNSConfig{
 				DomainFilter: domainFilter,
 				DryRun:       cfg.DryRun,
 				Server:       cfg.PDNSServer,
 				APIKey:       cfg.PDNSAPIKey,
-				TLSConfig: provider.TLSConfig{
+				TLSConfig: pdns.TLSConfig{
 					TLSEnabled:            cfg.PDNSTLSEnabled,
 					CAFilePath:            cfg.TLSCA,
 					ClientCertFilePath:    cfg.TLSClientCert,
@@ -240,25 +287,30 @@ func main() {
 			},
 		)
 	case "oci":
-		var config *provider.OCIConfig
-		config, err = provider.LoadOCIConfig(cfg.OCIConfigFile)
+		var config *oci.OCIConfig
+		config, err = oci.LoadOCIConfig(cfg.OCIConfigFile)
 		if err == nil {
-			p, err = provider.NewOCIProvider(*config, domainFilter, zoneIDFilter, cfg.DryRun)
+			p, err = oci.NewOCIProvider(*config, domainFilter, zoneIDFilter, cfg.DryRun)
 		}
 	case "rfc2136":
-		p, err = provider.NewRfc2136Provider(cfg.RFC2136Host, cfg.RFC2136Port, cfg.RFC2136Zone, cfg.RFC2136Insecure, cfg.RFC2136TSIGKeyName, cfg.RFC2136TSIGSecret, cfg.RFC2136TSIGSecretAlg, cfg.RFC2136TAXFR, domainFilter, cfg.DryRun, cfg.RFC2136MinTTL, nil)
+		p, err = rfc2136.NewRfc2136Provider(cfg.RFC2136Host, cfg.RFC2136Port, cfg.RFC2136Zone, cfg.RFC2136Insecure, cfg.RFC2136TSIGKeyName, cfg.RFC2136TSIGSecret, cfg.RFC2136TSIGSecretAlg, cfg.RFC2136TAXFR, domainFilter, cfg.DryRun, cfg.RFC2136MinTTL, cfg.RFC2136GSSTSIG, cfg.RFC2136KerberosUsername, cfg.RFC2136KerberosPassword, cfg.RFC2136KerberosRealm, nil)
 	case "ns1":
-		p, err = provider.NewNS1Provider(
-			provider.NS1Config{
-				DomainFilter: domainFilter,
-				ZoneIDFilter: zoneIDFilter,
-				NS1Endpoint:  cfg.NS1Endpoint,
-				NS1IgnoreSSL: cfg.NS1IgnoreSSL,
-				DryRun:       cfg.DryRun,
+		p, err = ns1.NewNS1Provider(
+			ns1.NS1Config{
+				DomainFilter:  domainFilter,
+				ZoneIDFilter:  zoneIDFilter,
+				NS1Endpoint:   cfg.NS1Endpoint,
+				NS1IgnoreSSL:  cfg.NS1IgnoreSSL,
+				DryRun:        cfg.DryRun,
+				MinTTLSeconds: cfg.NS1MinTTLSeconds,
 			},
 		)
 	case "transip":
-		p, err = provider.NewTransIPProvider(cfg.TransIPAccountName, cfg.TransIPPrivateKeyFile, domainFilter, cfg.DryRun)
+		p, err = transip.NewTransIPProvider(cfg.TransIPAccountName, cfg.TransIPPrivateKeyFile, domainFilter, cfg.DryRun)
+	case "scaleway":
+		p, err = scaleway.NewScalewayProvider(ctx, domainFilter, cfg.DryRun)
+	case "godaddy":
+		p, err = godaddy.NewGoDaddyProvider(ctx, domainFilter, cfg.GoDaddyTTL, cfg.GoDaddyAPIKey, cfg.GoDaddySecretKey, cfg.GoDaddyOTE, cfg.DryRun)
 	default:
 		log.Fatalf("unknown dns provider: %s", cfg.Provider)
 	}
@@ -271,9 +323,9 @@ func main() {
 	case "noop":
 		r, err = registry.NewNoopRegistry(p)
 	case "txt":
-		r, err = registry.NewTXTRegistry(p, cfg.TXTPrefix, cfg.TXTOwnerID, cfg.TXTCacheInterval)
+		r, err = registry.NewTXTRegistry(p, cfg.TXTPrefix, cfg.TXTSuffix, cfg.TXTOwnerID, cfg.TXTCacheInterval, cfg.TXTWildcardReplacement)
 	case "aws-sd":
-		r, err = registry.NewAWSSDRegistry(p.(*provider.AWSSDProvider), cfg.TXTOwnerID)
+		r, err = registry.NewAWSSDRegistry(p.(*awssd.AWSSDProvider), cfg.TXTOwnerID)
 	default:
 		log.Fatalf("unknown registry: %s", cfg.Registry)
 	}
@@ -288,18 +340,13 @@ func main() {
 	}
 
 	ctrl := controller.Controller{
-		Source:       endpointsSource,
-		Registry:     r,
-		Policy:       policy,
-		Interval:     cfg.Interval,
-		DomainFilter: domainFilter,
-	}
-
-	if cfg.UpdateEvents {
-		// Add RunOnce as the handler function that will be called when ingress/service sources have changed.
-		// Note that k8s Informers will perform an initial list operation, which results in the handler
-		// function initially being called for every Service/Ingress that exists limted by minInterval.
-		ctrl.Source.AddEventHandler(func() error { return ctrl.RunOnce(ctx) }, stopChan, 1*time.Minute)
+		Source:               endpointsSource,
+		Registry:             r,
+		Policy:               policy,
+		Interval:             cfg.Interval,
+		DomainFilter:         domainFilter,
+		ManagedRecordTypes:   cfg.ManagedDNSRecordTypes,
+		MinEventSyncInterval: cfg.MinEventSyncInterval,
 	}
 
 	if cfg.Once {
@@ -310,15 +357,24 @@ func main() {
 
 		os.Exit(0)
 	}
-	ctrl.Run(ctx, stopChan)
+
+	if cfg.UpdateEvents {
+		// Add RunOnce as the handler function that will be called when ingress/service sources have changed.
+		// Note that k8s Informers will perform an initial list operation, which results in the handler
+		// function initially being called for every Service/Ingress that exists
+		ctrl.Source.AddEventHandler(ctx, func() { ctrl.ScheduleRunOnce(time.Now()) })
+	}
+
+	ctrl.ScheduleRunOnce(time.Now())
+	ctrl.Run(ctx)
 }
 
-func handleSigterm(stopChan chan struct{}) {
+func handleSigterm(cancel func()) {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGTERM)
 	<-signals
 	log.Info("Received SIGTERM. Terminating...")
-	close(stopChan)
+	cancel()
 }
 
 func serveMetrics(address string) {

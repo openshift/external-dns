@@ -28,24 +28,7 @@ ExternalDNS can solve this for you as well.
 
 ### Which DNS providers are supported?
 
-Currently, the following providers are supported:
-
-- Google Cloud DNS
-- AWS Route 53
-- AzureDNS
-- CloudFlare
-- DigitalOcean
-- DNSimple
-- Infoblox
-- Dyn
-- OpenStack Designate
-- PowerDNS
-- CoreDNS
-- Exoscale
-- Oracle Cloud Infrastructure DNS
-- Linode DNS
-- RFC2136
-- TransIP
+Please check the [provider status table](https://github.com/kubernetes-sigs/external-dns#status-of-providers) for the list of supported providers and their status.
 
 As stated in the README, we are currently looking for stable maintainers for those providers, to ensure that bugfixes and new features will be available for all of those.
 
@@ -57,7 +40,9 @@ Services exposed via `type=LoadBalancer`, `type=ExternalName` and for the hostna
 
 There are three sources of information for ExternalDNS to decide on DNS name. ExternalDNS will pick one in order as listed below:
 
-1. For ingress objects ExternalDNS will create a DNS record based on the host specified for the ingress object. For services ExternalDNS will look for the annotation `external-dns.alpha.kubernetes.io/hostname` on the service and use the corresponding value.
+1. For ingress objects ExternalDNS will create a DNS record based on the hosts specified for the ingress object, as well as the `external-dns.alpha.kubernetes.io/hostname` annotation. For services ExternalDNS will look for the annotation `external-dns.alpha.kubernetes.io/hostname` on the service and use the loadbalancer IP, it also will look for the annotation `external-dns.alpha.kubernetes.io/internal-hostname` on the service and use the service IP.
+    - For ingresses, you can optionally force ExternalDNS to create records based on _either_ the hosts specified or the `external-dns.alpha.kubernetes.io/hostname` annotation. This behavior is controlled by
+      setting the `external-dns.alpha.kubernetes.io/ingress-hostname-source` annotation on that ingress to either `defined-hosts-only` or `annotation-only`.
 
 2. If compatibility mode is enabled (e.g. `--compatibility={mate,molecule}` flag), External DNS will parse annotations used by Zalando/Mate, wearemolecule/route53-kubernetes. Compatibility mode with Kops DNS Controller is planned to be added in the future.
 
@@ -75,13 +60,15 @@ Regarding Ingress, we'll support:
 * Google's Ingress Controller on GKE that integrates with their Layer 7 load balancers (GLBC)
 * nginx-ingress-controller v0.9.x with a fronting Service
 * Zalando's [AWS Ingress controller](https://github.com/zalando-incubator/kube-ingress-aws-controller), based on AWS ALBs and [Skipper](https://github.com/zalando/skipper)
-* [Traefik](https://github.com/containous/traefik) 1.7 and above, when [`kubernetes.ingressEndpoint`](https://docs.traefik.io/v1.7/configuration/backends/kubernetes/#ingressendpoint) is configured (`kubernetes.ingressEndpoint.useDefaultPublishedService` in the [Helm chart](https://github.com/helm/charts/tree/master/stable/traefik#configuration))
+* [Traefik](https://github.com/containous/traefik)
+  * version 1.7, when [`kubernetes.ingressEndpoint`](https://docs.traefik.io/v1.7/configuration/backends/kubernetes/#ingressendpoint) is configured (`kubernetes.ingressEndpoint.useDefaultPublishedService` in the [Helm chart](https://github.com/helm/charts/tree/HEAD/stable/traefik#configuration))
+  * versions \>=2.0, when [`providers.kubernetesIngress.ingressEndpoint`](https://doc.traefik.io/traefik/providers/kubernetes-ingress/#ingressendpoint) is configured (`providers.kubernetesIngress.publishedService.enabled` is set to `true` in the [new Helm chart](https://github.com/traefik/traefik-helm-chart))
 
 ### Are other Ingress Controllers supported?
 
 For Ingress objects, ExternalDNS will attempt to discover the target hostname of the relevant Ingress Controller automatically. If you are using an Ingress Controller that is not listed above you may have issues with ExternalDNS not discovering Endpoints and consequently not creating any DNS records. As a workaround, it is possible to force create an Endpoint by manually specifying a target host/IP for the records to be created by setting the annotation `external-dns.alpha.kubernetes.io/target` in the Ingress object.
 
-Another reason you may want to override the ingress hostname or IP address is if you have an external mechanism for handling failover across ingress endpoints. Possible scenarios for this would include using [keepalived-vip](https://github.com/kubernetes/contrib/tree/master/keepalived-vip) to manage failover faster than DNS TTLs might expire.
+Another reason you may want to override the ingress hostname or IP address is if you have an external mechanism for handling failover across ingress endpoints. Possible scenarios for this would include using [keepalived-vip](https://github.com/kubernetes/contrib/tree/HEAD/keepalived-vip) to manage failover faster than DNS TTLs might expire.
 
 Note that if you set the target to a hostname, then a CNAME record will be created. In this case, the hostname specified in the Ingress object's annotation must already exist. (i.e. you have a Service resource for your Ingress Controller with the `external-dns.alpha.kubernetes.io/hostname` annotation set to the same value.)
 
@@ -89,7 +76,7 @@ Note that if you set the target to a hostname, then a CNAME record will be creat
 
 ExternalDNS is a joint effort to unify different projects accomplishing the same goals, namely:
 
-* Kops' [DNS Controller](https://github.com/kubernetes/kops/tree/master/dns-controller)
+* Kops' [DNS Controller](https://github.com/kubernetes/kops/tree/HEAD/dns-controller)
 * Zalando's [Mate](https://github.com/linki/mate)
 * Molecule Software's [route53-kubernetes](https://github.com/wearemolecule/route53-kubernetes)
 
@@ -189,6 +176,16 @@ In case of an increased error count, you could correlate them with the `http_req
 
 You can use the host label in the metric to figure out if the request was against the Kubernetes API server (Source errors) or the DNS provider API (Registry/Provider errors).
 
+Here is the full list of available metrics provided by ExternalDNS:
+
+| Name                                                | Description                                             | Type    |
+| --------------------------------------------------- | ------------------------------------------------------- | ------- |
+| external_dns_controller_last_sync_timestamp_seconds | Timestamp of last successful sync with the DNS provider | Gauge   |
+| external_dns_registry_endpoints_total               | Number of Endpoints in all sources                      | Gauge   |
+| external_dns_registry_errors_total                  | Number of Registry errors                               | Counter |
+| external_dns_source_endpoints_total                 | Number of Endpoints in the registry                     | Gauge   |
+| external_dns_source_errors_total                    | Number of Source errors                                 | Counter |
+
 ### How can I run ExternalDNS under a specific GCP Service Account, e.g. to access DNS records in other projects?
 
 Have a look at https://github.com/linki/mate/blob/v0.6.2/examples/google/README.md#permissions
@@ -204,21 +201,22 @@ $ docker run \
   -e EXTERNAL_DNS_SOURCE=$'service\ningress' \
   -e EXTERNAL_DNS_PROVIDER=google \
   -e EXTERNAL_DNS_DOMAIN_FILTER=$'foo.com\nbar.com' \
-  registry.opensource.zalan.do/teapot/external-dns:latest
-time="2017-08-08T14:10:26Z" level=info msg="config: &{Master: KubeConfig: Sources:[service ingress] Namespace: ...
+  k8s.gcr.io/external-dns/external-dns:v0.7.6
+time="2017-08-08T14:10:26Z" level=info msg="config: &{APIServerURL: KubeConfig: Sources:[service ingress] Namespace: ...
 ```
+
 
 Locally:
 
 ```console
 $ export EXTERNAL_DNS_SOURCE=$'service\ningress'
 $ external-dns --provider=google
-INFO[0000] config: &{Master: KubeConfig: Sources:[service ingress] Namespace: ...
+INFO[0000] config: &{APIServerURL: KubeConfig: Sources:[service ingress] Namespace: ...
 ```
 
 ```
 $ EXTERNAL_DNS_SOURCE=$'service\ningress' external-dns --provider=google
-INFO[0000] config: &{Master: KubeConfig: Sources:[service ingress] Namespace: ...
+INFO[0000] config: &{APIServerURL: KubeConfig: Sources:[service ingress] Namespace: ...
 ```
 
 In a Kubernetes manifest:
@@ -258,8 +256,21 @@ one to expose DNS to the internet.
 
 To do this with ExternalDNS you can use the `--annotation-filter` to specifically tie an instance of ExternalDNS to
 an instance of a ingress controller. Let's assume you have two ingress controllers `nginx-internal` and `nginx-external`
-then you can start two ExternalDNS providers one with `--annotation-filter=kubernetes.io/ingress.class=nginx-internal`
-and one with `--annotation-filter=kubernetes.io/ingress.class=nginx-external`.
+then you can start two ExternalDNS providers one with `--annotation-filter=kubernetes.io/ingress.class in (nginx-internal)`
+and one with `--annotation-filter=kubernetes.io/ingress.class in (nginx-external)`.
+
+Beware when using multiple sources, e.g. `--source=service --source=ingress`, `--annotation-filter` will filter every given source objects.
+If you need to filter only one specific source you have to run a separated external dns service containing only the wanted `--source`  and `--annotation-filter`.
+
+### How do I specify that I want the DNS record to point to either the Node's public or private IP when it has both?
+
+If your Nodes have both public and private IP addresses, you might want to write DNS records with one or the other.
+For example, you may want to write a DNS record in a private zone that resolves to your Nodes' private IPs so that traffic never leaves your private network.
+
+To accomplish this, set this annotation on your service: `external-dns.alpha.kubernetes.io/access=private`
+Conversely, to force the public IP: `external-dns.alpha.kubernetes.io/access=public`
+
+If this annotation is not set, and the node has both public and private IP addresses, then the public IP will be used by default.
 
 ### Can external-dns manage(add/remove) records in a hosted zone which is setup in different AWS account?
 
@@ -272,17 +283,23 @@ Separate them by `,`.
 
 ### Are there official Docker images provided?
 
-When we tag a new release, we push a Docker image on Zalando's public Docker registry with the following name: 
+When we tag a new release, we push a container image to the Kubernetes projects official container registry with the following name:
 
 ```
-registry.opensource.zalan.do/teapot/external-dns
+k8s.gcr.io/external-dns/external-dns
 ```
 
-As tags, you can use your version of choice or use `latest` that always resolves to the latest tag.
+As tags, you use the external-dns release of choice(i.e. `v0.7.6`). A `latest` tag is not provided in the container registry.
 
 If you wish to build your own image, you can use the provided [Dockerfile](../Dockerfile) as a starting point.
 
-We are currently working with the Kubernetes community to provide official images for the project similarly to what is done with the other official Kubernetes projects, but we don't have an ETA on when those images will be available.
+### Which architectures are supported?
+
+From `v0.7.5` on we support `amd64`, `arm32v7` and `arm64v8`. This means that you can run ExternalDNS on a Kubernetes cluster backed by Rasperry Pis or on ARM instances in the cloud as well as more traditional machines backed by `amd64` compatible CPUs.
+
+### Which operating systems are supported?
+
+At the time of writing we only support GNU/linux and we have no plans of supporting Windows or other operating systems.
 
 ### Why am I seeing time out errors even though I have connectivity to my cluster?
 

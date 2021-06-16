@@ -18,6 +18,7 @@ package source
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -32,7 +33,6 @@ import (
 	extinformers "k8s.io/client-go/informers/extensions/v1beta1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/kubernetes/pkg/util/async"
 
 	"sigs.k8s.io/external-dns/endpoint"
 )
@@ -42,6 +42,10 @@ const (
 	ALBDualstackAnnotationKey = "alb.ingress.kubernetes.io/ip-address-type"
 	// ALBDualstackAnnotationValue is the value of the ALB dualstack annotation that indicates it is dualstack
 	ALBDualstackAnnotationValue = "dualstack"
+
+	// Possible values for the ingress-hostname-source annotation
+	IngressHostnameSourceAnnotationOnlyValue   = "annotation-only"
+	IngressHostnameSourceDefinedHostsOnlyValue = "defined-hosts-only"
 )
 
 // ingressSource is an implementation of Source for Kubernetes ingress objects.
@@ -56,11 +60,11 @@ type ingressSource struct {
 	combineFQDNAnnotation    bool
 	ignoreHostnameAnnotation bool
 	ingressInformer          extinformers.IngressInformer
-	runner                   *async.BoundedFrequencyRunner
+	ignoreIngressTLSSpec     bool
 }
 
 // NewIngressSource creates a new ingressSource with the given config.
-func NewIngressSource(kubeClient kubernetes.Interface, namespace, annotationFilter string, fqdnTemplate string, combineFqdnAnnotation bool, ignoreHostnameAnnotation bool) (Source, error) {
+func NewIngressSource(kubeClient kubernetes.Interface, namespace, annotationFilter string, fqdnTemplate string, combineFqdnAnnotation bool, ignoreHostnameAnnotation bool, ignoreIngressTLSSpec bool) (Source, error) {
 	var (
 		tmpl *template.Template
 		err  error
@@ -91,7 +95,7 @@ func NewIngressSource(kubeClient kubernetes.Interface, namespace, annotationFilt
 	informerFactory.Start(wait.NeverStop)
 
 	// wait for the local cache to be populated.
-	err = wait.Poll(time.Second, 60*time.Second, func() (bool, error) {
+	err = poll(time.Second, 60*time.Second, func() (bool, error) {
 		return ingressInformer.Informer().HasSynced(), nil
 	})
 	if err != nil {
@@ -106,13 +110,14 @@ func NewIngressSource(kubeClient kubernetes.Interface, namespace, annotationFilt
 		combineFQDNAnnotation:    combineFqdnAnnotation,
 		ignoreHostnameAnnotation: ignoreHostnameAnnotation,
 		ingressInformer:          ingressInformer,
+		ignoreIngressTLSSpec:     ignoreIngressTLSSpec,
 	}
 	return sc, nil
 }
 
 // Endpoints returns endpoint objects for each host-target combination that should be processed.
 // Retrieves all ingress resources on all namespaces
-func (sc *ingressSource) Endpoints() ([]*endpoint.Endpoint, error) {
+func (sc *ingressSource) Endpoints(ctx context.Context) ([]*endpoint.Endpoint, error) {
 	ingresses, err := sc.ingressInformer.Lister().Ingresses(sc.namespace).List(labels.Everything())
 	if err != nil {
 		return nil, err
@@ -133,7 +138,7 @@ func (sc *ingressSource) Endpoints() ([]*endpoint.Endpoint, error) {
 			continue
 		}
 
-		ingEndpoints := endpointsFromIngress(ing, sc.ignoreHostnameAnnotation)
+		ingEndpoints := endpointsFromIngress(ing, sc.ignoreHostnameAnnotation, sc.ignoreIngressTLSSpec)
 
 		// apply template if host is missing on ingress
 		if (sc.combineFQDNAnnotation || len(ingEndpoints) == 0) && sc.fqdnTemplate != nil {
@@ -241,9 +246,7 @@ func (sc *ingressSource) setDualstackLabel(ingress *v1beta1.Ingress, endpoints [
 }
 
 // endpointsFromIngress extracts the endpoints from ingress object
-func endpointsFromIngress(ing *v1beta1.Ingress, ignoreHostnameAnnotation bool) []*endpoint.Endpoint {
-	var endpoints []*endpoint.Endpoint
-
+func endpointsFromIngress(ing *v1beta1.Ingress, ignoreHostnameAnnotation bool, ignoreIngressTLSSpec bool) []*endpoint.Endpoint {
 	ttl, err := getTTLFromAnnotations(ing.Annotations)
 	if err != nil {
 		log.Warn(err)
@@ -257,28 +260,48 @@ func endpointsFromIngress(ing *v1beta1.Ingress, ignoreHostnameAnnotation bool) [
 
 	providerSpecific, setIdentifier := getProviderSpecificAnnotations(ing.Annotations)
 
+	// Gather endpoints defined on hosts sections of the ingress
+	var definedHostsEndpoints []*endpoint.Endpoint
 	for _, rule := range ing.Spec.Rules {
 		if rule.Host == "" {
 			continue
 		}
-		endpoints = append(endpoints, endpointsForHostname(rule.Host, targets, ttl, providerSpecific, setIdentifier)...)
+		definedHostsEndpoints = append(definedHostsEndpoints, endpointsForHostname(rule.Host, targets, ttl, providerSpecific, setIdentifier)...)
 	}
 
-	for _, tls := range ing.Spec.TLS {
-		for _, host := range tls.Hosts {
-			if host == "" {
-				continue
+	// Skip endpoints if we do not want entries from tls spec section
+	if !ignoreIngressTLSSpec {
+		for _, tls := range ing.Spec.TLS {
+			for _, host := range tls.Hosts {
+				if host == "" {
+					continue
+				}
+				definedHostsEndpoints = append(definedHostsEndpoints, endpointsForHostname(host, targets, ttl, providerSpecific, setIdentifier)...)
 			}
-			endpoints = append(endpoints, endpointsForHostname(host, targets, ttl, providerSpecific, setIdentifier)...)
 		}
 	}
 
-	// Skip endpoints if we do not want entries from annotations
+	// Gather endpoints defined on annotations in the ingress
+	var annotationEndpoints []*endpoint.Endpoint
 	if !ignoreHostnameAnnotation {
-		hostnameList := getHostnamesFromAnnotations(ing.Annotations)
-		for _, hostname := range hostnameList {
-			endpoints = append(endpoints, endpointsForHostname(hostname, targets, ttl, providerSpecific, setIdentifier)...)
+		for _, hostname := range getHostnamesFromAnnotations(ing.Annotations) {
+			annotationEndpoints = append(annotationEndpoints, endpointsForHostname(hostname, targets, ttl, providerSpecific, setIdentifier)...)
 		}
+	}
+
+	// Determine which hostnames to consider in our final list
+	hostnameSourceAnnotation, hostnameSourceAnnotationExists := ing.Annotations[ingressHostnameSourceKey]
+	if !hostnameSourceAnnotationExists {
+		return append(definedHostsEndpoints, annotationEndpoints...)
+	}
+
+	// Include endpoints according to the hostname source annotation in our final list
+	var endpoints []*endpoint.Endpoint
+	if strings.ToLower(hostnameSourceAnnotation) == IngressHostnameSourceDefinedHostsOnlyValue {
+		endpoints = append(endpoints, definedHostsEndpoints...)
+	}
+	if strings.ToLower(hostnameSourceAnnotation) == IngressHostnameSourceAnnotationOnlyValue {
+		endpoints = append(endpoints, annotationEndpoints...)
 	}
 	return endpoints
 }
@@ -298,30 +321,21 @@ func targetsFromIngressStatus(status v1beta1.IngressStatus) endpoint.Targets {
 	return targets
 }
 
-func (sc *ingressSource) AddEventHandler(handler func() error, stopChan <-chan struct{}, minInterval time.Duration) {
-	// Add custom resource event handler
-	log.Debug("Adding (bounded) event handler for ingress")
+func (sc *ingressSource) AddEventHandler(ctx context.Context, handler func()) {
+	log.Debug("Adding event handler for ingress")
 
-	maxInterval := 24 * time.Hour // handler will be called if it has not run in 24 hours
-	burst := 2                    // allow up to two handler burst calls
-	log.Debugf("Adding handler to BoundedFrequencyRunner with minInterval: %v, syncPeriod: %v, bursts: %d",
-		minInterval, maxInterval, burst)
-	sc.runner = async.NewBoundedFrequencyRunner("ingress-handler", func() {
-		_ = handler()
-	}, minInterval, maxInterval, burst)
-	go sc.runner.Loop(stopChan)
-
-	// run the handler function as soon as the BoundedFrequencyRunner will allow when an update occurs
+	// Right now there is no way to remove event handler from informer, see:
+	// https://github.com/kubernetes/kubernetes/issues/79610
 	sc.ingressInformer.Informer().AddEventHandler(
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
-				sc.runner.Run()
+				handler()
 			},
 			UpdateFunc: func(old interface{}, new interface{}) {
-				sc.runner.Run()
+				handler()
 			},
 			DeleteFunc: func(obj interface{}) {
-				sc.runner.Run()
+				handler()
 			},
 		},
 	)

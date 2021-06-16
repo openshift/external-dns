@@ -26,6 +26,8 @@ auth:
     -----BEGIN RSA PRIVATE KEY-----
     -----END RSA PRIVATE KEY-----
   fingerprint: af:81:71:8e...
+  # Omit if there is not a password for the key
+  passphrase: Tx1jRk...
 compartment: ocid1.compartment.oc1...
 ```
 
@@ -45,7 +47,7 @@ kind: ServiceAccount
 metadata:
   name: external-dns
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: external-dns
@@ -53,14 +55,14 @@ rules:
 - apiGroups: [""]
   resources: ["services","endpoints","pods"]
   verbs: ["get","watch","list"]
-- apiGroups: ["extensions"]
+- apiGroups: ["extensions","networking.k8s.io"]
   resources: ["ingresses"]
   verbs: ["get","watch","list"]
 - apiGroups: [""]
   resources: ["nodes"]
   verbs: ["list"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: external-dns-viewer
@@ -91,12 +93,12 @@ spec:
       serviceAccountName: external-dns
       containers:
       - name: external-dns
-        image: registry.opensource.zalan.do/teapot/external-dns:latest
+        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
         args:
         - --source=service
         - --source=ingress
         - --provider=oci
-        - --policy=upsert-only # prevent ExternalDNSfrom deleting any records, omit to enable full synchronization
+        - --policy=upsert-only # prevent ExternalDNS from deleting any records, omit to enable full synchronization
         - --txt-owner-id=my-identifier
         volumeMounts:
           - name: config

@@ -17,6 +17,7 @@ limitations under the License.
 package source
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"net"
@@ -26,7 +27,10 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/util/wait"
+
 	"sigs.k8s.io/external-dns/endpoint"
+	"sigs.k8s.io/external-dns/internal/config"
 )
 
 const (
@@ -34,14 +38,21 @@ const (
 	controllerAnnotationKey = "external-dns.alpha.kubernetes.io/controller"
 	// The annotation used for defining the desired hostname
 	hostnameAnnotationKey = "external-dns.alpha.kubernetes.io/hostname"
+	// The annotation used for specifying whether the public or private interface address is used
+	accessAnnotationKey = "external-dns.alpha.kubernetes.io/access"
 	// The annotation used for defining the desired ingress target
 	targetAnnotationKey = "external-dns.alpha.kubernetes.io/target"
 	// The annotation used for defining the desired DNS record TTL
 	ttlAnnotationKey = "external-dns.alpha.kubernetes.io/ttl"
 	// The annotation used for switching to the alias record types e. g. AWS Alias records instead of a normal CNAME
 	aliasAnnotationKey = "external-dns.alpha.kubernetes.io/alias"
+	// The annotation used to determine the source of hostnames for ingresses.  This is an optional field - all
+	// available hostname sources are used if not specified.
+	ingressHostnameSourceKey = "external-dns.alpha.kubernetes.io/ingress-hostname-source"
 	// The value of the controller annotation so that we feel responsible
 	controllerAnnotationValue = "dns-controller"
+	// The annotation used for defining the desired hostname
+	internalHostnameAnnotationKey = "external-dns.alpha.kubernetes.io/internal-hostname"
 )
 
 // Provider-specific annotations
@@ -59,10 +70,9 @@ const (
 
 // Source defines the interface Endpoint sources should implement.
 type Source interface {
-	Endpoints() ([]*endpoint.Endpoint, error)
-	// AddEventHandler adds an event handler function that's called when (supported) sources have changed.
-	// The handler should not be called more than than once per time.Duration and not again after stop channel is closed.
-	AddEventHandler(func() error, <-chan struct{}, time.Duration)
+	Endpoints(ctx context.Context) ([]*endpoint.Endpoint, error)
+	// AddEventHandler adds an event handler that should be triggered if something in source changes
+	AddEventHandler(context.Context, func())
 }
 
 func getTTLFromAnnotations(annotations map[string]string) (endpoint.TTL, error) {
@@ -104,6 +114,18 @@ func getHostnamesFromAnnotations(annotations map[string]string) []string {
 	return strings.Split(strings.Replace(hostnameAnnotation, " ", "", -1), ",")
 }
 
+func getAccessFromAnnotations(annotations map[string]string) string {
+	return annotations[accessAnnotationKey]
+}
+
+func getInternalHostnamesFromAnnotations(annotations map[string]string) []string {
+	internalHostnameAnnotation, exists := annotations[internalHostnameAnnotationKey]
+	if !exists {
+		return nil
+	}
+	return strings.Split(strings.Replace(internalHostnameAnnotation, " ", "", -1), ",")
+}
+
 func getAliasFromAnnotations(annotations map[string]string) bool {
 	aliasAnnotation, exists := annotations[aliasAnnotationKey]
 	return exists && aliasAnnotation == "true"
@@ -133,6 +155,12 @@ func getProviderSpecificAnnotations(annotations map[string]string) (endpoint.Pro
 			attr := strings.TrimPrefix(k, "external-dns.alpha.kubernetes.io/aws-")
 			providerSpecificAnnotations = append(providerSpecificAnnotations, endpoint.ProviderSpecificProperty{
 				Name:  fmt.Sprintf("aws/%s", attr),
+				Value: v,
+			})
+		} else if strings.HasPrefix(k, "external-dns.alpha.kubernetes.io/scw-") {
+			attr := strings.TrimPrefix(k, "external-dns.alpha.kubernetes.io/scw-")
+			providerSpecificAnnotations = append(providerSpecificAnnotations, endpoint.ProviderSpecificProperty{
+				Name:  fmt.Sprintf("scw/%s", attr),
 				Value: v,
 			})
 		}
@@ -223,4 +251,25 @@ func getLabelSelector(annotationFilter string) (labels.Selector, error) {
 func matchLabelSelector(selector labels.Selector, srcAnnotations map[string]string) bool {
 	annotations := labels.Set(srcAnnotations)
 	return selector.Matches(annotations)
+}
+
+func poll(interval time.Duration, timeout time.Duration, condition wait.ConditionFunc) error {
+	if config.FastPoll {
+		time.Sleep(5 * time.Millisecond)
+
+		ok, err := condition()
+
+		if err != nil {
+			return err
+		}
+
+		if ok {
+			return nil
+		}
+
+		interval = 50 * time.Millisecond
+		timeout = 10 * time.Second
+	}
+
+	return wait.Poll(interval, timeout, condition)
 }

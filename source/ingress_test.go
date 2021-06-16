@@ -17,6 +17,7 @@ limitations under the License.
 package source
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -26,7 +27,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes/fake"
 
 	"sigs.k8s.io/external-dns/endpoint"
@@ -52,6 +52,7 @@ func (suite *IngressSuite) SetupTest() {
 		"{{.Name}}",
 		false,
 		false,
+		false,
 	)
 	suite.NoError(err, "should initialize ingress source")
 
@@ -63,19 +64,19 @@ func (suite *IngressSuite) SetupTest() {
 		hostnames:   []string{"v1"},
 		annotations: map[string]string{ALBDualstackAnnotationKey: ALBDualstackAnnotationValue},
 	}).Ingress()
-	_, err = fakeClient.Extensions().Ingresses(suite.fooWithTargets.Namespace).Create(suite.fooWithTargets)
+	_, err = fakeClient.ExtensionsV1beta1().Ingresses(suite.fooWithTargets.Namespace).Create(context.Background(), suite.fooWithTargets, metav1.CreateOptions{})
 	suite.NoError(err, "should succeed")
 }
 
 func (suite *IngressSuite) TestResourceLabelIsSet() {
-	endpoints, _ := suite.sc.Endpoints()
+	endpoints, _ := suite.sc.Endpoints(context.Background())
 	for _, ep := range endpoints {
 		suite.Equal("ingress/default/foo-with-targets", ep.Labels[endpoint.ResourceLabelKey], "should set correct resource label")
 	}
 }
 
 func (suite *IngressSuite) TestDualstackLabelIsSet() {
-	endpoints, _ := suite.sc.Endpoints()
+	endpoints, _ := suite.sc.Endpoints(context.Background())
 	for _, ep := range endpoints {
 		suite.Equal("true", ep.Labels[endpoint.DualstackLabelKey], "should set dualstack label to true")
 	}
@@ -84,6 +85,7 @@ func (suite *IngressSuite) TestDualstackLabelIsSet() {
 func TestIngress(t *testing.T) {
 	suite.Run(t, new(IngressSuite))
 	t.Run("endpointsFromIngress", testEndpointsFromIngress)
+	t.Run("endpointsFromIngressHostnameSourceAnnotation", testEndpointsFromIngressHostnameSourceAnnotation)
 	t.Run("Endpoints", testIngressEndpoints)
 }
 
@@ -133,6 +135,7 @@ func TestNewIngressSource(t *testing.T) {
 				ti.annotationFilter,
 				ti.fqdnTemplate,
 				ti.combineFQDNAndAnnotation,
+				false,
 				false,
 			)
 			if ti.expectError {
@@ -221,7 +224,99 @@ func testEndpointsFromIngress(t *testing.T) {
 	} {
 		t.Run(ti.title, func(t *testing.T) {
 			realIngress := ti.ingress.Ingress()
-			validateEndpoints(t, endpointsFromIngress(realIngress, false), ti.expected)
+			validateEndpoints(t, endpointsFromIngress(realIngress, false, false), ti.expected)
+		})
+	}
+}
+
+func testEndpointsFromIngressHostnameSourceAnnotation(t *testing.T) {
+	// Host names and host name annotation provided, with various values of the ingress-hostname-source annotation
+	for _, ti := range []struct {
+		title    string
+		ingress  fakeIngress
+		expected []*endpoint.Endpoint
+	}{
+		{
+			title: "No ingress-hostname-source annotation, one rule.host, one annotation host",
+			ingress: fakeIngress{
+				dnsnames:    []string{"foo.bar"},
+				annotations: map[string]string{hostnameAnnotationKey: "foo.baz"},
+				hostnames:   []string{"lb.com"},
+			},
+			expected: []*endpoint.Endpoint{
+				{
+					DNSName: "foo.bar",
+					Targets: endpoint.Targets{"lb.com"},
+				},
+				{
+					DNSName: "foo.baz",
+					Targets: endpoint.Targets{"lb.com"},
+				},
+			},
+		},
+		{
+			title: "No ingress-hostname-source annotation, one rule.host",
+			ingress: fakeIngress{
+				dnsnames:    []string{"foo.bar"},
+				hostnames:   []string{"lb.com"},
+			},
+			expected: []*endpoint.Endpoint{
+				{
+					DNSName: "foo.bar",
+					Targets: endpoint.Targets{"lb.com"},
+				},
+			},
+		},
+		{
+			title: "No ingress-hostname-source annotation, one rule.host, one annotation host",
+			ingress: fakeIngress{
+				dnsnames:    []string{"foo.bar"},
+				annotations: map[string]string{hostnameAnnotationKey: "foo.baz"},
+				hostnames:   []string{"lb.com"},
+			},
+			expected: []*endpoint.Endpoint{
+				{
+					DNSName: "foo.bar",
+					Targets: endpoint.Targets{"lb.com"},
+				},
+				{
+					DNSName: "foo.baz",
+					Targets: endpoint.Targets{"lb.com"},
+				},
+			},
+		},
+		{
+			title: "Ingress-hostname-source=defined-hosts-only, one rule.host, one annotation host",
+			ingress: fakeIngress{
+				dnsnames:    []string{"foo.bar"},
+				annotations: map[string]string{hostnameAnnotationKey: "foo.baz", ingressHostnameSourceKey: "defined-hosts-only"},
+				hostnames:   []string{"lb.com"},
+			},
+			expected: []*endpoint.Endpoint{
+				{
+					DNSName: "foo.bar",
+					Targets: endpoint.Targets{"lb.com"},
+				},
+			},
+		},
+		{
+			title: "Ingress-hostname-source=annotation-only, one rule.host, one annotation host",
+			ingress: fakeIngress{
+				dnsnames:    []string{"foo.bar"},
+				annotations: map[string]string{hostnameAnnotationKey: "foo.baz", ingressHostnameSourceKey: "annotation-only"},
+				hostnames:   []string{"lb.com"},
+			},
+			expected: []*endpoint.Endpoint{
+				{
+					DNSName: "foo.baz",
+					Targets: endpoint.Targets{"lb.com"},
+				},
+			},
+		},
+	} {
+		t.Run(ti.title, func(t *testing.T) {
+			realIngress := ti.ingress.Ingress()
+			validateEndpoints(t, endpointsFromIngress(realIngress, false, false), ti.expected)
 		})
 	}
 }
@@ -238,6 +333,7 @@ func testIngressEndpoints(t *testing.T) {
 		fqdnTemplate             string
 		combineFQDNAndAnnotation bool
 		ignoreHostnameAnnotation bool
+		ignoreIngressTLSSpec     bool
 	}{
 		{
 			title:           "no ingress",
@@ -993,6 +1089,39 @@ func testIngressEndpoints(t *testing.T) {
 				},
 			},
 		},
+		{
+			title:                "ignore tls section",
+			targetNamespace:      "",
+			ignoreIngressTLSSpec: true,
+			ingressItems: []fakeIngress{
+				{
+					name:        "fake1",
+					namespace:   namespace,
+					tlsdnsnames: [][]string{{"example.org"}},
+					ips:         []string{"1.2.3.4"},
+				},
+			},
+			expected: []*endpoint.Endpoint{},
+		},
+		{
+			title:                "reading tls section",
+			targetNamespace:      "",
+			ignoreIngressTLSSpec: false,
+			ingressItems: []fakeIngress{
+				{
+					name:        "fake1",
+					namespace:   namespace,
+					tlsdnsnames: [][]string{{"example.org"}},
+					ips:         []string{"1.2.3.4"},
+				},
+			},
+			expected: []*endpoint.Endpoint{
+				{
+					DNSName: "example.org",
+					Targets: endpoint.Targets{"1.2.3.4"},
+				},
+			},
+		},
 	} {
 		t.Run(ti.title, func(t *testing.T) {
 			ingresses := make([]*v1beta1.Ingress, 0)
@@ -1001,38 +1130,51 @@ func testIngressEndpoints(t *testing.T) {
 			}
 
 			fakeClient := fake.NewSimpleClientset()
-			ingressSource, _ := NewIngressSource(
+			source, _ := NewIngressSource(
 				fakeClient,
 				ti.targetNamespace,
 				ti.annotationFilter,
 				ti.fqdnTemplate,
 				ti.combineFQDNAndAnnotation,
 				ti.ignoreHostnameAnnotation,
+				ti.ignoreIngressTLSSpec,
 			)
 			for _, ingress := range ingresses {
-				_, err := fakeClient.Extensions().Ingresses(ingress.Namespace).Create(ingress)
+				_, err := fakeClient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Create(context.Background(), ingress, metav1.CreateOptions{})
 				require.NoError(t, err)
 			}
 
-			var res []*endpoint.Endpoint
-			var err error
+			// Wait for the Ingress resources to be visible to the source. We check the
+			// source's informer cache to detect when this occurs. (This violates encapsulation
+			// but is okay as this is a test and we want to ensure the informer's cache updates.)
+			concreteIngressSource := source.(*ingressSource)
+			ingressLister := concreteIngressSource.ingressInformer.Lister()
+			err := poll(250*time.Millisecond, 6*time.Second, func() (bool, error) {
+				allIngressesPresent := true
+				for _, ingress := range ingresses {
+					// Skip ingresses that the source would also skip.
+					if ti.targetNamespace != "" && ti.targetNamespace != ingress.Namespace {
+						continue
+					}
 
-			// wait up to a few seconds for new resources to appear in informer cache.
-			err = wait.Poll(time.Second, 3*time.Second, func() (bool, error) {
-				res, err = ingressSource.Endpoints()
-				if err != nil {
-					// stop waiting if we get an error
-					return true, err
+					// Check for the presence of this ingress.
+					_, err := ingressLister.Ingresses(ingress.Namespace).Get(ingress.Name)
+					if err != nil {
+						allIngressesPresent = false
+						break
+					}
 				}
-				return len(res) >= len(ti.expected), nil
+				return allIngressesPresent, nil
 			})
+			require.NoError(t, err)
 
+			// Informer cache has all of the ingresses. Retrieve and validate their endpoints.
+			res, err := source.Endpoints(context.Background())
 			if ti.expectError {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
-
 			validateEndpoints(t, res, ti.expected)
 		})
 	}

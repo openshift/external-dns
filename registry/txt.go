@@ -40,21 +40,31 @@ type TXTRegistry struct {
 	recordsCache            []*endpoint.Endpoint
 	recordsCacheRefreshTime time.Time
 	cacheInterval           time.Duration
+
+	// optional string to use to replace the asterisk in wildcard entries - without using this,
+	// registry TXT records corresponding to wildcard records will be invalid (and rejected by most providers), due to
+	// having a '*' appear (not as the first character) - see https://tools.ietf.org/html/rfc1034#section-4.3.3
+	wildcardReplacement string
 }
 
 // NewTXTRegistry returns new TXTRegistry object
-func NewTXTRegistry(provider provider.Provider, txtPrefix, ownerID string, cacheInterval time.Duration) (*TXTRegistry, error) {
+func NewTXTRegistry(provider provider.Provider, txtPrefix, txtSuffix, ownerID string, cacheInterval time.Duration, txtWildcardReplacement string) (*TXTRegistry, error) {
 	if ownerID == "" {
 		return nil, errors.New("owner id cannot be empty")
 	}
 
-	mapper := newPrefixNameMapper(txtPrefix)
+	if len(txtPrefix) > 0 && len(txtSuffix) > 0 {
+		return nil, errors.New("txt-prefix and txt-suffix are mutual exclusive")
+	}
+
+	mapper := newaffixNameMapper(txtPrefix, txtSuffix, txtWildcardReplacement)
 
 	return &TXTRegistry{
-		provider:      provider,
-		ownerID:       ownerID,
-		mapper:        mapper,
-		cacheInterval: cacheInterval,
+		provider:            provider,
+		ownerID:             ownerID,
+		mapper:              mapper,
+		cacheInterval:       cacheInterval,
+		wildcardReplacement: txtWildcardReplacement,
 	}, nil
 }
 
@@ -103,7 +113,13 @@ func (im *TXTRegistry) Records(ctx context.Context) ([]*endpoint.Endpoint, error
 		if ep.Labels == nil {
 			ep.Labels = endpoint.NewLabels()
 		}
-		key := fmt.Sprintf("%s::%s", ep.DNSName, ep.SetIdentifier)
+		dnsNameSplit := strings.Split(ep.DNSName, ".")
+		// If specified, replace a leading asterisk in the generated txt record name with some other string
+		if im.wildcardReplacement != "" && dnsNameSplit[0] == "*" {
+			dnsNameSplit[0] = im.wildcardReplacement
+		}
+		dnsName := strings.Join(dnsNameSplit, ".")
+		key := fmt.Sprintf("%s::%s", dnsName, ep.SetIdentifier)
 		if labels, ok := labelMap[key]; ok {
 			for k, v := range labels {
 				ep.Labels[k] = v
@@ -187,6 +203,16 @@ func (im *TXTRegistry) ApplyChanges(ctx context.Context, changes *plan.Changes) 
 	return im.provider.ApplyChanges(ctx, filteredChanges)
 }
 
+// PropertyValuesEqual compares two attribute values for equality
+func (im *TXTRegistry) PropertyValuesEqual(name string, previous string, current string) bool {
+	return im.provider.PropertyValuesEqual(name, previous, current)
+}
+
+// AdjustEndpoints modifies the endpoints as needed by the specific provider
+func (im *TXTRegistry) AdjustEndpoints(endpoints []*endpoint.Endpoint) []*endpoint.Endpoint {
+	return im.provider.AdjustEndpoints(endpoints)
+}
+
 /**
   TXT registry specific private methods
 */
@@ -201,26 +227,45 @@ type nameMapper interface {
 	toTXTName(string) string
 }
 
-type prefixNameMapper struct {
-	prefix string
+type affixNameMapper struct {
+	prefix              string
+	suffix              string
+	wildcardReplacement string
 }
 
-var _ nameMapper = prefixNameMapper{}
+var _ nameMapper = affixNameMapper{}
 
-func newPrefixNameMapper(prefix string) prefixNameMapper {
-	return prefixNameMapper{prefix: strings.ToLower(prefix)}
+func newaffixNameMapper(prefix string, suffix string, wildcardReplacement string) affixNameMapper {
+	return affixNameMapper{prefix: strings.ToLower(prefix), suffix: strings.ToLower(suffix), wildcardReplacement: strings.ToLower(wildcardReplacement)}
 }
 
-func (pr prefixNameMapper) toEndpointName(txtDNSName string) string {
+func (pr affixNameMapper) toEndpointName(txtDNSName string) string {
 	lowerDNSName := strings.ToLower(txtDNSName)
-	if strings.HasPrefix(lowerDNSName, pr.prefix) {
+	if strings.HasPrefix(lowerDNSName, pr.prefix) && len(pr.suffix) == 0 {
 		return strings.TrimPrefix(lowerDNSName, pr.prefix)
+	}
+
+	if len(pr.suffix) > 0 {
+		DNSName := strings.SplitN(lowerDNSName, ".", 2)
+		if strings.HasSuffix(DNSName[0], pr.suffix) {
+			return strings.TrimSuffix(DNSName[0], pr.suffix) + "." + DNSName[1]
+		}
 	}
 	return ""
 }
 
-func (pr prefixNameMapper) toTXTName(endpointDNSName string) string {
-	return pr.prefix + endpointDNSName
+func (pr affixNameMapper) toTXTName(endpointDNSName string) string {
+	DNSName := strings.SplitN(endpointDNSName, ".", 2)
+
+	// If specified, replace a leading asterisk in the generated txt record name with some other string
+	if pr.wildcardReplacement != "" && DNSName[0] == "*" {
+		DNSName[0] = pr.wildcardReplacement
+	}
+
+	if len(DNSName) < 2 {
+		return pr.prefix + DNSName[0] + pr.suffix
+	}
+	return pr.prefix + DNSName[0] + pr.suffix + "." + DNSName[1]
 }
 
 func (im *TXTRegistry) addToCache(ep *endpoint.Endpoint) {

@@ -1,12 +1,12 @@
 # Set up ExternalDNS for Azure Private DNS
 
-This tutorial describes how to set up ExternalDNS for managing records in Azure Private DNS.  
+This tutorial describes how to set up ExternalDNS for managing records in Azure Private DNS.
 
 It comprises of the following steps:
 1) Install NGINX Ingress Controller 
 2) Provision Azure Private DNS
 3) Configure service principal for managing the zone
-4) Deploy ExternalDNS  
+4) Deploy ExternalDNS
 
 Everything will be deployed on Kubernetes.   
 Therefore, please see the subsequent prerequisites.
@@ -19,31 +19,33 @@ Therefore, please see the subsequent prerequisites.
 
 Helm is used to deploy the ingress controller. 
 
-We employ the popular chart [stable/nginx-ingress](https://github.com/helm/charts/tree/master/stable/nginx-ingress).
+We employ the popular chart [stable/nginx-ingress](https://github.com/helm/charts/tree/HEAD/stable/nginx-ingress).
 
 ```
 $ helm install stable/nginx-ingress \
      --name nginx-ingress \
      --set controller.publishService.enabled=true
 ```
-  
-The parameter `controller.publishService.enabled` needs to be set to `true.`  
+
+The parameter `controller.publishService.enabled` needs to be set to `true.`
 
 It will make the ingress controller update the endpoint records of ingress-resources to contain the external-ip of the loadbalancer serving the ingress-controller. 
 This is crucial as ExternalDNS reads those endpoints records when creating DNS-Records from ingress-resources.  
 In the subsequent parameter we will make use of this. If you don't want to work with ingress-resources in your later use, you can leave the parameter out.
 
 Verify the correct propagation of the loadbalancer's ip by listing the ingresses.
+
 ```
 $ kubectl get ingress
 ```
+
 The address column should contain the ip for each ingress. ExternalDNS will pick up exactly this piece of information.
+
 ```
 NAME     HOSTS             ADDRESS          PORTS   AGE
 nginx1   sample1.aks.com   52.167.195.110   80      6d22h
 nginx2   sample2.aks.com   52.167.195.110   80      6d21h
 ```
-
 
 If you do not want to deploy the ingress controller with Helm, ensure to pass the following cmdline-flags to it through the mechanism of your choice:
 
@@ -144,17 +146,22 @@ This is per default done through the file `~/.kube/config`.
 For general background information on this see [kubernetes-docs](https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/).  
 Azure-CLI features functionality for automatically maintaining this file for AKS-Clusters. See [Azure-Docs](https://docs.microsoft.com/de-de/cli/azure/aks?view=azure-cli-latest#az-aks-get-credentials).
 
+Follow the steps for [azure-dns provider](./azure.md#creating-configuration-file) to create a configuration file.
+
 Then apply one of the following manifests depending on whether you use RBAC or not.
 
 The credentials of the service principal are provided to ExternalDNS as environment-variables.
 
 ### Manifest (for clusters without RBAC enabled)
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: externaldns
 spec:
+  selector:
+    matchLabels:
+      app: externaldns
   strategy:
     type: Recreate
   template:
@@ -164,7 +171,7 @@ spec:
     spec:
       containers:
       - name: externaldns
-        image: registry.opensource.zalan.do/teapot/external-dns:latest
+        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
         args:
         - --source=service
         - --source=ingress
@@ -172,13 +179,14 @@ spec:
         - --provider=azure-private-dns
         - --azure-resource-group=externaldns
         - --azure-subscription-id=<use the id of your subscription>
-        env:
-        - name: AZURE_TENANT_ID
-          value: "<use the tenantId discovered during creation of service principal>"
-        - name: AZURE_CLIENT_ID
-          value: "<use the aadClientId discovered during creation of service principal>"
-        - name: AZURE_CLIENT_SECRET
-          value: "<use the aadClientSecret discovered during creation of service principal>"
+        volumeMounts:
+        - name: azure-config-file
+          mountPath: /etc/kubernetes
+          readOnly: true
+      volumes:
+      - name: azure-config-file
+        secret:
+          secretName: azure-config-file
 ```
 
 ### Manifest (for clusters with RBAC enabled, cluster access)
@@ -188,7 +196,7 @@ kind: ServiceAccount
 metadata:
   name: externaldns
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: externaldns
@@ -196,14 +204,14 @@ rules:
 - apiGroups: [""]
   resources: ["services","endpoints","pods"]
   verbs: ["get","watch","list"]
-- apiGroups: ["extensions"] 
-  resources: ["ingresses"] 
+- apiGroups: ["extensions","networking.k8s.io"]
+  resources: ["ingresses"]
   verbs: ["get","watch","list"]
 - apiGroups: [""]
   resources: ["nodes"]
   verbs: ["get", "watch", "list"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: externaldns-viewer
@@ -216,11 +224,14 @@ subjects:
   name: externaldns
   namespace: default
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: externaldns
 spec:
+  selector:
+    matchLabels:
+      app: externaldns
   strategy:
     type: Recreate
   template:
@@ -231,7 +242,7 @@ spec:
       serviceAccountName: externaldns
       containers:
       - name: externaldns
-        image: registry.opensource.zalan.do/teapot/external-dns:latest
+        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
         args:
         - --source=service
         - --source=ingress
@@ -239,13 +250,14 @@ spec:
         - --provider=azure-private-dns
         - --azure-resource-group=externaldns
         - --azure-subscription-id=<use the id of your subscription>
-        env:
-        - name: AZURE_TENANT_ID
-          value: "<use the tenantId discovered during creation of service principal>"
-        - name: AZURE_CLIENT_ID
-          value: "<use the aadClientId discovered during creation of service principal>"
-        - name: AZURE_CLIENT_SECRET
-          value: "<use the aadClientSecret discovered during creation of service principal>"
+        volumeMounts:
+        - name: azure-config-file
+          mountPath: /etc/kubernetes
+          readOnly: true
+      volumes:
+      - name: azure-config-file
+        secret:
+          secretName: azure-config-file
 ```
 
 ### Manifest (for clusters with RBAC enabled, namespace access)
@@ -259,7 +271,7 @@ kind: ServiceAccount
 metadata:
   name: externaldns
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: externaldns
@@ -267,11 +279,11 @@ rules:
 - apiGroups: [""]
   resources: ["services","endpoints","pods"]
   verbs: ["get","watch","list"]
-- apiGroups: ["extensions"]
+- apiGroups: ["extensions","networking.k8s.io"]
   resources: ["ingresses"]
   verbs: ["get","watch","list"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: externaldns
@@ -283,11 +295,14 @@ subjects:
 - kind: ServiceAccount
   name: externaldns
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: externaldns
 spec:
+  selector:
+    matchLabels:
+      app: externaldns
   strategy:
     type: Recreate
   template:
@@ -298,7 +313,7 @@ spec:
       serviceAccountName: externaldns
       containers:
       - name: externaldns
-        image: registry.opensource.zalan.do/teapot/external-dns:latest
+        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
         args:
         - --source=service
         - --source=ingress
@@ -306,13 +321,14 @@ spec:
         - --provider=azure-private-dns
         - --azure-resource-group=externaldns
         - --azure-subscription-id=<use the id of your subscription>
-        env:
-        - name: AZURE_TENANT_ID
-          value: "<use the tenantId discovered during creation of service principal>"
-        - name: AZURE_CLIENT_ID
-          value: "<use the aadClientId discovered during creation of service principal>"
-        - name: AZURE_CLIENT_SECRET
-          value: "<use the aadClientSecret discovered during creation of service principal>"
+        volumeMounts:
+        - name: azure-config-file
+          mountPath: /etc/kubernetes
+          readOnly: true
+      volumes:
+      - name: azure-config-file
+        secret:
+          secretName: azure-config-file
 ```
 
 Create the deployment for ExternalDNS:
@@ -326,11 +342,14 @@ $ kubectl create -f externaldns.yaml
 Create a service file called 'nginx.yaml' with the following contents:
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx
 spec:
+  selector:
+    matchLabels:
+      app: nginx
   template:
     metadata:
       labels:
@@ -356,7 +375,7 @@ spec:
   type: ClusterIP
   
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: nginx

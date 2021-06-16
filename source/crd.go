@@ -17,10 +17,10 @@ limitations under the License.
 package source
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,6 +43,7 @@ type crdSource struct {
 	crdResource      string
 	codec            runtime.ParameterCodec
 	annotationFilter string
+	labelFilter      string
 }
 
 func addKnownTypes(scheme *runtime.Scheme, groupVersion schema.GroupVersion) error {
@@ -55,14 +56,14 @@ func addKnownTypes(scheme *runtime.Scheme, groupVersion schema.GroupVersion) err
 }
 
 // NewCRDClientForAPIVersionKind return rest client for the given apiVersion and kind of the CRD
-func NewCRDClientForAPIVersionKind(client kubernetes.Interface, kubeConfig, kubeMaster, apiVersion, kind string) (*rest.RESTClient, *runtime.Scheme, error) {
+func NewCRDClientForAPIVersionKind(client kubernetes.Interface, kubeConfig, apiServerURL, apiVersion, kind string) (*rest.RESTClient, *runtime.Scheme, error) {
 	if kubeConfig == "" {
 		if _, err := os.Stat(clientcmd.RecommendedHomeFile); err == nil {
 			kubeConfig = clientcmd.RecommendedHomeFile
 		}
 	}
 
-	config, err := clientcmd.BuildConfigFromFlags(kubeMaster, kubeConfig)
+	config, err := clientcmd.BuildConfigFromFlags(apiServerURL, kubeConfig)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -92,7 +93,7 @@ func NewCRDClientForAPIVersionKind(client kubernetes.Interface, kubeConfig, kube
 
 	config.ContentConfig.GroupVersion = &groupVersion
 	config.APIPath = "/apis"
-	config.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: serializer.NewCodecFactory(scheme)}
+	config.NegotiatedSerializer = serializer.WithoutConversionCodecFactory{CodecFactory: serializer.NewCodecFactory(scheme)}
 
 	crdClient, err := rest.UnversionedRESTClientFor(config)
 	if err != nil {
@@ -102,29 +103,40 @@ func NewCRDClientForAPIVersionKind(client kubernetes.Interface, kubeConfig, kube
 }
 
 // NewCRDSource creates a new crdSource with the given config.
-func NewCRDSource(crdClient rest.Interface, namespace, kind string, annotationFilter string, scheme *runtime.Scheme) (Source, error) {
+func NewCRDSource(crdClient rest.Interface, namespace, kind string, annotationFilter string, labelFilter string, scheme *runtime.Scheme) (Source, error) {
 	return &crdSource{
 		crdResource:      strings.ToLower(kind) + "s",
 		namespace:        namespace,
 		annotationFilter: annotationFilter,
+		labelFilter:      labelFilter,
 		crdClient:        crdClient,
 		codec:            runtime.NewParameterCodec(scheme),
 	}, nil
 }
 
-func (cs *crdSource) AddEventHandler(handler func() error, stopChan <-chan struct{}, minInterval time.Duration) {
+func (cs *crdSource) AddEventHandler(ctx context.Context, handler func()) {
 }
 
 // Endpoints returns endpoint objects.
-func (cs *crdSource) Endpoints() ([]*endpoint.Endpoint, error) {
+func (cs *crdSource) Endpoints(ctx context.Context) ([]*endpoint.Endpoint, error) {
 	endpoints := []*endpoint.Endpoint{}
 
-	result, err := cs.List(&metav1.ListOptions{})
+	var (
+		result *endpoint.DNSEndpointList
+		err    error
+	)
+
+	if cs.labelFilter != "" {
+		result, err = cs.List(ctx, &metav1.ListOptions{LabelSelector: cs.labelFilter})
+	} else {
+		result, err = cs.List(ctx, &metav1.ListOptions{})
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	result, err = cs.filterByAnnotations(result)
+
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +178,7 @@ func (cs *crdSource) Endpoints() ([]*endpoint.Endpoint, error) {
 
 		dnsEndpoint.Status.ObservedGeneration = dnsEndpoint.Generation
 		// Update the ObservedGeneration
-		_, err = cs.UpdateStatus(&dnsEndpoint)
+		_, err = cs.UpdateStatus(ctx, &dnsEndpoint)
 		if err != nil {
 			log.Warnf("Could not update ObservedGeneration of the CRD: %v", err)
 		}
@@ -181,18 +193,18 @@ func (cs *crdSource) setResourceLabel(crd *endpoint.DNSEndpoint, endpoints []*en
 	}
 }
 
-func (cs *crdSource) List(opts *metav1.ListOptions) (result *endpoint.DNSEndpointList, err error) {
+func (cs *crdSource) List(ctx context.Context, opts *metav1.ListOptions) (result *endpoint.DNSEndpointList, err error) {
 	result = &endpoint.DNSEndpointList{}
 	err = cs.crdClient.Get().
 		Namespace(cs.namespace).
 		Resource(cs.crdResource).
 		VersionedParams(opts, cs.codec).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
-func (cs *crdSource) UpdateStatus(dnsEndpoint *endpoint.DNSEndpoint) (result *endpoint.DNSEndpoint, err error) {
+func (cs *crdSource) UpdateStatus(ctx context.Context, dnsEndpoint *endpoint.DNSEndpoint) (result *endpoint.DNSEndpoint, err error) {
 	result = &endpoint.DNSEndpoint{}
 	err = cs.crdClient.Put().
 		Namespace(dnsEndpoint.Namespace).
@@ -200,7 +212,7 @@ func (cs *crdSource) UpdateStatus(dnsEndpoint *endpoint.DNSEndpoint) (result *en
 		Name(dnsEndpoint.Name).
 		SubResource("status").
 		Body(dnsEndpoint).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }

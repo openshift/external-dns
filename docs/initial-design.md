@@ -2,7 +2,7 @@
 
 ## Background
 
-[Project proposal](https://groups.google.com/forum/#!searchin/kubernetes-dev/external$20dns%7Csort:relevance/kubernetes-dev/2wGQUB0fUuE/9OXz01i2BgAJ)
+[Project proposal](https://groups.google.com/forum/#!searching/kubernetes-dev/external$20dns%7Csort:relevance/kubernetes-dev/2wGQUB0fUuE/9OXz01i2BgAJ)
 
 [Initial discussion](https://docs.google.com/document/d/1ML_q3OppUtQKXan6Q42xIq2jelSoIivuXI8zExbc6ec/edit#heading=h.1pgkuagjhm4p)
 
@@ -10,7 +10,7 @@ This document describes the initial design proposal.
 
 External DNS is purposed to fill the existing gap of creating DNS records for Kubernetes resources. While there exist alternative solutions, this project is meant to be a standard way of managing DNS records for Kubernetes. The current project is a fusion of the following projects and driven by its maintainers:
 
-1. [Kops DNS Controller](https://github.com/kubernetes/kops/tree/master/dns-controller)
+1. [Kops DNS Controller](https://github.com/kubernetes/kops/tree/HEAD/dns-controller)
 2. [Mate](https://github.com/linki/mate)
 3. [wearemolecule/route53-kubernetes](https://github.com/wearemolecule/route53-kubernetes)
 

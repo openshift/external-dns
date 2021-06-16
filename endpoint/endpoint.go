@@ -33,6 +33,8 @@ const (
 	RecordTypeTXT = "TXT"
 	// RecordTypeSRV is a RecordType enum value
 	RecordTypeSRV = "SRV"
+	// RecordTypeNS is a RecordType enum value
+	RecordTypeNS = "NS"
 )
 
 // TTL is a structure defining the TTL of a DNS record
@@ -69,7 +71,7 @@ func (t Targets) Swap(i, j int) {
 	t[i], t[j] = t[j], t[i]
 }
 
-// Same compares to Targets and returns true if they are completely identical
+// Same compares to Targets and returns true if they are identical (case-insensitive)
 func (t Targets) Same(o Targets) bool {
 	if len(t) != len(o) {
 		return false
@@ -78,14 +80,14 @@ func (t Targets) Same(o Targets) bool {
 	sort.Stable(o)
 
 	for i, e := range t {
-		if e != o[i] {
+		if !strings.EqualFold(e, o[i]) {
 			return false
 		}
 	}
 	return true
 }
 
-// IsLess should fulfill the requirement to compare two targets and chosse the 'lesser' one.
+// IsLess should fulfill the requirement to compare two targets and choose the 'lesser' one.
 // In the past target was a simple string so simple string comparison could be used. Now we define 'less'
 // as either being the shorter list of targets or where the first entry is less.
 // FIXME We really need to define under which circumstances a list Targets is considered 'less'
@@ -159,6 +161,7 @@ func NewEndpointWithTTL(dnsName, recordType string, ttl TTL, targets ...string) 
 	}
 }
 
+// WithSetIdentifier applies the given set identifier to the endpoint.
 func (e *Endpoint) WithSetIdentifier(setIdentifier string) *Endpoint {
 	e.SetIdentifier = setIdentifier
 	return e
@@ -210,8 +213,12 @@ type DNSEndpointStatus struct {
 // DNSEndpoint is a contract that a user-specified CRD must implement to be used as a source for external-dns.
 // The user-specified CRD should also have the status sub-resource.
 // +k8s:openapi-gen=true
+// +groupName=externaldns.k8s.io
 // +kubebuilder:resource:path=dnsendpoints
+// +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +versionName=v1alpha1
+
 type DNSEndpoint struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -220,6 +227,7 @@ type DNSEndpoint struct {
 	Status DNSEndpointStatus `json:"status,omitempty"`
 }
 
+// +kubebuilder:object:root=true
 // DNSEndpointList is a list of DNSEndpoint objects
 type DNSEndpointList struct {
 	metav1.TypeMeta `json:",inline"`

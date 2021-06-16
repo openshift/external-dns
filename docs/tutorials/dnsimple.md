@@ -35,7 +35,7 @@ spec:
     spec:
       containers:
       - name: external-dns
-        image: registry.opensource.zalan.do/teapot/external-dns:latest
+        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
         args:
         - --source=service
         - --domain-filter=example.com # (optional) limit to only example.com domains; change to match the zone you create in DNSimple.
@@ -54,7 +54,7 @@ kind: ServiceAccount
 metadata:
   name: external-dns
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: external-dns
@@ -62,14 +62,14 @@ rules:
 - apiGroups: [""]
   resources: ["services","endpoints","pods"]
   verbs: ["get","watch","list"]
-- apiGroups: ["extensions"]
+- apiGroups: ["extensions","networking.k8s.io"]
   resources: ["ingresses"]
   verbs: ["get","watch","list"]
 - apiGroups: [""]
   resources: ["nodes"]
   verbs: ["list"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: external-dns-viewer
@@ -100,7 +100,7 @@ spec:
       serviceAccountName: external-dns
       containers:
       - name: external-dns
-        image: registry.opensource.zalan.do/teapot/external-dns:latest
+        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
         args:
         - --source=service
         - --domain-filter=example.com # (optional) limit to only example.com domains; change to match the zone you create in DNSimple.
@@ -173,7 +173,7 @@ the DNSimple DNS records.
 
 ### Getting your DNSimple Account ID
 
-If you do not know your DNSimple account ID it can be aquired using the [whoami](https://developer.dnsimple.com/v2/identity/#whoami) endpoint from the DNSimple Identity API
+If you do not know your DNSimple account ID it can be acquired using the [whoami](https://developer.dnsimple.com/v2/identity/#whoami) endpoint from the DNSimple Identity API
 
 ```sh
 curl -H "Authorization: Bearer $DNSIMPLE_ACCOUNT_TOKEN" \

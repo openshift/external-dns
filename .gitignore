@@ -46,3 +46,8 @@ external-dns
 
 # vendor dir
 vendor/
+
+profile.cov
+
+# github codespaces
+.venv/

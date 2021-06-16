@@ -11,6 +11,9 @@ provider/aws: provider/aws*
 # Add 'provider/azure' in file which starts with azure
 provider/azure: provider/azure*
 
+# Add 'provider/bluecat' in file which starts with bluecat
+provider/bluecat: provider/bluecat*
+
 # Add 'provider/cloudflare' in file which starts with cloudflare
 provider/cloudflare: provider/cloudflare*
 
@@ -61,3 +64,9 @@ provider/oci: provider/oci*
 
 # Add 'provider/vinyldns' in file which starts with vinyldns
 provider/vinyldns: provider/vinyldns*
+
+# Add 'provider/vultr' in file which starts with vultr
+provider/vultr: provider/vultr*
+
+# Add 'provider/ultradns' in file which starts with ultradns
+provider/ultradns: provider/ultradns*
