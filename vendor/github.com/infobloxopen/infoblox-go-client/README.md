@@ -1,20 +1,12 @@
 # Infoblox Go Client
 
-An Infoblox NIOS WAPI client library in Golang.
-The library enables us to do a CRUD oprations on NIOS Objects.
+An Infoblox Client library for Go.
 
 This library is compatible with Go 1.2+
 
 - [Prerequisites](#Prerequisites)
 - [Installation](#Installation)
 - [Usage](#Usage)
-
-## Build Status
-
-| Master                                                                                                                                          | Develop                                                                                                                                                           |
-| ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [![Build Status](https://travis-ci.org/infobloxopen/infoblox-go-client.svg?branch=master)](https://travis-ci.org/infobloxopen/infoblox-go-client) | [![Build Status](https://travis-ci.org/infobloxopen/infoblox-go-client.svg?branch=develop)](https://travis-ci.org/infobloxopen/infoblox-go-client) |
-
 
 ## Prerequisites
    * Infoblox GRID with 2.5 or above WAPI support
@@ -56,47 +48,21 @@ This library is compatible with Go 1.2+
 
 ## Supported NIOS operations
 
-   * AllocateIP
-   * AllocateNetwork
-   * CreateARecord
-   * CreateZoneAuth
-   * CreateCNAMERecord
+   * CreateNetworkView
    * CreateDefaultNetviews
-   * CreateEADefinition
-   * CreateHostRecord
    * CreateNetwork
    * CreateNetworkContainer
-   * CreateNetworkView
-   * CreatePTRRecord
-   * DeleteARecord
-   * DeleteZoneAuth
-   * DeleteCNAMERecord
-   * DeleteFixedAddress
-   * DeleteHostRecord
-   * DeleteNetwork
-   * DeleteNetworkView
-   * DeletePTRRecord
-   * GetAllMembers
-   * GetARecordByRef
-   * GetCapacityReport
-   * GetCNAMERecordByRef
-   * GetEADefinition
-   * GetFixedAddress
-   * GetFixedAddressByRef
-   * GetHostRecord
-   * GetHostRecordByRef
-   * GetIpAddressFromHostRecord
+   * GetNetworkView
    * GetNetwork
    * GetNetworkContainer
-   * GetNetworkView
-   * GetPTRRecordByRef
-   * GetUpgradeStatus (2.7 or above)
-   * GetZoneAuthByRef
-   * ReleaseIP
+   * AllocateNetwork
    * UpdateFixedAddress
-   * UpdateHostRecord
+   * GetFixedAddress
+   * ReleaseIP
+   * DeleteNetwork
+   * GetEADefinition
+   * CreateEADefinition
    * UpdateNetworkViewEA
-   * UpdateARecord
-   * UpdateCNAMERecord
-
-The newly developed features will be available under `develop` branch. After validation they would be merged to `master`.
+   * GetCapacityReport
+   * GetAllMembers
+   * GetUpgradeStatus (2.7 or above)

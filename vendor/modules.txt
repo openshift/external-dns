@@ -184,14 +184,14 @@ github.com/golang/protobuf/ptypes/timestamp
 # github.com/golang/sync v0.0.0-20180314180146-1d60e4601c6f
 ## explicit
 github.com/golang/sync/errgroup
-# github.com/google/go-cmp v0.5.2
+# github.com/google/go-cmp v0.4.1
 ## explicit
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/go-querystring v1.1.0
+# github.com/google/go-querystring v1.0.0
 github.com/google/go-querystring/query
 # github.com/google/gofuzz v1.1.0
 github.com/google/gofuzz
@@ -222,7 +222,7 @@ github.com/hashicorp/errwrap
 github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-multierror v1.1.0
 github.com/hashicorp/go-multierror
-# github.com/hashicorp/go-retryablehttp v0.7.0
+# github.com/hashicorp/go-retryablehttp v0.6.6
 github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-uuid v1.0.2
 github.com/hashicorp/go-uuid
@@ -234,7 +234,7 @@ github.com/hashicorp/golang-lru/simplelru
 github.com/hooklift/gowsdl/soap
 # github.com/imdario/mergo v0.3.9
 github.com/imdario/mergo
-# github.com/infobloxopen/infoblox-go-client v1.1.1
+# github.com/infobloxopen/infoblox-go-client v0.0.0-20180606155407-61dc5f9b0a65
 ## explicit
 github.com/infobloxopen/infoblox-go-client
 # github.com/jcmturner/aescts/v2 v2.0.0
@@ -407,23 +407,20 @@ github.com/stretchr/testify/suite
 # github.com/terra-farm/udnssdk v1.3.5
 ## explicit
 github.com/terra-farm/udnssdk/password
-# github.com/transip/gotransip/v6 v6.6.0
+# github.com/transip/gotransip v5.8.2+incompatible
 ## explicit
-github.com/transip/gotransip/v6
-github.com/transip/gotransip/v6/authenticator
-github.com/transip/gotransip/v6/domain
-github.com/transip/gotransip/v6/jwt
-github.com/transip/gotransip/v6/repository
-github.com/transip/gotransip/v6/rest
+github.com/transip/gotransip
+github.com/transip/gotransip/domain
+github.com/transip/gotransip/util
 # github.com/ultradns/ultradns-sdk-go v0.0.0-20200616202852-e62052662f60
 ## explicit
 github.com/ultradns/ultradns-sdk-go
 # github.com/vinyldns/go-vinyldns v0.0.0-20200211145900-fe8a3d82e556
 ## explicit
 github.com/vinyldns/go-vinyldns/vinyldns
-# github.com/vultr/govultr/v2 v2.5.1
+# github.com/vultr/govultr v0.4.2
 ## explicit
-github.com/vultr/govultr/v2
+github.com/vultr/govultr
 # go.etcd.io/etcd v0.5.0-alpha.5.0.20200401174654-e694b7bb0875
 ## explicit
 go.etcd.io/etcd/auth/authpb
