@@ -12,3 +12,4 @@ cloudbuild.yaml
 # Other
 docs
 OWNERS
+vendor
