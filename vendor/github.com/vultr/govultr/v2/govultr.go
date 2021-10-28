@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	version     = "2.5.1"
+	version     = "2.14.1"
 	defaultBase = "https://api.vultr.com"
 	userAgent   = "govultr/" + version
 	rateLimit   = 500 * time.Millisecond
@@ -48,6 +48,7 @@ type Client struct {
 	Application     ApplicationService
 	Backup          BackupService
 	BareMetalServer BareMetalServerService
+	Billing         BillingService
 	BlockStorage    BlockStorageService
 	Domain          DomainService
 	DomainRecord    DomainRecordService
@@ -55,6 +56,7 @@ type Client struct {
 	FirewallRule    FireWallRuleService
 	Instance        InstanceService
 	ISO             ISOService
+	Kubernetes      KubernetesService
 	LoadBalancer    LoadBalancerService
 	Network         NetworkService
 	ObjectStorage   ObjectStorageService
@@ -99,6 +101,7 @@ func NewClient(httpClient *http.Client) *Client {
 	client.Application = &ApplicationServiceHandler{client}
 	client.Backup = &BackupServiceHandler{client}
 	client.BareMetalServer = &BareMetalServerServiceHandler{client}
+	client.Billing = &BillingServiceHandler{client}
 	client.BlockStorage = &BlockStorageServiceHandler{client}
 	client.Domain = &DomainServiceHandler{client}
 	client.DomainRecord = &DomainRecordsServiceHandler{client}
@@ -106,6 +109,7 @@ func NewClient(httpClient *http.Client) *Client {
 	client.FirewallRule = &FireWallRuleServiceHandler{client}
 	client.Instance = &InstanceServiceHandler{client}
 	client.ISO = &ISOServiceHandler{client}
+	client.Kubernetes = &KubernetesHandler{client}
 	client.LoadBalancer = &LoadBalancerHandler{client}
 	client.Network = &NetworkServiceHandler{client}
 	client.ObjectStorage = &ObjectStorageServiceHandler{client}
@@ -223,14 +227,17 @@ func (c *Client) SetRetryLimit(n int) {
 
 func (c *Client) vultrErrorHandler(resp *http.Response, err error, numTries int) (*http.Response, error) {
 	if resp == nil {
-		return nil, fmt.Errorf("gave up after %d attempts, last error unavailable (resp == nil)", c.client.RetryMax+1)
+		if err != nil {
+			return nil, fmt.Errorf("gave up after %d attempts, last error : %s", numTries, err.Error())
+		}
+		return nil, fmt.Errorf("gave up after %d attempts, last error unavailable (resp == nil)", numTries)
 	}
 
 	buf, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("gave up after %d attempts, last error unavailable (error reading response body: %v)", c.client.RetryMax+1, err)
+		return nil, fmt.Errorf("gave up after %d attempts, last error unavailable (error reading response body: %v)", numTries, err)
 	}
-	return nil, fmt.Errorf("gave up after %d attempts, last error: %#v", c.client.RetryMax+1, strings.TrimSpace(string(buf)))
+	return nil, fmt.Errorf("gave up after %d attempts, last error: %#v", numTries, strings.TrimSpace(string(buf)))
 }
 
 // BoolToBoolPtr helper function that returns a pointer from your bool value
