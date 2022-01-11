@@ -5,6 +5,8 @@ import (
 )
 
 // Zone represents a data center
+//
+// TODO: represent correctly the capacity field.
 type Zone struct {
 	AllocationState       string            `json:"allocationstate,omitempty" doc:"the allocation state of the cluster"`
 	Description           string            `json:"description,omitempty" doc:"Zone description"`

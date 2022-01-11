@@ -64,8 +64,6 @@ type ErrorCode int
 const (
 	// Unauthorized represents ... (TODO)
 	Unauthorized ErrorCode = 401
-	// NotFound represents ... (TODO)
-	NotFound ErrorCode = 404
 	// MethodNotAllowed represents ... (TODO)
 	MethodNotAllowed ErrorCode = 405
 	// UnsupportedActionError represents ... (TODO)

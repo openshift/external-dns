@@ -24,12 +24,13 @@ require (
 	github.com/denverdino/aliyungo v0.0.0-20190125010748-a747050bb1ba
 	github.com/digitalocean/godo v1.69.1
 	github.com/dnsimple/dnsimple-go v0.60.0
-	github.com/exoscale/egoscale v0.73.2
+	github.com/exoscale/egoscale v1.19.0
 	github.com/ffledgling/pdns-go v0.0.0-20180219074714-524e7daccd99
 	github.com/go-gandi/go-gandi v0.0.0-20200921091836-0d8a64b9cc09
 	github.com/golang/sync v0.0.0-20180314180146-1d60e4601c6f
 	github.com/google/go-cmp v0.5.6
 	github.com/gophercloud/gophercloud v0.21.0
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/hooklift/gowsdl v0.5.0
 	github.com/infobloxopen/infoblox-go-client v1.1.1
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -52,6 +53,7 @@ require (
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.7.0.20210127161313-bd30bebeac4f
 	github.com/sirupsen/logrus v1.8.1
 	github.com/smartystreets/gunit v1.3.4 // indirect
+	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/terra-farm/udnssdk v1.3.5 // indirect
 	github.com/transip/gotransip/v6 v6.6.2
