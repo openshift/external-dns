@@ -32,7 +32,6 @@ require (
 	github.com/gophercloud/gophercloud v0.21.0
 	github.com/hooklift/gowsdl v0.5.0
 	github.com/infobloxopen/infoblox-go-client v1.1.1
-	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/linki/instrumented_http v0.3.0
 	github.com/linode/linodego v0.32.2
 	github.com/mattn/go-isatty v0.0.14 // indirect
@@ -62,11 +61,10 @@ require (
 	go.etcd.io/etcd/client/v3 v3.5.0
 	go.uber.org/ratelimit v0.2.0
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
-	golang.org/x/net v0.0.0-20210928044308-7d9f5e0b762b
+	golang.org/x/net v0.0.0-20211209124913-491a49abca63
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6 // indirect
-	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/api v0.58.0
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/ns1/ns1-go.v2 v2.0.0-20190322154155-0dafb5275fd1
@@ -74,10 +72,8 @@ require (
 	istio.io/api v0.0.0-20210128181506-0c4b8e54850f
 	istio.io/client-go v0.0.0-20210128182905-ee2edd059e02
 	k8s.io/api v0.22.2
-	k8s.io/apimachinery v0.22.2
+	k8s.io/apimachinery v0.23.2
 	k8s.io/client-go v0.22.2
-	k8s.io/klog/v2 v2.20.0 // indirect
-	k8s.io/utils v0.0.0-20210820185131-d34e5cb4466e // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
