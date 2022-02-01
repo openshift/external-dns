@@ -32,7 +32,6 @@ require (
 	github.com/gophercloud/gophercloud v0.21.0
 	github.com/hooklift/gowsdl v0.5.0
 	github.com/infobloxopen/infoblox-go-client v1.1.1
-	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/linki/instrumented_http v0.3.0
 	github.com/linode/linodego v0.32.2
 	github.com/mattn/go-isatty v0.0.14 // indirect
@@ -48,7 +47,7 @@ require (
 	github.com/ovh/go-ovh v0.0.0-20181109152953-ba5adb4cf014
 	github.com/pkg/errors v0.9.1
 	github.com/projectcontour/contour v1.18.1
-	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/client_golang v1.12.1
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.7.0.20210127161313-bd30bebeac4f
 	github.com/sirupsen/logrus v1.8.1
 	github.com/smartystreets/gunit v1.3.4 // indirect
@@ -65,7 +64,6 @@ require (
 	golang.org/x/net v0.0.0-20210928044308-7d9f5e0b762b
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/api v0.58.0
 	gopkg.in/ini.v1 v1.62.0 // indirect
