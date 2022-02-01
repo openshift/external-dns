@@ -1,4 +1,4 @@
-# cloud.google.com/go v0.97.0
+# cloud.google.com/go/compute v0.1.0
 ## explicit
 cloud.google.com/go/compute/metadata
 # code.cloudfoundry.org/gofileutils v0.0.0-20170111115228-4d0c80011a0f
@@ -175,8 +175,6 @@ github.com/go-gandi/go-gandi
 github.com/go-gandi/go-gandi/domain
 github.com/go-gandi/go-gandi/internal/client
 github.com/go-gandi/go-gandi/livedns
-# github.com/go-logr/logr v1.1.0
-## explicit
 # github.com/go-resty/resty/v2 v2.1.1-0.20191201195748-d7b97669fe48
 github.com/go-resty/resty/v2
 # github.com/gofrs/uuid v3.2.0+incompatible
@@ -526,7 +524,7 @@ golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 golang.org/x/net/publicsuffix
 golang.org/x/net/trace
-# golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
+# golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 ## explicit
 golang.org/x/oauth2
 golang.org/x/oauth2/authhandler
@@ -539,8 +537,7 @@ golang.org/x/oauth2/jwt
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 ## explicit
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6
-## explicit
+# golang.org/x/sys v0.0.0-20220114195835-da31bd327af9
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
@@ -555,7 +552,7 @@ golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 # golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
 golang.org/x/time/rate
-# google.golang.org/api v0.58.0
+# google.golang.org/api v0.66.0
 ## explicit
 google.golang.org/api/dns/v1
 google.golang.org/api/googleapi
@@ -581,12 +578,12 @@ google.golang.org/appengine/internal/modules
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20210924002016-3dee208752a0
+# google.golang.org/genproto v0.0.0-20220114231437-d2e6a121cae0
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/rpc/code
 google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.40.0
+# google.golang.org/grpc v1.40.1
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
