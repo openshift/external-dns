@@ -6,7 +6,7 @@ code.cloudfoundry.org/gofileutils/fileutils
 # git.blindage.org/21h/hcloud-dns v0.0.0-20200807003420-f768ffe03f8d
 ## explicit
 git.blindage.org/21h/hcloud-dns
-# github.com/Azure/azure-sdk-for-go v46.4.0+incompatible
+# github.com/Azure/azure-sdk-for-go v61.4.0+incompatible
 ## explicit
 github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns
 github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
@@ -175,8 +175,6 @@ github.com/go-gandi/go-gandi
 github.com/go-gandi/go-gandi/domain
 github.com/go-gandi/go-gandi/internal/client
 github.com/go-gandi/go-gandi/livedns
-# github.com/go-logr/logr v1.1.0
-## explicit
 # github.com/go-resty/resty/v2 v2.1.1-0.20191201195748-d7b97669fe48
 github.com/go-resty/resty/v2
 # github.com/gofrs/uuid v3.2.0+incompatible
