@@ -55,7 +55,7 @@ If your EKS-managed cluster is >= 1.13 and was created after 2019-09-04, refer
 to the [Amazon EKS
 documentation](https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html)
 for instructions on how to create the IAM Role. Otherwise, you will need to use
-kiam or kube2iam.
+kiam or kube2iam or set the environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY on the deployment.
 
 ### kiam
 
@@ -265,8 +265,11 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: foo
-          servicePort: 80
+          service:
+            name: foo
+            port:
+              number: 80
+        pathType: Prefix
 ```
 
 ## Verify ExternalDNS works (Service example)
@@ -383,7 +386,7 @@ metadata:
   name: nginx
   annotations:
     external-dns.alpha.kubernetes.io/hostname: nginx.external-dns-test.my-org.com
-    external-dns.alpha.kubernetes.io/ttl: 60
+    external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
     ...
 ```

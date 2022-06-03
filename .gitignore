@@ -44,6 +44,9 @@ cover.out
 *.coverprofile
 external-dns
 
+# vendor dir
+vendor/
+
 profile.cov
 
 # github codespaces
@@ -51,3 +54,10 @@ profile.cov
 
 # Helm charts
 !/charts/external-dns/
+
+docs/LICENSE.md
+docs/code-of-conduct.md
+docs/CONTRIBUTING.md
+docs/index.md
+docs/redirect
+site
