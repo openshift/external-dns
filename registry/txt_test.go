@@ -786,6 +786,10 @@ func testTXTRegistryMissingRecordsNoPrefix(t *testing.T) {
 			newEndpointWithOwner("ns-newformat.test-zone.example.org", "\"heritage=external-dns,external-dns/owner=owner\"", endpoint.RecordTypeTXT, ""),
 			newEndpointWithOwner("newformat.test-zone.example.org", "\"heritage=external-dns,external-dns/owner=owner\"", endpoint.RecordTypeTXT, ""),
 			newEndpointWithOwner("noheritage.test-zone.example.org", "random", endpoint.RecordTypeTXT, ""),
+			newEndpointWithOwner("oldformat-otherowner.test-zone.example.org", "bar.loadbalancer.com", endpoint.RecordTypeA, ""),
+			newEndpointWithOwner("oldformat-otherowner.test-zone.example.org", "\"heritage=external-dns,external-dns/owner=otherowner\"", endpoint.RecordTypeTXT, ""),
+			endpoint.NewEndpoint("unmanaged1.test-zone.example.org", endpoint.RecordTypeA, "unmanaged1.loadbalancer.com"),
+			endpoint.NewEndpoint("unmanaged2.test-zone.example.org", endpoint.RecordTypeCNAME, "unmanaged2.loadbalancer.com"),
 		},
 	})
 	expectedRecords := []*endpoint.Endpoint{
@@ -814,6 +818,7 @@ func testTXTRegistryMissingRecordsNoPrefix(t *testing.T) {
 				endpoint.OwnerLabelKey: "owner",
 			},
 		},
+		// Only TXT records with the wrong heritage are returned by Records()
 		{
 			DNSName:    "noheritage.test-zone.example.org",
 			Targets:    endpoint.Targets{"random"},
@@ -822,6 +827,25 @@ func testTXTRegistryMissingRecordsNoPrefix(t *testing.T) {
 				// No owner because it's not external-dns heritage
 				endpoint.OwnerLabelKey: "",
 			},
+		},
+		{
+			DNSName:    "oldformat-otherowner.test-zone.example.org",
+			Targets:    endpoint.Targets{"bar.loadbalancer.com"},
+			RecordType: endpoint.RecordTypeA,
+			Labels: map[string]string{
+				// Records() retrieves all the records of the zone, no matter the owner
+				endpoint.OwnerLabelKey: "otherowner",
+			},
+		},
+		{
+			DNSName:    "unmanaged1.test-zone.example.org",
+			Targets:    endpoint.Targets{"unmanaged1.loadbalancer.com"},
+			RecordType: endpoint.RecordTypeA,
+		},
+		{
+			DNSName:    "unmanaged2.test-zone.example.org",
+			Targets:    endpoint.Targets{"unmanaged2.loadbalancer.com"},
+			RecordType: endpoint.RecordTypeCNAME,
 		},
 	}
 
@@ -861,6 +885,10 @@ func testTXTRegistryMissingRecordsWithPrefix(t *testing.T) {
 			newEndpointWithOwner("txt.ns-newformat.test-zone.example.org", "\"heritage=external-dns,external-dns/owner=owner\"", endpoint.RecordTypeTXT, ""),
 			newEndpointWithOwner("txt.newformat.test-zone.example.org", "\"heritage=external-dns,external-dns/owner=owner\"", endpoint.RecordTypeTXT, ""),
 			newEndpointWithOwner("noheritage.test-zone.example.org", "random", endpoint.RecordTypeTXT, ""),
+			newEndpointWithOwner("oldformat-otherowner.test-zone.example.org", "bar.loadbalancer.com", endpoint.RecordTypeA, ""),
+			newEndpointWithOwner("txt.oldformat-otherowner.test-zone.example.org", "\"heritage=external-dns,external-dns/owner=otherowner\"", endpoint.RecordTypeTXT, ""),
+			endpoint.NewEndpoint("unmanaged1.test-zone.example.org", endpoint.RecordTypeA, "unmanaged1.loadbalancer.com"),
+			endpoint.NewEndpoint("unmanaged2.test-zone.example.org", endpoint.RecordTypeCNAME, "unmanaged2.loadbalancer.com"),
 		},
 	})
 	expectedRecords := []*endpoint.Endpoint{
@@ -897,6 +925,25 @@ func testTXTRegistryMissingRecordsWithPrefix(t *testing.T) {
 				// No owner because it's not external-dns heritage
 				endpoint.OwnerLabelKey: "",
 			},
+		},
+		{
+			DNSName:    "oldformat-otherowner.test-zone.example.org",
+			Targets:    endpoint.Targets{"bar.loadbalancer.com"},
+			RecordType: endpoint.RecordTypeA,
+			Labels: map[string]string{
+				// All the records of the zone are retrieved, no matter the owner
+				endpoint.OwnerLabelKey: "otherowner",
+			},
+		},
+		{
+			DNSName:    "unmanaged1.test-zone.example.org",
+			Targets:    endpoint.Targets{"unmanaged1.loadbalancer.com"},
+			RecordType: endpoint.RecordTypeA,
+		},
+		{
+			DNSName:    "unmanaged2.test-zone.example.org",
+			Targets:    endpoint.Targets{"unmanaged2.loadbalancer.com"},
+			RecordType: endpoint.RecordTypeCNAME,
 		},
 	}
 
