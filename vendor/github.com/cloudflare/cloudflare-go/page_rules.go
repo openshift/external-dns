@@ -1,7 +1,10 @@
 package cloudflare
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/pkg/errors"
@@ -135,11 +138,11 @@ type PageRulesResponse struct {
 // CreatePageRule creates a new Page Rule for a zone.
 //
 // API reference: https://api.cloudflare.com/#page-rules-for-a-zone-create-a-page-rule
-func (api *API) CreatePageRule(zoneID string, rule PageRule) (*PageRule, error) {
-	uri := "/zones/" + zoneID + "/pagerules"
-	res, err := api.makeRequest("POST", uri, rule)
+func (api *API) CreatePageRule(ctx context.Context, zoneID string, rule PageRule) (*PageRule, error) {
+	uri := fmt.Sprintf("/zones/%s/pagerules", zoneID)
+	res, err := api.makeRequestContext(ctx, http.MethodPost, uri, rule)
 	if err != nil {
-		return nil, errors.Wrap(err, errMakeRequestError)
+		return nil, err
 	}
 	var r PageRuleDetailResponse
 	err = json.Unmarshal(res, &r)
@@ -152,11 +155,11 @@ func (api *API) CreatePageRule(zoneID string, rule PageRule) (*PageRule, error) 
 // ListPageRules returns all Page Rules for a zone.
 //
 // API reference: https://api.cloudflare.com/#page-rules-for-a-zone-list-page-rules
-func (api *API) ListPageRules(zoneID string) ([]PageRule, error) {
-	uri := "/zones/" + zoneID + "/pagerules"
-	res, err := api.makeRequest("GET", uri, nil)
+func (api *API) ListPageRules(ctx context.Context, zoneID string) ([]PageRule, error) {
+	uri := fmt.Sprintf("/zones/%s/pagerules", zoneID)
+	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
-		return []PageRule{}, errors.Wrap(err, errMakeRequestError)
+		return []PageRule{}, err
 	}
 	var r PageRulesResponse
 	err = json.Unmarshal(res, &r)
@@ -169,11 +172,11 @@ func (api *API) ListPageRules(zoneID string) ([]PageRule, error) {
 // PageRule fetches detail about one Page Rule for a zone.
 //
 // API reference: https://api.cloudflare.com/#page-rules-for-a-zone-page-rule-details
-func (api *API) PageRule(zoneID, ruleID string) (PageRule, error) {
-	uri := "/zones/" + zoneID + "/pagerules/" + ruleID
-	res, err := api.makeRequest("GET", uri, nil)
+func (api *API) PageRule(ctx context.Context, zoneID, ruleID string) (PageRule, error) {
+	uri := fmt.Sprintf("/zones/%s/pagerules/%s", zoneID, ruleID)
+	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
-		return PageRule{}, errors.Wrap(err, errMakeRequestError)
+		return PageRule{}, err
 	}
 	var r PageRuleDetailResponse
 	err = json.Unmarshal(res, &r)
@@ -187,11 +190,11 @@ func (api *API) PageRule(zoneID, ruleID string) (PageRule, error) {
 // in contrast to UpdatePageRule which replaces the entire Page Rule.
 //
 // API reference: https://api.cloudflare.com/#page-rules-for-a-zone-change-a-page-rule
-func (api *API) ChangePageRule(zoneID, ruleID string, rule PageRule) error {
-	uri := "/zones/" + zoneID + "/pagerules/" + ruleID
-	res, err := api.makeRequest("PATCH", uri, rule)
+func (api *API) ChangePageRule(ctx context.Context, zoneID, ruleID string, rule PageRule) error {
+	uri := fmt.Sprintf("/zones/%s/pagerules/%s", zoneID, ruleID)
+	res, err := api.makeRequestContext(ctx, http.MethodPatch, uri, rule)
 	if err != nil {
-		return errors.Wrap(err, errMakeRequestError)
+		return err
 	}
 	var r PageRuleDetailResponse
 	err = json.Unmarshal(res, &r)
@@ -205,11 +208,11 @@ func (api *API) ChangePageRule(zoneID, ruleID string, rule PageRule) error {
 // ChangePageRule which lets you change individual settings.
 //
 // API reference: https://api.cloudflare.com/#page-rules-for-a-zone-update-a-page-rule
-func (api *API) UpdatePageRule(zoneID, ruleID string, rule PageRule) error {
-	uri := "/zones/" + zoneID + "/pagerules/" + ruleID
-	res, err := api.makeRequest("PUT", uri, rule)
+func (api *API) UpdatePageRule(ctx context.Context, zoneID, ruleID string, rule PageRule) error {
+	uri := fmt.Sprintf("/zones/%s/pagerules/%s", zoneID, ruleID)
+	res, err := api.makeRequestContext(ctx, http.MethodPut, uri, rule)
 	if err != nil {
-		return errors.Wrap(err, errMakeRequestError)
+		return err
 	}
 	var r PageRuleDetailResponse
 	err = json.Unmarshal(res, &r)
@@ -222,11 +225,11 @@ func (api *API) UpdatePageRule(zoneID, ruleID string, rule PageRule) error {
 // DeletePageRule deletes a Page Rule for a zone.
 //
 // API reference: https://api.cloudflare.com/#page-rules-for-a-zone-delete-a-page-rule
-func (api *API) DeletePageRule(zoneID, ruleID string) error {
-	uri := "/zones/" + zoneID + "/pagerules/" + ruleID
-	res, err := api.makeRequest("DELETE", uri, nil)
+func (api *API) DeletePageRule(ctx context.Context, zoneID, ruleID string) error {
+	uri := fmt.Sprintf("/zones/%s/pagerules/%s", zoneID, ruleID)
+	res, err := api.makeRequestContext(ctx, http.MethodDelete, uri, nil)
 	if err != nil {
-		return errors.Wrap(err, errMakeRequestError)
+		return err
 	}
 	var r PageRuleDetailResponse
 	err = json.Unmarshal(res, &r)

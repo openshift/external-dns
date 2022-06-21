@@ -1,4 +1,5 @@
-dist/
-test/
+.token
+dist
+ops.asc
+vendor
 listApis.json
-public-api.json

@@ -1,7 +1,10 @@
 package cloudflare
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
+	"net/http"
 	"net/url"
 	"strconv"
 	"time"
@@ -42,12 +45,12 @@ type AccessAuditLogFilterOptions struct {
 // AccessAuditLogs retrieves all audit logs for the Access service.
 //
 // API reference: https://api.cloudflare.com/#access-requests-access-requests-audit
-func (api *API) AccessAuditLogs(accountID string, opts AccessAuditLogFilterOptions) ([]AccessAuditLogRecord, error) {
-	uri := "/accounts/" + accountID + "/access/logs/access-requests?" + opts.Encode()
+func (api *API) AccessAuditLogs(ctx context.Context, accountID string, opts AccessAuditLogFilterOptions) ([]AccessAuditLogRecord, error) {
+	uri := fmt.Sprintf("/accounts/%s/access/logs/access-requests?%s", accountID, opts.Encode())
 
-	res, err := api.makeRequest("GET", uri, nil)
+	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
-		return []AccessAuditLogRecord{}, errors.Wrap(err, errMakeRequestError)
+		return []AccessAuditLogRecord{}, err
 	}
 
 	var accessAuditLogListResponse AccessAuditLogListResponse

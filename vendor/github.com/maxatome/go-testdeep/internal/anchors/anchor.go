@@ -138,7 +138,7 @@ sw:
 		if typ.Comparable() {
 			// Check for anchorable types. No need of 2 passes here.
 			for _, at := range AnchorableTypes {
-				if typ == at.typ || at.typ.ConvertibleTo(typ) {
+				if typ == at.typ || at.typ.ConvertibleTo(typ) { // 1.17 ok as struct here
 					key = v.Interface()
 					break sw
 				}
@@ -259,7 +259,7 @@ func (i *Info) build(typ reflect.Type) (reflect.Value, interface{}, error) {
 		return nvm, nvm.Pointer(), nil
 
 	case reflect.Slice:
-		nvm := reflect.MakeSlice(typ, 0, 0)
+		nvm := reflect.MakeSlice(typ, 0, 1) // cap=1 to avoid same ptr below
 		return nvm, nvm.Pointer(), nil
 
 	case reflect.Ptr:
