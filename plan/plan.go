@@ -257,7 +257,7 @@ func filterRecordsForPlan(records []*endpoint.Endpoint, domainFilter endpoint.Do
 			log.Debugf("ignoring record %s that does not match domain filter", record.DNSName)
 			continue
 		}
-		if isManagedRecord(record.RecordType, managedRecords) {
+		if IsManagedRecord(record.RecordType, managedRecords) {
 			filtered = append(filtered, record)
 		}
 	}
@@ -300,7 +300,7 @@ func CompareBoolean(defaultValue bool, name, current, previous string) bool {
 	return v1 == v2
 }
 
-func isManagedRecord(record string, managedRecords []string) bool {
+func IsManagedRecord(record string, managedRecords []string) bool {
 	for _, r := range managedRecords {
 		if record == r {
 			return true

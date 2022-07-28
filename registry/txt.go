@@ -144,15 +144,23 @@ func (im *TXTRegistry) Records(ctx context.Context) ([]*endpoint.Endpoint, error
 				ep.Labels[k] = v
 			}
 		}
-		// Handle the migration of TXT records created before the new format (introduced in v0.12.0)
-		if len(txtRecordsMap) > 0 {
-			if isManagedRecord(ep, im.managedRecordTypes) {
-				// get desired TXT records and detect the missing ones
-				for _, desiredTXT := range im.generateTXTRecord(ep) {
+
+		// Handle the migration of TXT records created before the new format (introduced in v0.12.0).
+		// The migration is done for the TXT records owned by this instance only.
+		if len(txtRecordsMap) > 0 && ep.Labels[endpoint.OwnerLabelKey] == im.ownerID {
+			if plan.IsManagedRecord(ep.RecordType, im.managedRecordTypes) {
+				// Get desired TXT records and detect the missing ones
+				desiredTXTs := im.generateTXTRecord(ep)
+				missingDesiredTXTs := []*endpoint.Endpoint{}
+				for _, desiredTXT := range desiredTXTs {
 					if _, exists := txtRecordsMap[desiredTXT.DNSName]; !exists {
-						// add missing TXT record
-						missingEndpoints = append(missingEndpoints, desiredTXT)
+						missingDesiredTXTs = append(missingDesiredTXTs, desiredTXT)
 					}
+				}
+				if len(desiredTXTs) > len(missingDesiredTXTs) {
+					// Add missing TXT records only if those are managed (by externaldns) ones.
+					// The unmanaged record has both of the desired TXT records missing.
+					missingEndpoints = append(missingEndpoints, missingDesiredTXTs...)
 				}
 			}
 		}
@@ -178,8 +186,8 @@ func (im *TXTRegistry) MissingRecords() []*endpoint.Endpoint {
 // generateTXTRecord generates both "old" and "new" TXT records.
 // Once we decide to drop old format we need to drop toTXTName() and rename toNewTXTName
 func (im *TXTRegistry) generateTXTRecord(r *endpoint.Endpoint) []*endpoint.Endpoint {
-	// missing TXT records are added to the set of changes,
-	// obviously we don't need any other TXT record for them
+	// Missing TXT records are added to the set of changes.
+	// Obviously, we don't need any other TXT record for them.
 	if r.RecordType == endpoint.RecordTypeTXT {
 		return nil
 	}
@@ -430,13 +438,4 @@ func (im *TXTRegistry) removeFromCache(ep *endpoint.Endpoint) {
 			return
 		}
 	}
-}
-
-func isManagedRecord(record *endpoint.Endpoint, managedTypes []string) bool {
-	for _, mt := range managedTypes {
-		if record.RecordType == mt {
-			return true
-		}
-	}
-	return false
 }
