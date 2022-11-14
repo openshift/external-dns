@@ -75,12 +75,12 @@ func Init() {
 }
 
 // SaveState saves the "TESTDEEP_COLOR" environment variable
-// value, sets it to "on" (if true passed as on) or "false" (if on not
+// value, sets it to "on" (if true passed as on) or "off" (if on not
 // passed or set to false), resets the colors initialization and
 // returns a function to be called in a defer statement. Only intended
 // to be used in tests like:
 //
-//   defer color.SaveState()()
+//	defer color.SaveState()()
 //
 // It is not thread-safe.
 func SaveState(on ...bool) func() {
@@ -197,7 +197,7 @@ func AppendTestNameOff(b *bytes.Buffer) {
 // s and args are given to fmt.Sprintf.
 //
 // Typically used in panic() when the user made a mistake.
-func Bad(s string, args ...interface{}) string {
+func Bad(s string, args ...any) string {
 	Init()
 	if len(args) == 0 {
 		return BadOnBold + s + BadOff
@@ -208,7 +208,7 @@ func Bad(s string, args ...interface{}) string {
 // BadUsage returns a string surrounded by BAD color to notice the
 // user he passes a bad parameter to a function. Typically used in a
 // panic().
-func BadUsage(usage string, param interface{}, pos int, kind bool) string {
+func BadUsage(usage string, param any, pos int, kind bool) string {
 	Init()
 
 	var b bytes.Buffer
@@ -249,7 +249,7 @@ func TooManyParams(usage string) string {
 	return BadOnBold + "usage: " + usage + ", too many parameters" + BadOff
 }
 
-// UnBad returns "s" with bad color prefix & suffix removed.
+// UnBad returns s with bad color prefix & suffix removed.
 func UnBad(s string) string {
 	return strings.TrimSuffix(strings.TrimPrefix(s, BadOnBold), BadOff)
 }

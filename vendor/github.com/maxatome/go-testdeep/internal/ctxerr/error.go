@@ -24,9 +24,9 @@ type Error struct {
 	// Message describes the error
 	Message string
 	// Got value
-	Got interface{}
+	Got any
 	// Expected value
-	Expected interface{}
+	Expected any
 	// If not nil, Summary is used to display summary instead of using
 	// Got + Expected fields
 	Summary ErrorSummary
@@ -38,17 +38,15 @@ type Error struct {
 	Next *Error
 }
 
-var (
-	// BooleanError is the *Error returned when an error occurs in a
-	// boolean context.
-	BooleanError = &Error{}
+// BooleanError is the [*Error] returned when an error occurs in a
+// boolean context.
+var BooleanError = &Error{}
 
-	// ErrTooManyErrors is chained to the last error encountered when
-	// the maximum number of errors has been reached.
-	ErrTooManyErrors = &Error{
-		Message: "Too many errors (use TESTDEEP_MAX_ERRORS=-1 to see all)",
-	}
-)
+// ErrTooManyErrors is chained to the last error encountered when
+// the maximum number of errors has been reached.
+var ErrTooManyErrors = &Error{
+	Message: "Too many errors (use TESTDEEP_MAX_ERRORS=-1 to see all)",
+}
 
 // TypeMismatch returns a "type mismatch" error. It is the caller
 // responsibility to check that both types differ.
@@ -61,25 +59,25 @@ var (
 // case reflect does not allow us to retrieve the package from which
 // each type comes.
 //
-//   package foo // in a/
-//   var Foo struct { a int }
+//	package foo // in a/
+//	var Foo struct { a int }
 //
-//   package foo // in b/
-//   var Foo struct { a int }
+//	package foo // in b/
+//	var Foo struct { a int }
 //
-//   package ctxerr
-//   import(
-//     a_foo "a/foo"
-//     b_foo "b/foo"
-//   )
-//   …
-//   TypeMismatch(reflect.TypeOf(a_foo.Foo), reflect.TypeOf(b_foo.Foo))
+//	package ctxerr
+//	import(
+//	  a_foo "a/foo"
+//	  b_foo "b/foo"
+//	)
+//	…
+//	TypeMismatch(reflect.TypeOf(a_foo.Foo), reflect.TypeOf(b_foo.Foo))
 //
 // returns an error producing:
 //
-//   type mismatch
-//        got: struct { a int }
-//   expected: struct { a int }
+//	type mismatch
+//	     got: struct { a int }
+//	expected: struct { a int }
 func TypeMismatch(got, expected reflect.Type) *Error {
 	gs, es := got.String(), expected.String()
 	if gs == es {
@@ -101,8 +99,8 @@ func (e *Error) Error() string {
 	return buf.String()
 }
 
-// Append appends the Error contents to "buf" using prefix "prefix"
-// for each line.
+// Append appends the a contents to buf using prefix prefix for each
+// line.
 func (e *Error) Append(buf *bytes.Buffer, prefix string) {
 	if e == BooleanError {
 		return
@@ -187,8 +185,7 @@ func (e *Error) Append(buf *bytes.Buffer, prefix string) {
 }
 
 // GotString returns the string corresponding to the Got
-// field. Returns the empty string if the Error Summary field is not
-// nil.
+// field. Returns the empty string if the e Summary field is not nil.
 func (e *Error) GotString() string {
 	if e.Summary != nil {
 		return ""
@@ -197,8 +194,7 @@ func (e *Error) GotString() string {
 }
 
 // ExpectedString returns the string corresponding to the Expected
-// field. Returns the empty string if the Error Summary field is not
-// nil.
+// field. Returns the empty string if the e Summary field is not nil.
 func (e *Error) ExpectedString() string {
 	if e.Summary != nil {
 		return ""
@@ -207,7 +203,7 @@ func (e *Error) ExpectedString() string {
 }
 
 // SummaryString returns the string corresponding to the Summary
-// field. Returns the empty string if the Error Summary field is nil.
+// field. Returns the empty string if the e Summary field is nil.
 func (e *Error) SummaryString() string {
 	if e.Summary == nil {
 		return ""

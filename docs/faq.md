@@ -34,7 +34,7 @@ As stated in the README, we are currently looking for stable maintainers for tho
 
 ### Which Kubernetes objects are supported?
 
-Services exposed via `type=LoadBalancer`, `type=ExternalName` and for the hostnames defined in Ingress objects as well as headless hostPort services. An initial effort to support type `NodePort` was started as of May 2018 and it is in progress at the time of writing.
+Services exposed via `type=LoadBalancer`, `type=ExternalName`, `type=NodePort`, and for the hostnames defined in Ingress objects as well as [headless hostPort](tutorials/hostport.md) services.
 
 ### How do I specify a DNS name for my Kubernetes objects?
 
@@ -283,6 +283,9 @@ To accomplish this, set this annotation on your service: `external-dns.alpha.kub
 Conversely, to force the public IP: `external-dns.alpha.kubernetes.io/access=public`
 
 If this annotation is not set, and the node has both public and private IP addresses, then the public IP will be used by default.
+
+Some loadbalancer implementations assign multiple IP addresses as external addresses. You can filter the generated targets by their networks
+using `--target-net-filter=10.0.0.0/8` or `--exclude-target-net=10.0.0.0/8`.
 
 ### Can external-dns manage(add/remove) records in a hosted zone which is setup in different AWS account?
 
