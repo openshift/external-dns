@@ -7,29 +7,29 @@
 package ctxerr
 
 import (
-	"bytes"
 	"strings"
 
+	"github.com/maxatome/go-testdeep/internal/color"
 	"github.com/maxatome/go-testdeep/internal/util"
 )
 
 // ErrorSummary is the interface used to render error summaries. See
 // Error.Summary.
 type ErrorSummary interface {
-	AppendSummary(buf *bytes.Buffer, prefix string)
+	AppendSummary(buf *strings.Builder, prefix string, colorized bool)
 }
 
-// ErrorSummaryItem implements the ErrorSummary interface and allows
+// ErrorSummaryItem implements the [ErrorSummary] interface and allows
 // to render a labeled value.
 //
 // With explanation set:
 //
-//   Label: value
-//   Explanation
+//	Label: value
+//	Explanation
 //
 // With an empty explantion:
 //
-//   Label: value
+//	Label: value
 type ErrorSummaryItem struct {
 	Label       string
 	Value       string
@@ -38,36 +38,39 @@ type ErrorSummaryItem struct {
 
 var _ ErrorSummary = ErrorSummaryItem{}
 
-// AppendSummary implements the ErrorSummary interface.
-func (s ErrorSummaryItem) AppendSummary(buf *bytes.Buffer, prefix string) {
+// AppendSummary implements the [ErrorSummary] interface.
+func (s ErrorSummaryItem) AppendSummary(buf *strings.Builder, prefix string, colorized bool) {
 	buf.WriteString(prefix)
-	buf.WriteString(colorBadOnBold)
+
+	badOn, badOff := "", ""
+	if colorized {
+		color.Init()
+		badOn, badOff = color.BadOn, color.BadOff
+		buf.WriteString(color.BadOnBold)
+	}
 	buf.WriteString(s.Label)
 	buf.WriteString(": ")
 
-	buf.WriteString(colorBadOn)
-	util.IndentStringIn(buf, s.Value, prefix+strings.Repeat(" ", len(s.Label)+2))
+	util.IndentColorizeStringIn(buf, s.Value, prefix+strings.Repeat(" ", len(s.Label)+2), badOn, badOff)
 
 	if s.Explanation != "" {
 		buf.WriteByte('\n')
 		buf.WriteString(prefix)
-		util.IndentStringIn(buf, s.Explanation, prefix)
+		util.IndentColorizeStringIn(buf, s.Explanation, prefix, badOn, badOff)
 	}
-
-	buf.WriteString(colorBadOff)
 }
 
-// ErrorSummaryItems implements the ErrorSummary interface and allows
-// to render summaries with several labeled values. For example:
+// ErrorSummaryItems implements the [ErrorSummary] interface and
+// allows to render summaries with several labeled values. For example:
 //
-//   Missing 6 items: the 6 items...
-//     Extra 2 items: the 2 items...
+//	Missing 6 items: the 6 items...
+//	  Extra 2 items: the 2 items...
 type ErrorSummaryItems []ErrorSummaryItem
 
 var _ ErrorSummary = (ErrorSummaryItems)(nil)
 
-// AppendSummary implements ErrorSummary interface.
-func (s ErrorSummaryItems) AppendSummary(buf *bytes.Buffer, prefix string) {
+// AppendSummary implements [ErrorSummary] interface.
+func (s ErrorSummaryItems) AppendSummary(buf *strings.Builder, prefix string, colorized bool) {
 	maxLen := 0
 	for _, item := range s {
 		if len(item.Label) > maxLen {
@@ -82,7 +85,7 @@ func (s ErrorSummaryItems) AppendSummary(buf *bytes.Buffer, prefix string) {
 		if len(item.Label) < maxLen {
 			item.Label = strings.Repeat(" ", maxLen-len(item.Label)) + item.Label
 		}
-		item.AppendSummary(buf, prefix)
+		item.AppendSummary(buf, prefix, colorized)
 	}
 }
 
@@ -90,11 +93,15 @@ type errorSummaryString string
 
 var _ ErrorSummary = errorSummaryString("")
 
-func (s errorSummaryString) AppendSummary(buf *bytes.Buffer, prefix string) {
+func (s errorSummaryString) AppendSummary(buf *strings.Builder, prefix string, colorized bool) {
+	badOn, badOff := "", ""
+	if colorized {
+		color.Init()
+		badOn, badOff = color.BadOn, color.BadOff
+	}
+
 	buf.WriteString(prefix)
-	buf.WriteString(colorBadOn)
-	util.IndentStringIn(buf, string(s), prefix)
-	buf.WriteString(colorBadOff)
+	util.IndentColorizeStringIn(buf, string(s), prefix, badOn, badOff)
 }
 
 // NewSummary returns an ErrorSummary composed by the simple string s.
@@ -102,19 +109,19 @@ func NewSummary(s string) ErrorSummary {
 	return errorSummaryString(s)
 }
 
-// NewSummaryReason returns an ErrorSummary meaning that the value got
+// NewSummaryReason returns an [ErrorSummary] meaning that the value got
 // failed for an (optional) reason.
 //
-// With a given reason "it is not nil", the generated summary will be:
+// With a given reason "it is not nil", the generated summary is:
 //
-//           value: the_got_value
-//   it failed coz: it is not nil
+//	        value: the_got_value
+//	it failed coz: it is not nil
 //
-// If reason is empty, the generated summary will be:
+// If reason is empty, the generated summary is:
 //
-//     value: the_got_value
-//   it failed but didn't say why
-func NewSummaryReason(got interface{}, reason string) ErrorSummary {
+//	  value: the_got_value
+//	it failed but didn't say why
+func NewSummaryReason(got any, reason string) ErrorSummary {
 	if reason == "" {
 		return ErrorSummaryItem{
 			Label:       "  value", // keep 2 indent spaces

@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeDomainNs invokes the alidns.DescribeDomainNs API synchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainns.html
 func (client *Client) DescribeDomainNs(request *DescribeDomainNsRequest) (response *DescribeDomainNsResponse, err error) {
 	response = CreateDescribeDomainNsResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeDomainNs(request *DescribeDomainNsRequest) (respon
 }
 
 // DescribeDomainNsWithChan invokes the alidns.DescribeDomainNs API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainns.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainNsWithChan(request *DescribeDomainNsRequest) (<-chan *DescribeDomainNsResponse, <-chan error) {
 	responseChan := make(chan *DescribeDomainNsResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeDomainNsWithChan(request *DescribeDomainNsRequest)
 }
 
 // DescribeDomainNsWithCallback invokes the alidns.DescribeDomainNs API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainns.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainNsWithCallback(request *DescribeDomainNsRequest, callback func(response *DescribeDomainNsResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,6 +72,7 @@ func (client *Client) DescribeDomainNsWithCallback(request *DescribeDomainNsRequ
 type DescribeDomainNsRequest struct {
 	*requests.RpcRequest
 	DomainName   string `position:"Query" name:"DomainName"`
+	DomainType   string `position:"Query" name:"DomainType"`
 	UserClientIp string `position:"Query" name:"UserClientIp"`
 	Lang         string `position:"Query" name:"Lang"`
 }
@@ -84,11 +80,12 @@ type DescribeDomainNsRequest struct {
 // DescribeDomainNsResponse is the response struct for api DescribeDomainNs
 type DescribeDomainNsResponse struct {
 	*responses.BaseResponse
-	RequestId        string                       `json:"RequestId" xml:"RequestId"`
-	AllAliDns        bool                         `json:"AllAliDns" xml:"AllAliDns"`
-	IncludeAliDns    bool                         `json:"IncludeAliDns" xml:"IncludeAliDns"`
-	DnsServers       DnsServersInDescribeDomainNs `json:"DnsServers" xml:"DnsServers"`
-	ExpectDnsServers ExpectDnsServers             `json:"ExpectDnsServers" xml:"ExpectDnsServers"`
+	AllAliDns              bool                         `json:"AllAliDns" xml:"AllAliDns"`
+	RequestId              string                       `json:"RequestId" xml:"RequestId"`
+	IncludeAliDns          bool                         `json:"IncludeAliDns" xml:"IncludeAliDns"`
+	DetectFailedReasonCode string                       `json:"DetectFailedReasonCode" xml:"DetectFailedReasonCode"`
+	ExpectDnsServers       ExpectDnsServers             `json:"ExpectDnsServers" xml:"ExpectDnsServers"`
+	DnsServers             DnsServersInDescribeDomainNs `json:"DnsServers" xml:"DnsServers"`
 }
 
 // CreateDescribeDomainNsRequest creates a request to invoke DescribeDomainNs API
@@ -97,6 +94,7 @@ func CreateDescribeDomainNsRequest() (request *DescribeDomainNsRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeDomainNs", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeDomainRecordInfo invokes the alidns.DescribeDomainRecordInfo API synchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainrecordinfo.html
 func (client *Client) DescribeDomainRecordInfo(request *DescribeDomainRecordInfoRequest) (response *DescribeDomainRecordInfoResponse, err error) {
 	response = CreateDescribeDomainRecordInfoResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeDomainRecordInfo(request *DescribeDomainRecordInfo
 }
 
 // DescribeDomainRecordInfoWithChan invokes the alidns.DescribeDomainRecordInfo API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainrecordinfo.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainRecordInfoWithChan(request *DescribeDomainRecordInfoRequest) (<-chan *DescribeDomainRecordInfoResponse, <-chan error) {
 	responseChan := make(chan *DescribeDomainRecordInfoResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeDomainRecordInfoWithChan(request *DescribeDomainRe
 }
 
 // DescribeDomainRecordInfoWithCallback invokes the alidns.DescribeDomainRecordInfo API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainrecordinfo.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainRecordInfoWithCallback(request *DescribeDomainRecordInfoRequest, callback func(response *DescribeDomainRecordInfoResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -84,21 +79,22 @@ type DescribeDomainRecordInfoRequest struct {
 // DescribeDomainRecordInfoResponse is the response struct for api DescribeDomainRecordInfo
 type DescribeDomainRecordInfoResponse struct {
 	*responses.BaseResponse
-	RequestId  string `json:"RequestId" xml:"RequestId"`
-	DomainId   string `json:"DomainId" xml:"DomainId"`
-	DomainName string `json:"DomainName" xml:"DomainName"`
-	PunyCode   string `json:"PunyCode" xml:"PunyCode"`
-	GroupId    string `json:"GroupId" xml:"GroupId"`
-	GroupName  string `json:"GroupName" xml:"GroupName"`
-	RecordId   string `json:"RecordId" xml:"RecordId"`
-	RR         string `json:"RR" xml:"RR"`
-	Type       string `json:"Type" xml:"Type"`
-	Value      string `json:"Value" xml:"Value"`
-	TTL        int64  `json:"TTL" xml:"TTL"`
-	Priority   int64  `json:"Priority" xml:"Priority"`
-	Line       string `json:"Line" xml:"Line"`
 	Status     string `json:"Status" xml:"Status"`
+	RR         string `json:"RR" xml:"RR"`
+	GroupName  string `json:"GroupName" xml:"GroupName"`
+	RequestId  string `json:"RequestId" xml:"RequestId"`
+	DomainName string `json:"DomainName" xml:"DomainName"`
+	Priority   int64  `json:"Priority" xml:"Priority"`
+	PunyCode   string `json:"PunyCode" xml:"PunyCode"`
+	TTL        int64  `json:"TTL" xml:"TTL"`
+	GroupId    string `json:"GroupId" xml:"GroupId"`
+	Line       string `json:"Line" xml:"Line"`
 	Locked     bool   `json:"Locked" xml:"Locked"`
+	Type       string `json:"Type" xml:"Type"`
+	DomainId   string `json:"DomainId" xml:"DomainId"`
+	Value      string `json:"Value" xml:"Value"`
+	RecordId   string `json:"RecordId" xml:"RecordId"`
+	Remark     string `json:"Remark" xml:"Remark"`
 }
 
 // CreateDescribeDomainRecordInfoRequest creates a request to invoke DescribeDomainRecordInfo API
@@ -107,6 +103,7 @@ func CreateDescribeDomainRecordInfoRequest() (request *DescribeDomainRecordInfoR
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeDomainRecordInfo", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

@@ -21,7 +21,6 @@ import (
 )
 
 // ChangeDomainGroup invokes the alidns.ChangeDomainGroup API synchronously
-// api document: https://help.aliyun.com/api/alidns/changedomaingroup.html
 func (client *Client) ChangeDomainGroup(request *ChangeDomainGroupRequest) (response *ChangeDomainGroupResponse, err error) {
 	response = CreateChangeDomainGroupResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) ChangeDomainGroup(request *ChangeDomainGroupRequest) (resp
 }
 
 // ChangeDomainGroupWithChan invokes the alidns.ChangeDomainGroup API asynchronously
-// api document: https://help.aliyun.com/api/alidns/changedomaingroup.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ChangeDomainGroupWithChan(request *ChangeDomainGroupRequest) (<-chan *ChangeDomainGroupResponse, <-chan error) {
 	responseChan := make(chan *ChangeDomainGroupResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) ChangeDomainGroupWithChan(request *ChangeDomainGroupReques
 }
 
 // ChangeDomainGroupWithCallback invokes the alidns.ChangeDomainGroup API asynchronously
-// api document: https://help.aliyun.com/api/alidns/changedomaingroup.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) ChangeDomainGroupWithCallback(request *ChangeDomainGroupRequest, callback func(response *ChangeDomainGroupResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -85,9 +80,9 @@ type ChangeDomainGroupRequest struct {
 // ChangeDomainGroupResponse is the response struct for api ChangeDomainGroup
 type ChangeDomainGroupResponse struct {
 	*responses.BaseResponse
+	GroupName string `json:"GroupName" xml:"GroupName"`
 	RequestId string `json:"RequestId" xml:"RequestId"`
 	GroupId   string `json:"GroupId" xml:"GroupId"`
-	GroupName string `json:"GroupName" xml:"GroupName"`
 }
 
 // CreateChangeDomainGroupRequest creates a request to invoke ChangeDomainGroup API
@@ -96,6 +91,7 @@ func CreateChangeDomainGroupRequest() (request *ChangeDomainGroupRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Alidns", "2015-01-09", "ChangeDomainGroup", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

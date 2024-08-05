@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeGtmAccessStrategyAvailableConfig invokes the alidns.DescribeGtmAccessStrategyAvailableConfig API synchronously
-// api document: https://help.aliyun.com/api/alidns/describegtmaccessstrategyavailableconfig.html
 func (client *Client) DescribeGtmAccessStrategyAvailableConfig(request *DescribeGtmAccessStrategyAvailableConfigRequest) (response *DescribeGtmAccessStrategyAvailableConfigResponse, err error) {
 	response = CreateDescribeGtmAccessStrategyAvailableConfigResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeGtmAccessStrategyAvailableConfig(request *Describe
 }
 
 // DescribeGtmAccessStrategyAvailableConfigWithChan invokes the alidns.DescribeGtmAccessStrategyAvailableConfig API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describegtmaccessstrategyavailableconfig.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeGtmAccessStrategyAvailableConfigWithChan(request *DescribeGtmAccessStrategyAvailableConfigRequest) (<-chan *DescribeGtmAccessStrategyAvailableConfigResponse, <-chan error) {
 	responseChan := make(chan *DescribeGtmAccessStrategyAvailableConfigResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeGtmAccessStrategyAvailableConfigWithChan(request *
 }
 
 // DescribeGtmAccessStrategyAvailableConfigWithCallback invokes the alidns.DescribeGtmAccessStrategyAvailableConfig API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describegtmaccessstrategyavailableconfig.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeGtmAccessStrategyAvailableConfigWithCallback(request *DescribeGtmAccessStrategyAvailableConfigRequest, callback func(response *DescribeGtmAccessStrategyAvailableConfigResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -84,9 +79,10 @@ type DescribeGtmAccessStrategyAvailableConfigRequest struct {
 // DescribeGtmAccessStrategyAvailableConfigResponse is the response struct for api DescribeGtmAccessStrategyAvailableConfig
 type DescribeGtmAccessStrategyAvailableConfigResponse struct {
 	*responses.BaseResponse
-	RequestId string                                              `json:"RequestId" xml:"RequestId"`
-	AddrPools AddrPoolsInDescribeGtmAccessStrategyAvailableConfig `json:"AddrPools" xml:"AddrPools"`
-	Lines     LinesInDescribeGtmAccessStrategyAvailableConfig     `json:"Lines" xml:"Lines"`
+	RequestId             string                                              `json:"RequestId" xml:"RequestId"`
+	SuggestSetDefaultLine bool                                                `json:"SuggestSetDefaultLine" xml:"SuggestSetDefaultLine"`
+	AddrPools             AddrPoolsInDescribeGtmAccessStrategyAvailableConfig `json:"AddrPools" xml:"AddrPools"`
+	Lines                 LinesInDescribeGtmAccessStrategyAvailableConfig     `json:"Lines" xml:"Lines"`
 }
 
 // CreateDescribeGtmAccessStrategyAvailableConfigRequest creates a request to invoke DescribeGtmAccessStrategyAvailableConfig API
@@ -95,6 +91,7 @@ func CreateDescribeGtmAccessStrategyAvailableConfigRequest() (request *DescribeG
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeGtmAccessStrategyAvailableConfig", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

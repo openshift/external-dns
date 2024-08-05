@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeTransferDomains invokes the alidns.DescribeTransferDomains API synchronously
-// api document: https://help.aliyun.com/api/alidns/describetransferdomains.html
 func (client *Client) DescribeTransferDomains(request *DescribeTransferDomainsRequest) (response *DescribeTransferDomainsResponse, err error) {
 	response = CreateDescribeTransferDomainsResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeTransferDomains(request *DescribeTransferDomainsRe
 }
 
 // DescribeTransferDomainsWithChan invokes the alidns.DescribeTransferDomains API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describetransferdomains.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeTransferDomainsWithChan(request *DescribeTransferDomainsRequest) (<-chan *DescribeTransferDomainsResponse, <-chan error) {
 	responseChan := make(chan *DescribeTransferDomainsResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeTransferDomainsWithChan(request *DescribeTransferD
 }
 
 // DescribeTransferDomainsWithCallback invokes the alidns.DescribeTransferDomains API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describetransferdomains.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeTransferDomainsWithCallback(request *DescribeTransferDomainsRequest, callback func(response *DescribeTransferDomainsResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -89,10 +84,10 @@ type DescribeTransferDomainsRequest struct {
 // DescribeTransferDomainsResponse is the response struct for api DescribeTransferDomains
 type DescribeTransferDomainsResponse struct {
 	*responses.BaseResponse
-	RequestId       string          `json:"RequestId" xml:"RequestId"`
 	TotalCount      int64           `json:"TotalCount" xml:"TotalCount"`
-	PageNumber      int64           `json:"PageNumber" xml:"PageNumber"`
 	PageSize        int64           `json:"PageSize" xml:"PageSize"`
+	RequestId       string          `json:"RequestId" xml:"RequestId"`
+	PageNumber      int64           `json:"PageNumber" xml:"PageNumber"`
 	DomainTransfers DomainTransfers `json:"DomainTransfers" xml:"DomainTransfers"`
 }
 
@@ -102,6 +97,7 @@ func CreateDescribeTransferDomainsRequest() (request *DescribeTransferDomainsReq
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeTransferDomains", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

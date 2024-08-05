@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeBatchResultDetail invokes the alidns.DescribeBatchResultDetail API synchronously
-// api document: https://help.aliyun.com/api/alidns/describebatchresultdetail.html
 func (client *Client) DescribeBatchResultDetail(request *DescribeBatchResultDetailRequest) (response *DescribeBatchResultDetailResponse, err error) {
 	response = CreateDescribeBatchResultDetailResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeBatchResultDetail(request *DescribeBatchResultDeta
 }
 
 // DescribeBatchResultDetailWithChan invokes the alidns.DescribeBatchResultDetail API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describebatchresultdetail.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeBatchResultDetailWithChan(request *DescribeBatchResultDetailRequest) (<-chan *DescribeBatchResultDetailResponse, <-chan error) {
 	responseChan := make(chan *DescribeBatchResultDetailResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeBatchResultDetailWithChan(request *DescribeBatchRe
 }
 
 // DescribeBatchResultDetailWithCallback invokes the alidns.DescribeBatchResultDetail API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describebatchresultdetail.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeBatchResultDetailWithCallback(request *DescribeBatchResultDetailRequest, callback func(response *DescribeBatchResultDetailResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -88,10 +83,10 @@ type DescribeBatchResultDetailRequest struct {
 // DescribeBatchResultDetailResponse is the response struct for api DescribeBatchResultDetail
 type DescribeBatchResultDetailResponse struct {
 	*responses.BaseResponse
-	RequestId          string             `json:"RequestId" xml:"RequestId"`
 	TotalCount         int64              `json:"TotalCount" xml:"TotalCount"`
-	PageNumber         int64              `json:"PageNumber" xml:"PageNumber"`
 	PageSize           int64              `json:"PageSize" xml:"PageSize"`
+	RequestId          string             `json:"RequestId" xml:"RequestId"`
+	PageNumber         int64              `json:"PageNumber" xml:"PageNumber"`
 	BatchResultDetails BatchResultDetails `json:"BatchResultDetails" xml:"BatchResultDetails"`
 }
 
@@ -101,6 +96,7 @@ func CreateDescribeBatchResultDetailRequest() (request *DescribeBatchResultDetai
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeBatchResultDetail", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

@@ -3,9 +3,11 @@ package dnsv2
 import (
 	"encoding/hex"
 	"fmt"
+	"net"
+
 	"github.com/akamai/AkamaiOPEN-edgegrid-golang/client-v1"
 	edge "github.com/akamai/AkamaiOPEN-edgegrid-golang/edgegrid"
-	"net"
+
 	//"sort"
 	"strconv"
 	"strings"
@@ -442,6 +444,36 @@ func ParseRData(rtype string, rdata []string) map[string]interface{} {
 			fieldMap["selector"], _ = strconv.Atoi(parts[1])
 			fieldMap["match_type"], _ = strconv.Atoi(parts[2])
 			fieldMap["certificate"] = parts[3]
+			break
+		}
+
+	case "SVCB":
+		for _, rcontent := range rdata {
+			parts := strings.SplitN(rcontent, " ", 3)
+			// has to be at least two fields.
+			if len(parts) < 2 {
+				break
+			}
+			fieldMap["svc_priority"], _ = strconv.Atoi(parts[0])
+			fieldMap["target_name"] = parts[1]
+			if len(parts) > 2 {
+				fieldMap["svc_params"] = parts[2]
+			}
+			break
+		}
+
+	case "HTTPS":
+		for _, rcontent := range rdata {
+			parts := strings.SplitN(rcontent, " ", 3)
+			// has to be at least two fields.
+			if len(parts) < 2 {
+				break
+			}
+			fieldMap["svc_priority"], _ = strconv.Atoi(parts[0])
+			fieldMap["target_name"] = parts[1]
+			if len(parts) > 2 {
+				fieldMap["svc_params"] = parts[2]
+			}
 			break
 		}
 

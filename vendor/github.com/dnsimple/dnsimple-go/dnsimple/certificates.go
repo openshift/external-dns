@@ -15,8 +15,9 @@ type CertificatesService struct {
 
 // Certificate represents a Certificate in DNSimple.
 type Certificate struct {
-	ID                  int64    `json:"id,omitempty"`
-	DomainID            int64    `json:"domain_id,omitempty"`
+	ID       int64 `json:"id,omitempty"`
+	DomainID int64 `json:"domain_id,omitempty"`
+	// Deprecated: ContactID is deprecated and its value is ignored and will be removed in the next major version.
 	ContactID           int64    `json:"contact_id,omitempty"`
 	CommonName          string   `json:"common_name,omitempty"`
 	AlternateNames      []string `json:"alternate_names,omitempty"`
@@ -26,7 +27,7 @@ type Certificate struct {
 	AutoRenew           bool     `json:"auto_renew"`
 	CreatedAt           string   `json:"created_at,omitempty"`
 	UpdatedAt           string   `json:"updated_at,omitempty"`
-	ExpiresOn           string   `json:"expires_on,omitempty"`
+	ExpiresAt           string   `json:"expires_at,omitempty"`
 	CertificateRequest  string   `json:"csr,omitempty"`
 }
 
@@ -43,7 +44,7 @@ type CertificateBundle struct {
 // CertificatePurchase represents a Certificate Purchase in DNSimple.
 type CertificatePurchase struct {
 	ID            int64  `json:"id,omitempty"`
-	CertificateID int64  `json:"new_certificate_id,omitempty"`
+	CertificateID int64  `json:"certificate_id,omitempty"`
 	State         string `json:"state,omitempty"`
 	AutoRenew     bool   `json:"auto_renew,omitempty"`
 	CreatedAt     string `json:"created_at,omitempty"`
@@ -63,10 +64,12 @@ type CertificateRenewal struct {
 
 // LetsencryptCertificateAttributes is a set of attributes to purchase a Let's Encrypt certificate.
 type LetsencryptCertificateAttributes struct {
-	ContactID      int64    `json:"contact_id,omitempty"`
-	Name           string   `json:"name,omitempty"`
-	AutoRenew      bool     `json:"auto_renew,omitempty"`
-	AlternateNames []string `json:"alternate_names,omitempty"`
+	// Deprecated: ContactID is deprecated and its value is ignored and will be removed in the next major version.
+	ContactID          int64    `json:"contact_id,omitempty"`
+	Name               string   `json:"name,omitempty"`
+	AutoRenew          bool     `json:"auto_renew,omitempty"`
+	AlternateNames     []string `json:"alternate_names,omitempty"`
+	SignatureAlgorithm string   `json:"signature_algorithm,omitempty"`
 }
 
 func certificatePath(accountID, domainIdentifier string, certificateID int64) (path string) {

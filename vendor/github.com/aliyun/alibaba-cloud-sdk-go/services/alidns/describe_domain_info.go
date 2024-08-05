@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeDomainInfo invokes the alidns.DescribeDomainInfo API synchronously
-// api document: https://help.aliyun.com/api/alidns/describedomaininfo.html
 func (client *Client) DescribeDomainInfo(request *DescribeDomainInfoRequest) (response *DescribeDomainInfoResponse, err error) {
 	response = CreateDescribeDomainInfoResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeDomainInfo(request *DescribeDomainInfoRequest) (re
 }
 
 // DescribeDomainInfoWithChan invokes the alidns.DescribeDomainInfo API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomaininfo.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainInfoWithChan(request *DescribeDomainInfoRequest) (<-chan *DescribeDomainInfoResponse, <-chan error) {
 	responseChan := make(chan *DescribeDomainInfoResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeDomainInfoWithChan(request *DescribeDomainInfoRequ
 }
 
 // DescribeDomainInfoWithCallback invokes the alidns.DescribeDomainInfo API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomaininfo.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainInfoWithCallback(request *DescribeDomainInfoRequest, callback func(response *DescribeDomainInfoResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -85,24 +80,26 @@ type DescribeDomainInfoRequest struct {
 // DescribeDomainInfoResponse is the response struct for api DescribeDomainInfo
 type DescribeDomainInfoResponse struct {
 	*responses.BaseResponse
-	RequestId          string                          `json:"RequestId" xml:"RequestId"`
-	DomainId           string                          `json:"DomainId" xml:"DomainId"`
-	DomainName         string                          `json:"DomainName" xml:"DomainName"`
-	PunyCode           string                          `json:"PunyCode" xml:"PunyCode"`
+	RecordLineTreeJson string                          `json:"RecordLineTreeJson" xml:"RecordLineTreeJson"`
+	GroupName          string                          `json:"GroupName" xml:"GroupName"`
+	InBlackHole        bool                            `json:"InBlackHole" xml:"InBlackHole"`
+	RegionLines        bool                            `json:"RegionLines" xml:"RegionLines"`
+	SlaveDns           bool                            `json:"SlaveDns" xml:"SlaveDns"`
 	AliDomain          bool                            `json:"AliDomain" xml:"AliDomain"`
+	RequestId          string                          `json:"RequestId" xml:"RequestId"`
+	ResourceGroupId    string                          `json:"ResourceGroupId" xml:"ResourceGroupId"`
+	InstanceId         string                          `json:"InstanceId" xml:"InstanceId"`
+	DomainName         string                          `json:"DomainName" xml:"DomainName"`
+	CreateTime         string                          `json:"CreateTime" xml:"CreateTime"`
+	PunyCode           string                          `json:"PunyCode" xml:"PunyCode"`
 	Remark             string                          `json:"Remark" xml:"Remark"`
 	GroupId            string                          `json:"GroupId" xml:"GroupId"`
-	GroupName          string                          `json:"GroupName" xml:"GroupName"`
-	InstanceId         string                          `json:"InstanceId" xml:"InstanceId"`
 	VersionCode        string                          `json:"VersionCode" xml:"VersionCode"`
-	VersionName        string                          `json:"VersionName" xml:"VersionName"`
+	DomainId           string                          `json:"DomainId" xml:"DomainId"`
 	MinTtl             int64                           `json:"MinTtl" xml:"MinTtl"`
-	RecordLineTreeJson string                          `json:"RecordLineTreeJson" xml:"RecordLineTreeJson"`
-	LineType           string                          `json:"LineType" xml:"LineType"`
-	RegionLines        bool                            `json:"RegionLines" xml:"RegionLines"`
-	InBlackHole        bool                            `json:"InBlackHole" xml:"InBlackHole"`
 	InClean            bool                            `json:"InClean" xml:"InClean"`
-	SlaveDns           bool                            `json:"SlaveDns" xml:"SlaveDns"`
+	VersionName        string                          `json:"VersionName" xml:"VersionName"`
+	LineType           string                          `json:"LineType" xml:"LineType"`
 	DnsServers         DnsServersInDescribeDomainInfo  `json:"DnsServers" xml:"DnsServers"`
 	AvailableTtls      AvailableTtls                   `json:"AvailableTtls" xml:"AvailableTtls"`
 	RecordLines        RecordLinesInDescribeDomainInfo `json:"RecordLines" xml:"RecordLines"`
@@ -114,6 +111,7 @@ func CreateDescribeDomainInfoRequest() (request *DescribeDomainInfoRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeDomainInfo", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

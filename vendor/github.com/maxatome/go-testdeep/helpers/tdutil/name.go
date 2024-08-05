@@ -7,7 +7,6 @@
 package tdutil
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"strings"
@@ -16,13 +15,13 @@ import (
 // BuildTestName builds a string from given args.
 //
 // If optional first args is a string containing at least one %, args
-// are passed as is to fmt.Sprintf, else they are passed to fmt.Sprint.
-func BuildTestName(args ...interface{}) string {
+// are passed as is to [fmt.Fprintf], else they are passed to [fmt.Fprint].
+func BuildTestName(args ...any) string {
 	if len(args) == 0 {
 		return ""
 	}
 
-	var b bytes.Buffer
+	var b strings.Builder
 	FbuildTestName(&b, args...)
 	return b.String()
 }
@@ -30,18 +29,21 @@ func BuildTestName(args ...interface{}) string {
 // FbuildTestName builds a string from given args.
 //
 // If optional first args is a string containing at least one %, args
-// are passed as is to fmt.Fprintf, else they are passed to fmt.Fprint.
-func FbuildTestName(w io.Writer, args ...interface{}) {
+// are passed as is to [fmt.Fprintf], else they are passed to [fmt.Fprint].
+func FbuildTestName(w io.Writer, args ...any) {
 	if len(args) == 0 {
 		return
 	}
 
 	str, ok := args[0].(string)
-	if ok && len(args) > 1 && strings.ContainsRune(str, '%') {
-		fmt.Fprintf(w, str, args[1:]...) // nolint: errcheck
-	} else {
-		// create a new slice to fool govet and avoid "call has possible
-		// formatting directive" errors
-		fmt.Fprint(w, args[:]...) // nolint: errcheck
+	if ok && len(args) > 1 {
+		if pos := strings.IndexRune(str, '%'); pos >= 0 && pos < len(str)-1 {
+			fmt.Fprintf(w, str, args[1:]...) //nolint: errcheck
+			return
+		}
 	}
+
+	// create a new slice to fool govet and avoid "call has possible
+	// formatting directive" errors
+	fmt.Fprint(w, args[:]...) //nolint: errcheck,gocritic
 }

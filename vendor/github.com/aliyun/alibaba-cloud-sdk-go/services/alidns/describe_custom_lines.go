@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeCustomLines invokes the alidns.DescribeCustomLines API synchronously
-// api document: https://help.aliyun.com/api/alidns/describecustomlines.html
 func (client *Client) DescribeCustomLines(request *DescribeCustomLinesRequest) (response *DescribeCustomLinesResponse, err error) {
 	response = CreateDescribeCustomLinesResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeCustomLines(request *DescribeCustomLinesRequest) (
 }
 
 // DescribeCustomLinesWithChan invokes the alidns.DescribeCustomLines API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describecustomlines.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeCustomLinesWithChan(request *DescribeCustomLinesRequest) (<-chan *DescribeCustomLinesResponse, <-chan error) {
 	responseChan := make(chan *DescribeCustomLinesResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeCustomLinesWithChan(request *DescribeCustomLinesRe
 }
 
 // DescribeCustomLinesWithCallback invokes the alidns.DescribeCustomLines API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describecustomlines.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeCustomLinesWithCallback(request *DescribeCustomLinesRequest, callback func(response *DescribeCustomLinesResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -86,11 +81,11 @@ type DescribeCustomLinesRequest struct {
 // DescribeCustomLinesResponse is the response struct for api DescribeCustomLines
 type DescribeCustomLinesResponse struct {
 	*responses.BaseResponse
-	RequestId   string       `json:"RequestId" xml:"RequestId"`
-	TotalItems  int          `json:"TotalItems" xml:"TotalItems"`
-	PageNumber  int          `json:"PageNumber" xml:"PageNumber"`
 	PageSize    int          `json:"PageSize" xml:"PageSize"`
+	RequestId   string       `json:"RequestId" xml:"RequestId"`
+	PageNumber  int          `json:"PageNumber" xml:"PageNumber"`
 	TotalPages  int          `json:"TotalPages" xml:"TotalPages"`
+	TotalItems  int          `json:"TotalItems" xml:"TotalItems"`
 	CustomLines []CustomLine `json:"CustomLines" xml:"CustomLines"`
 }
 
@@ -100,6 +95,7 @@ func CreateDescribeCustomLinesRequest() (request *DescribeCustomLinesRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeCustomLines", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

@@ -17,8 +17,8 @@ package alidns
 
 // AddrPool is a nested struct in alidns response
 type AddrPool struct {
-	AddrCount           int    `json:"AddrCount" xml:"AddrCount"`
 	Name                string `json:"Name" xml:"Name"`
+	AddrCount           int    `json:"AddrCount" xml:"AddrCount"`
 	MinAvailableAddrNum int    `json:"MinAvailableAddrNum" xml:"MinAvailableAddrNum"`
 	UpdateTime          string `json:"UpdateTime" xml:"UpdateTime"`
 	MonitorConfigId     string `json:"MonitorConfigId" xml:"MonitorConfigId"`
@@ -29,5 +29,6 @@ type AddrPool struct {
 	UpdateTimestamp     int64  `json:"UpdateTimestamp" xml:"UpdateTimestamp"`
 	Status              string `json:"Status" xml:"Status"`
 	MonitorStatus       string `json:"MonitorStatus" xml:"MonitorStatus"`
+	LbaStrategy         string `json:"LbaStrategy" xml:"LbaStrategy"`
 	Type                string `json:"Type" xml:"Type"`
 }

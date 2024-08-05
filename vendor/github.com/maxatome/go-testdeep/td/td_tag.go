@@ -24,29 +24,32 @@ var _ TestDeep = &tdTag{}
 // parameter of JSON operator, to name placeholders
 // input(Tag): all
 
-// Tag is a smuggler operator. It only allows to name "expectedValue",
+// Tag is a smuggler operator. It only allows to name expectedValue,
 // which can be an operator or a value. The data is then compared
-// against "expectedValue" as if Tag was never called. It is only
-// useful as JSON operator parameter, to name placeholders. See JSON
+// against expectedValue as if Tag was never called. It is only useful
+// as [JSON] operator parameter, to name placeholders. See [JSON]
 // operator for more details.
 //
-//   td.Cmp(t, gotValue,
-//     td.JSON(`{"fullname": $name, "age": $age, "gender": $gender}`,
-//       td.Tag("name", td.HasPrefix("Foo")), // matches $name
-//       td.Tag("age", td.Between(41, 43)),   // matches $age
-//       td.Tag("gender", "male")))           // matches $gender
+//	td.Cmp(t, gotValue,
+//	  td.JSON(`{"fullname": $name, "age": $age, "gender": $gender}`,
+//	    td.Tag("name", td.HasPrefix("Foo")), // matches $name
+//	    td.Tag("age", td.Between(41, 43)),   // matches $age
+//	    td.Tag("gender", "male")))           // matches $gender
 //
-// TypeBehind method is delegated to "expectedValue" one if
-// "expectedValue" is a TestDeep operator, otherwise it returns the
-// type of "expectedValue" (or nil if it is originally untyped nil).
-func Tag(tag string, expectedValue interface{}) TestDeep {
-	if err := util.CheckTag(tag); err != nil {
-		panic(err.Error())
-	}
+// TypeBehind method is delegated to expectedValue one if
+// expectedValue is a [TestDeep] operator, otherwise it returns the
+// type of expectedValue (or nil if it is originally untyped nil).
+func Tag(tag string, expectedValue any) TestDeep {
 	t := tdTag{
 		tdSmugglerBase: newSmugglerBase(expectedValue),
 		tag:            tag,
 	}
+
+	if err := util.CheckTag(tag); err != nil {
+		t.err = ctxerr.OpBad("Tag", err.Error())
+		return &t
+	}
+
 	if !t.isTestDeeper {
 		t.expectedValue = reflect.ValueOf(expectedValue)
 	}
@@ -54,6 +57,9 @@ func Tag(tag string, expectedValue interface{}) TestDeep {
 }
 
 func (t *tdTag) Match(ctx ctxerr.Context, got reflect.Value) *ctxerr.Error {
+	if t.err != nil {
+		return ctx.CollectError(t.err)
+	}
 	return deepValueEqual(ctx, got, t.expectedValue)
 }
 
@@ -62,6 +68,9 @@ func (t *tdTag) HandleInvalid() bool {
 }
 
 func (t *tdTag) String() string {
+	if t.err != nil {
+		return t.stringError()
+	}
 	if t.isTestDeeper {
 		return t.expectedValue.Interface().(TestDeep).String()
 	}
@@ -69,6 +78,9 @@ func (t *tdTag) String() string {
 }
 
 func (t *tdTag) TypeBehind() reflect.Type {
+	if t.err != nil {
+		return nil
+	}
 	if t.isTestDeeper {
 		return t.expectedValue.Interface().(TestDeep).TypeBehind()
 	}

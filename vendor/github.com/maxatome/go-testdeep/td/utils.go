@@ -12,17 +12,18 @@ import (
 
 	"github.com/maxatome/go-testdeep/internal/ctxerr"
 	"github.com/maxatome/go-testdeep/internal/dark"
+	"github.com/maxatome/go-testdeep/internal/types"
 )
 
 // getTime returns the time.Time that is inside got or that can be
 // converted from got contents.
 func getTime(ctx ctxerr.Context, got reflect.Value, mustConvert bool) (time.Time, *ctxerr.Error) {
 	var (
-		gotIf interface{}
+		gotIf any
 		ok    bool
 	)
 	if mustConvert {
-		gotIf, ok = dark.GetInterface(got.Convert(timeType), true)
+		gotIf, ok = dark.GetInterface(got.Convert(types.Time), true)
 	} else {
 		gotIf, ok = dark.GetInterface(got, true)
 	}

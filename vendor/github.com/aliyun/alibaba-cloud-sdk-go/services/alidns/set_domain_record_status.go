@@ -21,7 +21,6 @@ import (
 )
 
 // SetDomainRecordStatus invokes the alidns.SetDomainRecordStatus API synchronously
-// api document: https://help.aliyun.com/api/alidns/setdomainrecordstatus.html
 func (client *Client) SetDomainRecordStatus(request *SetDomainRecordStatusRequest) (response *SetDomainRecordStatusResponse, err error) {
 	response = CreateSetDomainRecordStatusResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) SetDomainRecordStatus(request *SetDomainRecordStatusReques
 }
 
 // SetDomainRecordStatusWithChan invokes the alidns.SetDomainRecordStatus API asynchronously
-// api document: https://help.aliyun.com/api/alidns/setdomainrecordstatus.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) SetDomainRecordStatusWithChan(request *SetDomainRecordStatusRequest) (<-chan *SetDomainRecordStatusResponse, <-chan error) {
 	responseChan := make(chan *SetDomainRecordStatusResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) SetDomainRecordStatusWithChan(request *SetDomainRecordStat
 }
 
 // SetDomainRecordStatusWithCallback invokes the alidns.SetDomainRecordStatus API asynchronously
-// api document: https://help.aliyun.com/api/alidns/setdomainrecordstatus.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) SetDomainRecordStatusWithCallback(request *SetDomainRecordStatusRequest, callback func(response *SetDomainRecordStatusResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -85,9 +80,9 @@ type SetDomainRecordStatusRequest struct {
 // SetDomainRecordStatusResponse is the response struct for api SetDomainRecordStatus
 type SetDomainRecordStatusResponse struct {
 	*responses.BaseResponse
+	Status    string `json:"Status" xml:"Status"`
 	RequestId string `json:"RequestId" xml:"RequestId"`
 	RecordId  string `json:"RecordId" xml:"RecordId"`
-	Status    string `json:"Status" xml:"Status"`
 }
 
 // CreateSetDomainRecordStatusRequest creates a request to invoke SetDomainRecordStatus API
@@ -96,6 +91,7 @@ func CreateSetDomainRecordStatusRequest() (request *SetDomainRecordStatusRequest
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Alidns", "2015-01-09", "SetDomainRecordStatus", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

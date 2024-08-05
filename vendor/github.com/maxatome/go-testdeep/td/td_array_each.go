@@ -27,25 +27,25 @@ var _ TestDeep = &tdArrayEach{}
 
 // ArrayEach operator has to be applied on arrays or slices or on
 // pointers on array/slice. It compares each item of data array/slice
-// against "expectedValue". During a match, all items have to match to
+// against expectedValue. During a match, all items have to match to
 // succeed.
 //
-//   got := [3]string{"foo", "bar", "biz"}
-//   td.Cmp(t, got, td.ArrayEach(td.Len(3)))         // succeeds
-//   td.Cmp(t, got, td.ArrayEach(td.HasPrefix("b"))) // fails coz "foo"
+//	got := [3]string{"foo", "bar", "biz"}
+//	td.Cmp(t, got, td.ArrayEach(td.Len(3)))         // succeeds
+//	td.Cmp(t, got, td.ArrayEach(td.HasPrefix("b"))) // fails coz "foo"
 //
 // Works on slices as well:
 //
-//   got := []Person{
-//     {Name: "Bob", Age: 42},
-//     {Name: "Alice", Age: 24},
-//   }
-//   td.Cmp(t, got, td.ArrayEach(
-//     td.Struct(Person{}, td.StructFields{
-//       Age: td.Between(20, 45),
-//     })),
-//   ) // succeeds, each Person has Age field between 20 and 45
-func ArrayEach(expectedValue interface{}) TestDeep {
+//	got := []Person{
+//	  {Name: "Bob", Age: 42},
+//	  {Name: "Alice", Age: 24},
+//	}
+//	td.Cmp(t, got, td.ArrayEach(
+//	  td.Struct(Person{}, td.StructFields{
+//	    Age: td.Between(20, 45),
+//	  })),
+//	) // succeeds, each Person has Age field between 20 and 45
+func ArrayEach(expectedValue any) TestDeep {
 	return &tdArrayEach{
 		baseOKNil: newBaseOKNil(3),
 		expected:  reflect.ValueOf(expectedValue),
@@ -60,7 +60,7 @@ func (a *tdArrayEach) Match(ctx ctxerr.Context, got reflect.Value) (err *ctxerr.
 		return ctx.CollectError(&ctxerr.Error{
 			Message:  "nil value",
 			Got:      types.RawString("nil"),
-			Expected: types.RawString("Slice OR Array OR *Slice OR *Array"),
+			Expected: types.RawString("slice OR array OR *slice OR *array"),
 		})
 	}
 
@@ -71,11 +71,7 @@ func (a *tdArrayEach) Match(ctx ctxerr.Context, got reflect.Value) (err *ctxerr.
 			if ctx.BooleanError {
 				return ctxerr.BooleanError
 			}
-			return ctx.CollectError(&ctxerr.Error{
-				Message:  "nil pointer",
-				Got:      types.RawString("nil " + got.Type().String()),
-				Expected: types.RawString("Slice OR Array OR *Slice OR *Array"),
-			})
+			return ctx.CollectError(ctxerr.NilPointer(got, "non-nil *slice OR *array"))
 		}
 
 		if gotElem.Kind() != reflect.Array && gotElem.Kind() != reflect.Slice {
@@ -100,11 +96,7 @@ func (a *tdArrayEach) Match(ctx ctxerr.Context, got reflect.Value) (err *ctxerr.
 	if ctx.BooleanError {
 		return ctxerr.BooleanError
 	}
-	return ctx.CollectError(&ctxerr.Error{
-		Message:  "bad type",
-		Got:      types.RawString(got.Type().String()),
-		Expected: types.RawString("Slice OR Array OR *Slice OR *Array"),
-	})
+	return ctx.CollectError(ctxerr.BadKind(got, "slice OR array OR *slice OR *array"))
 }
 
 func (a *tdArrayEach) String() string {

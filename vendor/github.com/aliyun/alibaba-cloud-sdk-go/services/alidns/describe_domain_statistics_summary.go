@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeDomainStatisticsSummary invokes the alidns.DescribeDomainStatisticsSummary API synchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainstatisticssummary.html
 func (client *Client) DescribeDomainStatisticsSummary(request *DescribeDomainStatisticsSummaryRequest) (response *DescribeDomainStatisticsSummaryResponse, err error) {
 	response = CreateDescribeDomainStatisticsSummaryResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeDomainStatisticsSummary(request *DescribeDomainSta
 }
 
 // DescribeDomainStatisticsSummaryWithChan invokes the alidns.DescribeDomainStatisticsSummary API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainstatisticssummary.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainStatisticsSummaryWithChan(request *DescribeDomainStatisticsSummaryRequest) (<-chan *DescribeDomainStatisticsSummaryResponse, <-chan error) {
 	responseChan := make(chan *DescribeDomainStatisticsSummaryResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeDomainStatisticsSummaryWithChan(request *DescribeD
 }
 
 // DescribeDomainStatisticsSummaryWithCallback invokes the alidns.DescribeDomainStatisticsSummary API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainstatisticssummary.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainStatisticsSummaryWithCallback(request *DescribeDomainStatisticsSummaryRequest, callback func(response *DescribeDomainStatisticsSummaryResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -92,11 +87,11 @@ type DescribeDomainStatisticsSummaryRequest struct {
 // DescribeDomainStatisticsSummaryResponse is the response struct for api DescribeDomainStatisticsSummary
 type DescribeDomainStatisticsSummaryResponse struct {
 	*responses.BaseResponse
-	RequestId  string                                      `json:"RequestId" xml:"RequestId"`
-	TotalItems int                                         `json:"TotalItems" xml:"TotalItems"`
-	TotalPages int                                         `json:"TotalPages" xml:"TotalPages"`
 	PageSize   int                                         `json:"PageSize" xml:"PageSize"`
+	RequestId  string                                      `json:"RequestId" xml:"RequestId"`
 	PageNumber int                                         `json:"PageNumber" xml:"PageNumber"`
+	TotalPages int                                         `json:"TotalPages" xml:"TotalPages"`
+	TotalItems int                                         `json:"TotalItems" xml:"TotalItems"`
 	Statistics StatisticsInDescribeDomainStatisticsSummary `json:"Statistics" xml:"Statistics"`
 }
 
@@ -106,6 +101,7 @@ func CreateDescribeDomainStatisticsSummaryRequest() (request *DescribeDomainStat
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeDomainStatisticsSummary", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

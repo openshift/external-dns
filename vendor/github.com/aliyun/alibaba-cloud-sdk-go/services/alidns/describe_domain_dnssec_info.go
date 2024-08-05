@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeDomainDnssecInfo invokes the alidns.DescribeDomainDnssecInfo API synchronously
-// api document: https://help.aliyun.com/api/alidns/describedomaindnssecinfo.html
 func (client *Client) DescribeDomainDnssecInfo(request *DescribeDomainDnssecInfoRequest) (response *DescribeDomainDnssecInfoResponse, err error) {
 	response = CreateDescribeDomainDnssecInfoResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeDomainDnssecInfo(request *DescribeDomainDnssecInfo
 }
 
 // DescribeDomainDnssecInfoWithChan invokes the alidns.DescribeDomainDnssecInfo API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomaindnssecinfo.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainDnssecInfoWithChan(request *DescribeDomainDnssecInfoRequest) (<-chan *DescribeDomainDnssecInfoResponse, <-chan error) {
 	responseChan := make(chan *DescribeDomainDnssecInfoResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeDomainDnssecInfoWithChan(request *DescribeDomainDn
 }
 
 // DescribeDomainDnssecInfoWithCallback invokes the alidns.DescribeDomainDnssecInfo API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomaindnssecinfo.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainDnssecInfoWithCallback(request *DescribeDomainDnssecInfoRequest, callback func(response *DescribeDomainDnssecInfoResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -84,16 +79,16 @@ type DescribeDomainDnssecInfoRequest struct {
 // DescribeDomainDnssecInfoResponse is the response struct for api DescribeDomainDnssecInfo
 type DescribeDomainDnssecInfoResponse struct {
 	*responses.BaseResponse
-	RequestId  string `json:"RequestId" xml:"RequestId"`
-	DomainName string `json:"DomainName" xml:"DomainName"`
 	Status     string `json:"Status" xml:"Status"`
-	DsRecord   string `json:"DsRecord" xml:"DsRecord"`
+	RequestId  string `json:"RequestId" xml:"RequestId"`
 	Digest     string `json:"Digest" xml:"Digest"`
-	DigestType string `json:"DigestType" xml:"DigestType"`
-	Algorithm  string `json:"Algorithm" xml:"Algorithm"`
+	DomainName string `json:"DomainName" xml:"DomainName"`
 	PublicKey  string `json:"PublicKey" xml:"PublicKey"`
+	DigestType string `json:"DigestType" xml:"DigestType"`
+	DsRecord   string `json:"DsRecord" xml:"DsRecord"`
 	KeyTag     string `json:"KeyTag" xml:"KeyTag"`
 	Flags      string `json:"Flags" xml:"Flags"`
+	Algorithm  string `json:"Algorithm" xml:"Algorithm"`
 }
 
 // CreateDescribeDomainDnssecInfoRequest creates a request to invoke DescribeDomainDnssecInfo API
@@ -102,6 +97,7 @@ func CreateDescribeDomainDnssecInfoRequest() (request *DescribeDomainDnssecInfoR
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeDomainDnssecInfo", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

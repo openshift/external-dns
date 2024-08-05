@@ -51,6 +51,10 @@ type DeleteResult struct {
 
 // IsEmpty returns true if the page contains no results.
 func (r RecordSetPage) IsEmpty() (bool, error) {
+	if r.StatusCode == 204 {
+		return true, nil
+	}
+
 	s, err := ExtractRecordSets(r)
 	return len(s) == 0, err
 }
@@ -112,6 +116,11 @@ type RecordSet struct {
 	// useful for passing along to other APIs that might want a recordset
 	// reference.
 	Links []gophercloud.Link `json:"-"`
+
+	// Metadata contains the total_count of resources matching the filter
+	Metadata struct {
+		TotalCount int `json:"total_count"`
+	} `json:"metadata"`
 }
 
 func (r *RecordSet) UnmarshalJSON(b []byte) error {
