@@ -569,7 +569,22 @@ func (p *ProviderConfig) recordSet(ep *endpoint.Endpoint, getObject bool, target
 		obj := ibclient.NewEmptyRecordCNAME()
 		obj.Name = &ep.DNSName
 		obj.Canonical = &ep.Targets[0]
-		obj.View = &p.view
+		// Do not add the pointer to view if the view is an empty string (default).
+		// Otherwise the view gets marshalled into the body of the request to WAPI:
+		// '{"extattrs":{},"name":"httpd-24.dummyzone","canonical":"mycanonicalname.com","view":""}'
+		//
+		// This causes the following error:
+		//{ "Error": "AdmConDataNotFoundError: View  not found",
+		//  "code": "Client.Ibap.Data.NotFound",
+		//  "text": "View  not found"
+		//}
+		//
+		// Note that ibclient.RecordA and ibclient.RecordPTR records
+		// do not have this problem because they don't use pointer type for
+		// the view.
+		if p.view != "" {
+			obj.View = &p.view
+		}
 		if getObject {
 			queryParams := ibclient.NewQueryParams(false, map[string]string{"name": *obj.Name})
 			err = p.client.GetObject(obj, "", queryParams, &res)
@@ -591,7 +606,11 @@ func (p *ProviderConfig) recordSet(ep *endpoint.Endpoint, getObject bool, target
 		obj := ibclient.NewEmptyRecordTXT()
 		obj.Name = &ep.DNSName
 		obj.Text = &ep.Targets[0]
-		obj.View = &p.view
+		// Do not add the pointer to view if the view is an empty string (default).
+		// See the details in the comment from CNAME type case above.
+		if p.view != "" {
+			obj.View = &p.view
+		}
 		if getObject {
 			queryParams := ibclient.NewQueryParams(false, map[string]string{"name": *obj.Name})
 			err = p.client.GetObject(obj, "", queryParams, &res)
