@@ -1,14 +1,25 @@
 package utils
 
 func ConvertStringArrayPointer(inputs []*string) []string {
-	res := make([]string, 0)
 	if inputs == nil {
-		return res
+		return []string{}
 	}
 
-	for _, input := range inputs {
-		res = append(res, *input)
+	res := make([]string, len(inputs))
+	for i, input := range inputs {
+		res[i] = *input
+	}
+	return res
+}
+
+func ToStringArrayPtr(input []string) []*string {
+	if input == nil {
+		return []*string{}
 	}
 
+	res := make([]*string, len(input))
+	for i := range input {
+		res[i] = &input[i]
+	}
 	return res
 }

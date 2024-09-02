@@ -2,23 +2,29 @@ package common
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
+	"os"
+	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	tcerr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
 	tchttp "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/http"
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/json"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 )
 
 const (
 	octetStream = "application/octet-stream"
 )
+
+var DefaultHttpClient *http.Client
 
 type Client struct {
 	region          string
@@ -30,9 +36,31 @@ type Client struct {
 	unsignedPayload bool
 	debug           bool
 	rb              *circuitBreaker
+	logger          Logger
+	requestClient   string
 }
 
 func (c *Client) Send(request tchttp.Request, response tchttp.Response) (err error) {
+	c.completeRequest(request)
+
+	tchttp.CompleteCommonParams(request, c.GetRegion(), c.requestClient)
+
+	// reflect to inject client if field ClientToken exists and retry feature is enabled
+	if c.profile.NetworkFailureMaxRetries > 0 || c.profile.RateLimitExceededMaxRetries > 0 {
+		safeInjectClientToken(request)
+	}
+
+	if request.GetSkipSign() {
+		// Some APIs can skip signature.
+		return c.sendWithoutSignature(request, response)
+	} else if c.profile.DisableRegionBreaker == true || c.rb == nil {
+		return c.sendWithSignature(request, response)
+	} else {
+		return c.sendWithRegionBreaker(request, response)
+	}
+}
+
+func (c *Client) completeRequest(request tchttp.Request) {
 	if request.GetScheme() == "" {
 		request.SetScheme(c.httpProfile.Scheme)
 	}
@@ -53,17 +81,15 @@ func (c *Client) Send(request tchttp.Request, response tchttp.Response) (err err
 		request.SetHttpMethod(c.httpProfile.ReqMethod)
 	}
 
-	tchttp.CompleteCommonParams(request, c.GetRegion())
-
-	// reflect to inject client if field ClientToken exists and retry feature is enabled
-	if c.profile.NetworkFailureMaxRetries > 0 || c.profile.RateLimitExceededMaxRetries > 0 {
-		safeInjectClientToken(request)
-	}
-
-	if c.profile.DisableRegionBreaker == true || c.rb == nil {
-		return c.sendWithSignature(request, response)
-	} else {
-		return c.sendWithRegionBreaker(request, response)
+	if c.profile.UnsafeRetryOnConnectionFailure {
+		header := request.GetHeader()
+		if header == nil {
+			header = map[string]string{}
+		}
+		// http.Transport will automatically retry the request that considered Idempotent
+		// see http.Request.isReplayable
+		header["X-Idempotency-Key"] = "x"
+		request.SetHeader(header)
 	}
 }
 
@@ -102,33 +128,7 @@ func (c *Client) sendWithSignature(request tchttp.Request, response tchttp.Respo
 	}
 }
 
-func (c *Client) sendWithSignatureV1(request tchttp.Request, response tchttp.Response) (err error) {
-	// TODO: not an elegant way, it should be done in common params, but finally it need to refactor
-	request.GetParams()["Language"] = c.profile.Language
-	err = tchttp.ConstructParams(request)
-	if err != nil {
-		return err
-	}
-	err = signRequest(request, c.credential, c.signMethod)
-	if err != nil {
-		return err
-	}
-	httpRequest, err := http.NewRequestWithContext(request.GetContext(), request.GetHttpMethod(), request.GetUrl(), request.GetBodyReader())
-	if err != nil {
-		return err
-	}
-	if request.GetHttpMethod() == "POST" {
-		httpRequest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	}
-	httpResponse, err := c.sendWithRateLimitRetry(httpRequest, isRetryable(request))
-	if err != nil {
-		return err
-	}
-	err = tchttp.ParseFromHttpResponse(httpResponse, response)
-	return err
-}
-
-func (c *Client) sendWithSignatureV3(request tchttp.Request, response tchttp.Response) (err error) {
+func (c *Client) sendWithoutSignature(request tchttp.Request, response tchttp.Response) error {
 	headers := map[string]string{
 		"Host":               request.GetDomain(),
 		"X-TC-Action":        request.GetAction(),
@@ -136,11 +136,12 @@ func (c *Client) sendWithSignatureV3(request tchttp.Request, response tchttp.Res
 		"X-TC-Timestamp":     request.GetParams()["Timestamp"],
 		"X-TC-RequestClient": request.GetParams()["RequestClient"],
 		"X-TC-Language":      c.profile.Language,
+		"Authorization":      "SKIP",
 	}
 	if c.region != "" {
 		headers["X-TC-Region"] = c.region
 	}
-	if c.credential.GetToken() != "" {
+	if c.credential != nil && c.credential.GetToken() != "" {
 		headers["X-TC-Token"] = c.credential.GetToken()
 	}
 	if request.GetHttpMethod() == "GET" {
@@ -161,6 +162,167 @@ func (c *Client) sendWithSignatureV3(request tchttp.Request, response tchttp.Res
 				headers[k] = v
 			}
 			octetStreamBody = cr.GetOctetStreamBody()
+		}
+	}
+
+	for k, v := range request.GetHeader() {
+		switch k {
+		case "X-TC-Action", "X-TC-Version", "X-TC-Timestamp", "X-TC-RequestClient",
+			"X-TC-Language", "Content-Type", "X-TC-Region", "X-TC-Token":
+			c.logger.Printf("Skip header \"%s\": can not specify built-in header", k)
+		default:
+			headers[k] = v
+		}
+	}
+
+	if !isOctetStream && request.GetContentType() == octetStream {
+		isOctetStream = true
+		b, _ := json.Marshal(request)
+		var m map[string]string
+		_ = json.Unmarshal(b, &m)
+		for k, v := range m {
+			key := "X-" + strings.ToUpper(request.GetService()) + "-" + k
+			headers[key] = v
+		}
+
+		headers["Content-Type"] = octetStream
+		octetStreamBody = request.GetBody()
+	}
+	// start signature v3 process
+
+	// build canonical request string
+	httpRequestMethod := request.GetHttpMethod()
+	canonicalQueryString := ""
+	if httpRequestMethod == "GET" {
+		err := tchttp.ConstructParams(request)
+		if err != nil {
+			return err
+		}
+		params := make(map[string]string)
+		for key, value := range request.GetParams() {
+			params[key] = value
+		}
+		delete(params, "Action")
+		delete(params, "Version")
+		delete(params, "Nonce")
+		delete(params, "Region")
+		delete(params, "RequestClient")
+		delete(params, "Timestamp")
+		canonicalQueryString = tchttp.GetUrlQueriesEncoded(params)
+	}
+	requestPayload := ""
+	if httpRequestMethod == "POST" {
+		if isOctetStream {
+			// todo Conversion comparison between string and []byte affects performance much
+			requestPayload = string(octetStreamBody)
+		} else {
+			b, err := json.Marshal(request)
+			if err != nil {
+				return err
+			}
+			requestPayload = string(b)
+		}
+	}
+	if c.unsignedPayload {
+		headers["X-TC-Content-SHA256"] = "UNSIGNED-PAYLOAD"
+	}
+
+	url := request.GetScheme() + "://" + request.GetDomain() + request.GetPath()
+	if canonicalQueryString != "" {
+		url = url + "?" + canonicalQueryString
+	}
+	httpRequest, err := http.NewRequest(httpRequestMethod, url, strings.NewReader(requestPayload))
+	if err != nil {
+		return err
+	}
+	httpRequest = httpRequest.WithContext(request.GetContext())
+	for k, v := range headers {
+		httpRequest.Header[k] = []string{v}
+	}
+	httpResponse, err := c.sendWithRateLimitRetry(httpRequest, isRetryable(request))
+	if err != nil {
+		return err
+	}
+	err = tchttp.ParseFromHttpResponse(httpResponse, response)
+	return err
+}
+
+func (c *Client) sendWithSignatureV1(request tchttp.Request, response tchttp.Response) (err error) {
+	// TODO: not an elegant way, it should be done in common params, but finally it need to refactor
+	request.GetParams()["Language"] = c.profile.Language
+	err = tchttp.ConstructParams(request)
+	if err != nil {
+		return err
+	}
+	err = signRequest(request, c.credential, c.signMethod)
+	if err != nil {
+		return err
+	}
+	httpRequest, err := http.NewRequest(request.GetHttpMethod(), request.GetUrl(), request.GetBodyReader())
+	if err != nil {
+		return err
+	}
+	httpRequest = httpRequest.WithContext(request.GetContext())
+	if request.GetHttpMethod() == "POST" {
+		httpRequest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	}
+
+	for k, v := range request.GetHeader() {
+		httpRequest.Header.Set(k, v)
+	}
+
+	httpResponse, err := c.sendWithRateLimitRetry(httpRequest, isRetryable(request))
+	if err != nil {
+		return err
+	}
+	err = tchttp.ParseFromHttpResponse(httpResponse, response)
+	return err
+}
+
+func (c *Client) sendWithSignatureV3(request tchttp.Request, response tchttp.Response) (err error) {
+	headers := map[string]string{
+		"Host":               request.GetDomain(),
+		"X-TC-Action":        request.GetAction(),
+		"X-TC-Version":       request.GetVersion(),
+		"X-TC-Timestamp":     request.GetParams()["Timestamp"],
+		"X-TC-RequestClient": request.GetParams()["RequestClient"],
+		"X-TC-Language":      c.profile.Language,
+	}
+	if c.region != "" {
+		headers["X-TC-Region"] = c.region
+	}
+	secId, secKey, token := c.credential.GetCredential()
+	if token != "" {
+		headers["X-TC-Token"] = token
+	}
+	if request.GetHttpMethod() == "GET" {
+		headers["Content-Type"] = "application/x-www-form-urlencoded"
+	} else {
+		headers["Content-Type"] = "application/json"
+	}
+	isOctetStream := false
+	cr := &tchttp.CommonRequest{}
+	ok := false
+	var octetStreamBody []byte
+	if cr, ok = request.(*tchttp.CommonRequest); ok {
+		if cr.IsOctetStream() {
+			isOctetStream = true
+			// custom headers must contain Content-Type : application/octet-stream
+			// todo:the custom header may overwrite headers
+			for k, v := range cr.GetHeader() {
+				headers[k] = v
+			}
+			octetStreamBody = cr.GetOctetStreamBody()
+		}
+	}
+
+	for k, v := range request.GetHeader() {
+		switch k {
+		case "X-TC-Action", "X-TC-Version", "X-TC-Timestamp", "X-TC-RequestClient",
+			"X-TC-Language", "X-TC-Region", "X-TC-Token":
+			c.logger.Printf("Skip header \"%s\": can not specify built-in header", k)
+		default:
+			headers[k] = v
 		}
 	}
 
@@ -248,7 +410,7 @@ func (c *Client) sendWithSignatureV3(request tchttp.Request, response tchttp.Res
 	//log.Println("string2sign", string2sign)
 
 	// sign string
-	secretDate := hmacsha256(date, "TC3"+c.credential.GetSecretKey())
+	secretDate := hmacsha256(date, "TC3"+secKey)
 	secretService := hmacsha256(request.GetService(), secretDate)
 	secretKey := hmacsha256("tc3_request", secretService)
 	signature := hex.EncodeToString([]byte(hmacsha256(string2sign, secretKey)))
@@ -257,7 +419,7 @@ func (c *Client) sendWithSignatureV3(request tchttp.Request, response tchttp.Res
 	// build authorization
 	authorization := fmt.Sprintf("%s Credential=%s/%s, SignedHeaders=%s, Signature=%s",
 		algorithm,
-		c.credential.GetSecretId(),
+		secId,
 		credentialScope,
 		signedHeaders,
 		signature)
@@ -268,10 +430,11 @@ func (c *Client) sendWithSignatureV3(request tchttp.Request, response tchttp.Res
 	if canonicalQueryString != "" {
 		url = url + "?" + canonicalQueryString
 	}
-	httpRequest, err := http.NewRequestWithContext(request.GetContext(), httpRequestMethod, url, strings.NewReader(requestPayload))
+	httpRequest, err := http.NewRequest(httpRequestMethod, url, strings.NewReader(requestPayload))
 	if err != nil {
 		return err
 	}
+	httpRequest = httpRequest.WithContext(request.GetContext())
 	for k, v := range headers {
 		httpRequest.Header[k] = []string{v}
 	}
@@ -285,16 +448,37 @@ func (c *Client) sendWithSignatureV3(request tchttp.Request, response tchttp.Res
 
 // send http request
 func (c *Client) sendHttp(request *http.Request) (response *http.Response, err error) {
-	if c.debug {
+	if len(c.httpProfile.ApigwEndpoint) > 0 {
+		request.URL.Host = c.httpProfile.ApigwEndpoint
+		request.Host = c.httpProfile.ApigwEndpoint
+	}
+
+	if c.debug && request != nil {
 		outBytes, err := httputil.DumpRequest(request, true)
 		if err != nil {
-			log.Printf("[ERROR] dump request failed because %s", err)
-			return nil, err
+			c.logger.Printf("[ERROR] dump request failed: %s", err)
+		} else {
+			c.logger.Printf("[DEBUG] http request: %s", outBytes)
 		}
-		log.Printf("[DEBUG] http request = %s", outBytes)
 	}
 
 	response, err = c.httpClient.Do(request)
+
+	if c.debug && response != nil {
+		dumpBody := true
+		switch response.Header.Get("Content-Type") {
+		case "text/event-stream", "application/octet-stream":
+			dumpBody = false
+		}
+
+		out, err := httputil.DumpResponse(response, dumpBody)
+		if err != nil {
+			c.logger.Printf("[ERROR] dump response failed: %s", err)
+		} else {
+			c.logger.Printf("[DEBUG] http response: %s", out)
+		}
+	}
+
 	return response, err
 }
 
@@ -303,11 +487,27 @@ func (c *Client) GetRegion() string {
 }
 
 func (c *Client) Init(region string) *Client {
-	c.httpClient = &http.Client{}
+
+	if DefaultHttpClient == nil {
+		// try not to modify http.DefaultTransport if possible
+		// since we could possibly modify Transport.Proxy
+		transport := http.DefaultTransport
+		if _, ok := transport.(*http.Transport); ok {
+			// http.Transport.Clone is only available after go1.12
+			if cloneMethod, hasClone := reflect.TypeOf(transport).MethodByName("Clone"); hasClone {
+				transport = cloneMethod.Func.Call([]reflect.Value{reflect.ValueOf(transport)})[0].Interface().(http.RoundTripper)
+			}
+		}
+
+		c.httpClient = &http.Client{Transport: transport}
+	} else {
+		c.httpClient = DefaultHttpClient
+	}
+
 	c.region = region
 	c.signMethod = "TC3-HMAC-SHA256"
 	c.debug = false
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	c.logger = log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
 	return c
 }
 
@@ -321,6 +521,32 @@ func (c *Client) WithCredential(cred CredentialIface) *Client {
 	return c
 }
 
+func (c *Client) WithRequestClient(rc string) *Client {
+	const reRequestClient = "^[0-9a-zA-Z-_ ,;.]+$"
+
+	if len(rc) > 128 {
+		c.logger.Printf("the length of RequestClient should be within 128 characters, it will be truncated")
+		rc = rc[:128]
+	}
+
+	match, err := regexp.MatchString(reRequestClient, rc)
+	if err != nil {
+		c.logger.Printf("regexp is wrong: %s", reRequestClient)
+		return c
+	}
+	if !match {
+		c.logger.Printf("RequestClient not match the regexp: %s, ignored", reRequestClient)
+		return c
+	}
+
+	c.requestClient = rc
+	return c
+}
+
+func (c *Client) GetCredential() CredentialIface {
+	return c.credential
+}
+
 func (c *Client) WithProfile(clientProfile *profile.ClientProfile) *Client {
 	c.profile = clientProfile
 	if c.profile.DisableRegionBreaker == false {
@@ -331,6 +557,22 @@ func (c *Client) WithProfile(clientProfile *profile.ClientProfile) *Client {
 	c.httpProfile = clientProfile.HttpProfile
 	c.debug = clientProfile.Debug
 	c.httpClient.Timeout = time.Duration(c.httpProfile.ReqTimeout) * time.Second
+	if c.httpProfile.Proxy != "" {
+		u, err := url.Parse(c.httpProfile.Proxy)
+		if err != nil {
+			panic(err)
+		}
+
+		if c.httpClient.Transport == nil {
+			c.logger.Printf("trying to set proxy when httpClient.Transport is nil")
+		}
+
+		if _, ok := c.httpClient.Transport.(*http.Transport); ok {
+			c.httpClient.Transport.(*http.Transport).Proxy = http.ProxyURL(u)
+		} else {
+			c.logger.Printf("setting proxy while httpClient.Transport is not a http.Transport is not supported")
+		}
+	}
 	return c
 }
 

@@ -18,28 +18,28 @@
 package v1
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // ConditionStatus is a type alias for the k8s.io/apimachinery/pkg/apis/meta/v1
 // ConditionStatus type to maintain API compatibility.
 // +k8s:deepcopy-gen=false
-type ConditionStatus = metav1.ConditionStatus
+type ConditionStatus = meta_v1.ConditionStatus
 
 // These are valid condition statuses. "ConditionTrue" means a resource is in the condition.
 // "ConditionFalse" means a resource is not in the condition. "ConditionUnknown" means kubernetes
 // can't decide if a resource is in the condition or not. In the future, we could add other
 // intermediate conditions, e.g. ConditionDegraded. These are retained here for API compatibility.
 const (
-	ConditionTrue    ConditionStatus = metav1.ConditionTrue
-	ConditionFalse   ConditionStatus = metav1.ConditionFalse
-	ConditionUnknown ConditionStatus = metav1.ConditionUnknown
+	ConditionTrue    ConditionStatus = meta_v1.ConditionTrue
+	ConditionFalse   ConditionStatus = meta_v1.ConditionFalse
+	ConditionUnknown ConditionStatus = meta_v1.ConditionUnknown
 )
 
 // Condition is a type alias for the k8s.io/apimachinery/pkg/apis/meta/v1
 // Condition type to maintain API compatibility.
 // +k8s:deepcopy-gen=false
-type Condition = metav1.Condition
+type Condition = meta_v1.Condition
 
 // SubCondition is a Condition-like type intended for use as a subcondition inside a DetailedCondition.
 //
@@ -107,7 +107,7 @@ type SubCondition struct {
 // slice in this case.
 //
 // `Valid`, `status: false` means that the object has had one or more fatal errors during processing into Contour.
-//  The details of the errors will be present under the `errors` field. There must be at least one error in the `errors`
+// The details of the errors will be present under the `errors` field. There must be at least one error in the `errors`
 // slice if `status` is `false`.
 //
 // For DetailedConditions of types other than `Valid`, the Condition must be in the negative polarity.
@@ -143,6 +143,12 @@ const (
 
 	// ConditionTypeCORSError describes an error condition related to CORS.
 	ConditionTypeCORSError = "CORSError"
+
+	// ConditionTypeIPFilterError describes an error condition related to IP filters.
+	ConditionTypeIPFilterError = "IPFilterError"
+
+	// ConditionTypeJWTVerificationError describes an error condition related to JWT verification.
+	ConditionTypeJWTVerificationError = "JWTVerificationError"
 
 	// ConditionTypeIncludeError describes an error condition with
 	// inclusion of another HTTPProxy resource.
@@ -187,4 +193,8 @@ const (
 	// ConditionTypeVirtualHostError describes an error condition relating
 	// to the VirtualHost configuration section of an HTTPProxy resource.
 	ConditionTypeVirtualHostError = "VirtualHostError"
+
+	// ConditionTypeListenerError describes an error condition relating
+	// to the configuration of Listeners.
+	ConditionTypeListenerError = "ListenerError"
 )

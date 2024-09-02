@@ -42,7 +42,7 @@ spec:
       # serviceAccountName: external-dns
       containers:
       - name: external-dns
-        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
+        image: registry.k8s.io/external-dns/external-dns:v0.14.1
         args:
         - --source=service # or ingress or both
         - --provider=pdns
@@ -62,6 +62,9 @@ eg. ```--domain-filter=example.org``` will allow for zone `example.org` and any 
 eg. ```--domain-filter=.example.org``` will allow *only* zones that end in `.example.org`, ie. the subdomains of example.org but not the `example.org` zone itself.
 
 The filter can also match parent zones. For example `--domain-filter=a.example.com` will allow for zone `example.com`. If you want to match parent zones, you cannot pre-pend your filter with a ".", eg. `--domain-filter=.example.com` will not attempt to match parent zones.
+
+### Regex Domain Filter (`--regex-domain-filter`)
+`--regex-domain-filter` limits possible domains and target zone with a regex. It overrides domain filters and can be specified only once.
 
 ## RBAC
 
@@ -169,4 +172,3 @@ Once the API shows the record correctly, you can double check your record using:
 ```bash
 $ dig @${PDNS_FQDN} echo.example.com.
 ```
-

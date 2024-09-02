@@ -17,7 +17,7 @@ models:
     model: github.com/99designs/gqlgen/graphql.String
   UploadOrUrl:
     model: github.com/99designs/gqlgen/graphql.String
-endpoint:
-  url: https://app.plural.sh/gql # Where do you want to send your request?
+schema:
+  - "schema/*.graphql"
 query:
   - "graph/*.graphql" # Where are all the query files located?

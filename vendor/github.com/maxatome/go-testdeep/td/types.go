@@ -21,6 +21,7 @@ var (
 	testDeeper         = reflect.TypeOf((*TestDeep)(nil)).Elem()
 	smuggledGotType    = reflect.TypeOf(SmuggledGot{})
 	smuggledGotPtrType = reflect.TypeOf((*SmuggledGot)(nil))
+	recvKindType       = reflect.TypeOf(RecvNothing)
 )
 
 // TestingT is the minimal interface used by [Cmp] to report errors. It
@@ -86,6 +87,9 @@ func pkgFunc(full string) (string, string) {
 
 // setLocation sets location using the stack trace going callDepth levels up.
 func (t *base) setLocation(callDepth int) {
+	if callDepth < 0 {
+		return
+	}
 	var ok bool
 	t.location, ok = location.New(callDepth)
 	if !ok {

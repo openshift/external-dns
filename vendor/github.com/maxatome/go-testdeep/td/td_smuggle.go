@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, Maxime Soulé
+// Copyright (c) 2018-2023, Maxime Soulé
 // All rights reserved.
 //
 // This source code is licensed under the BSD-style license found in the
@@ -19,6 +19,7 @@ import (
 
 	"github.com/maxatome/go-testdeep/internal/ctxerr"
 	"github.com/maxatome/go-testdeep/internal/types"
+	"github.com/maxatome/go-testdeep/internal/util"
 )
 
 // SmuggledGot can be returned by a [Smuggle] function to name the
@@ -31,9 +32,6 @@ type SmuggledGot struct {
 const smuggled = "<smuggled>"
 
 var (
-	// strconv.ParseComplex only exists from go1.15.
-	parseComplex func(string, int) (complex128, error)
-
 	smuggleFnsMu sync.Mutex
 	smuggleFns   = map[any]reflect.Value{}
 
@@ -59,6 +57,7 @@ type tdSmuggle struct {
 	tdSmugglerBase
 	function reflect.Value
 	argType  reflect.Type
+	str      string
 }
 
 var _ TestDeep = &tdSmuggle{}
@@ -76,7 +75,7 @@ type smuggleField struct {
 }
 
 func joinFieldsPath(path []smuggleField) string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	for i, part := range path {
 		if part.Indexed {
 			fmt.Fprintf(&buf, "[%s]", part.Name)
@@ -220,17 +219,13 @@ func buildFieldsPathFn(path string) (func(any) (smuggleValue, error), error) {
 					}
 					vkey = reflect.ValueOf(f).Convert(tkey)
 				case reflect.Complex64, reflect.Complex128:
-					if parseComplex != nil {
-						c, err := parseComplex(field.Name, 128)
-						if err != nil {
-							return smuggleValue{}, fmt.Errorf(
-								"field %q, %q is not a complex number and so cannot match %s map key type",
-								joinFieldsPath(parts[:idxPart+1]), field.Name, tkey)
-						}
-						vkey = reflect.ValueOf(c).Convert(tkey)
-						break
+					c, err := strconv.ParseComplex(field.Name, 128)
+					if err != nil {
+						return smuggleValue{}, fmt.Errorf(
+							"field %q, %q is not a complex number and so cannot match %s map key type",
+							joinFieldsPath(parts[:idxPart+1]), field.Name, tkey)
 					}
-					fallthrough
+					vkey = reflect.ValueOf(c).Convert(tkey)
 				default:
 					return smuggleValue{}, fmt.Errorf(
 						"field %q, %q cannot match unsupported %s map key type",
@@ -332,12 +327,6 @@ func getCaster(outType reflect.Type) reflect.Value {
 	return fn
 }
 
-// Needed for go≤1.12
-// From go1.13, reflect.ValueOf(&ctxerr.Error{…}) works as expected.
-func errorInterface(err error) reflect.Value {
-	return reflect.ValueOf(&err).Elem()
-}
-
 // buildCaster returns a function:
 //
 //	func(in any) (out outType, err error)
@@ -362,7 +351,7 @@ func buildCaster(outType reflect.Type, useString bool) reflect.Value {
 			if args[0].IsNil() {
 				return []reflect.Value{
 					zeroRet,
-					errorInterface(&ctxerr.Error{
+					reflect.ValueOf(&ctxerr.Error{
 						Message:  "incompatible parameter type",
 						Got:      types.RawString("nil"),
 						Expected: types.RawString(outType.String() + " or convertible or io.Reader"),
@@ -383,11 +372,11 @@ func buildCaster(outType reflect.Type, useString bool) reflect.Value {
 			// Our caller encures Interface() can be called safely
 			switch ta := args[0].Interface().(type) {
 			case io.Reader:
-				var b bytes.Buffer // as we still support go1.9
+				var b bytes.Buffer
 				if _, err := b.ReadFrom(ta); err != nil {
 					return []reflect.Value{
 						zeroRet,
-						errorInterface(&ctxerr.Error{
+						reflect.ValueOf(&ctxerr.Error{
 							Message: "an error occurred while reading from io.Reader",
 							Summary: ctxerr.NewSummary(err.Error()),
 						}),
@@ -407,7 +396,7 @@ func buildCaster(outType reflect.Type, useString bool) reflect.Value {
 			default:
 				return []reflect.Value{
 					zeroRet,
-					errorInterface(&ctxerr.Error{
+					reflect.ValueOf(&ctxerr.Error{
 						Message:  "incompatible parameter type",
 						Got:      types.RawString(args[0].Type().String()),
 						Expected: types.RawString(outType.String() + " or convertible or io.Reader"),
@@ -630,7 +619,7 @@ func buildCaster(outType reflect.Type, useString bool) reflect.Value {
 // fn. For the case where fn is a fields-path, it is always
 // any, as the type can not be known in advance.
 //
-// See also [Code] and [JSONPointer].
+// See also [Code], [JSONPointer] and [Flatten].
 //
 // [json.RawMessage]: https://pkg.go.dev/encoding/json#RawMessage
 func Smuggle(fn, expectedValue any) TestDeep {
@@ -653,11 +642,13 @@ func Smuggle(fn, expectedValue any) TestDeep {
 
 		default:
 			vfn = getCaster(rfn)
+			s.str = "type:" + rfn.String()
 		}
 
 	case string:
 		if rfn == "" {
 			vfn = getCaster(reflect.TypeOf(fn))
+			s.str = "type:string"
 			break
 		}
 		var err error
@@ -666,11 +657,13 @@ func Smuggle(fn, expectedValue any) TestDeep {
 			s.err = ctxerr.OpBad("Smuggle", "Smuggle%s: %s", usage, err)
 			return &s
 		}
+		s.str = strconv.Quote(rfn)
 
 	default:
 		vfn = reflect.ValueOf(fn)
 		switch vfn.Kind() {
 		case reflect.Func:
+			s.str = vfn.Type().String()
 			// nothing to check
 
 		case reflect.Invalid, reflect.Interface:
@@ -679,7 +672,9 @@ func Smuggle(fn, expectedValue any) TestDeep {
 			return &s
 
 		default:
-			vfn = getCaster(vfn.Type())
+			typ := vfn.Type()
+			vfn = getCaster(typ)
+			s.str = "type:" + typ.String()
 		}
 	}
 
@@ -836,7 +831,7 @@ func (s *tdSmuggle) String() string {
 	if s.err != nil {
 		return s.stringError()
 	}
-	return "Smuggle(" + s.function.Type().String() + ")"
+	return "Smuggle(" + s.str + ", " + util.ToString(s.expectedValue) + ")"
 }
 
 func (s *tdSmuggle) TypeBehind() reflect.Type {

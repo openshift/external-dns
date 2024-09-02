@@ -55,7 +55,9 @@ func nilHandler(ctx ctxerr.Context, got, expected reflect.Value) *ctxerr.Error {
 	if expected.IsValid() { // here: !got.IsValid()
 		if expected.Type().Implements(testDeeper) {
 			curOperator := dark.MustGetInterface(expected).(TestDeep)
-			ctx.CurOperator = curOperator
+			if curOperator.GetLocation().IsInitialized() {
+				ctx.CurOperator = curOperator
+			}
 			if curOperator.HandleInvalid() {
 				return curOperator.Match(ctx, got)
 			}
@@ -125,10 +127,12 @@ func resolveAnchor(ctx ctxerr.Context, v reflect.Value) (reflect.Value, bool) {
 }
 
 func deepValueEqual(ctx ctxerr.Context, got, expected reflect.Value) (err *ctxerr.Error) {
-	// got must not implement testDeeper
-	if got.IsValid() && got.Type().Implements(testDeeper) {
-		panic(color.Bad("Found a TestDeep operator in got param, " +
-			"can only use it in expected one!"))
+	if !ctx.TestDeepInGotOK {
+		// got must not implement testDeeper
+		if got.IsValid() && got.Type().Implements(testDeeper) {
+			panic(color.Bad("Found a TestDeep operator in got param, " +
+				"can only use it in expected one!"))
+		}
 	}
 
 	// Try to see if a TestDeep operator is anchored in expected
@@ -199,11 +203,24 @@ func deepValueEqual(ctx ctxerr.Context, got, expected reflect.Value) (err *ctxer
 				}
 			}
 
-			ctx.CurOperator = curOperator
+			if curOperator.GetLocation().IsInitialized() {
+				ctx.CurOperator = curOperator
+			}
 			return curOperator.Match(ctx, got)
 		}
 
 		// expected is not a TestDeep operator
+
+		if got.Type() == recvKindType || expected.Type() == recvKindType {
+			if ctx.BooleanError {
+				return ctxerr.BooleanError
+			}
+			return ctx.CollectError(&ctxerr.Error{
+				Message:  "values differ",
+				Got:      got,
+				Expected: expected,
+			})
+		}
 
 		if ctx.BeLax && types.IsConvertible(expected, got.Type()) {
 			return deepValueEqual(ctx, got, expected.Convert(got.Type()))

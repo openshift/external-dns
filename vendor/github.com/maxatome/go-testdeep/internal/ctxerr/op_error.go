@@ -7,15 +7,17 @@
 package ctxerr
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
+	"strings"
+
+	"github.com/maxatome/go-testdeep/internal/types"
 )
 
 // OpBadUsage returns a string to notice the user he passed a bad
 // parameter to an operator constructor.
 func OpBadUsage(op, usage string, param any, pos int, kind bool) *Error {
-	var b bytes.Buffer
+	var b strings.Builder
 	fmt.Fprintf(&b, "usage: %s%s, but received ", op, usage)
 
 	if param == nil {
@@ -67,5 +69,29 @@ func OpBad(op, s string, args ...any) *Error {
 	return &Error{
 		Message: "bad usage of " + op + " operator",
 		Summary: NewSummary(s),
+	}
+}
+
+// BadKind returns a “bad kind” [*Error], saying got kind does not
+// match kind(s) listed in okKinds. It is the caller responsibility to
+// check the kinds compatibility. got can be invalid, in this case it
+// is displayed as nil.
+func BadKind(got reflect.Value, okKinds string) *Error {
+	return &Error{
+		Message:  "bad kind",
+		Got:      types.RawString(types.KindType(got)),
+		Expected: types.RawString(okKinds),
+	}
+}
+
+// NilPointer returns a “nil pointer” [*Error], saying got value is a
+// nil pointer instead of what expected lists. It is the caller
+// responsibility to check got contains a nil pointer. got should not
+// be invalid.
+func NilPointer(got reflect.Value, expected string) *Error {
+	return &Error{
+		Message:  "nil pointer",
+		Got:      types.RawString("nil " + types.KindType(got)),
+		Expected: types.RawString(expected),
 	}
 }

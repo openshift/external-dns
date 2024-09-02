@@ -18,6 +18,8 @@ package controller
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -72,6 +74,14 @@ var (
 			Help:      "Timestamp of last successful sync with the DNS provider",
 		},
 	)
+	lastReconcileTimestamp = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace: "external_dns",
+			Subsystem: "controller",
+			Name:      "last_reconcile_timestamp_seconds",
+			Help:      "Timestamp of last attempted sync with the DNS provider",
+		},
+	)
 	controllerNoChangesTotal = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "external_dns",
@@ -102,12 +112,28 @@ var (
 			Help:      "Number of Registry A records.",
 		},
 	)
+	registryAAAARecords = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace: "external_dns",
+			Subsystem: "registry",
+			Name:      "aaaa_records",
+			Help:      "Number of Registry AAAA records.",
+		},
+	)
 	sourceARecords = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Namespace: "external_dns",
 			Subsystem: "source",
 			Name:      "a_records",
 			Help:      "Number of Source A records.",
+		},
+	)
+	sourceAAAARecords = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace: "external_dns",
+			Subsystem: "source",
+			Name:      "aaaa_records",
+			Help:      "Number of Source AAAA records.",
 		},
 	)
 	verifiedARecords = prometheus.NewGauge(
@@ -118,6 +144,14 @@ var (
 			Help:      "Number of DNS A-records that exists both in source and registry.",
 		},
 	)
+	verifiedAAAARecords = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace: "external_dns",
+			Subsystem: "controller",
+			Name:      "verified_aaaa_records",
+			Help:      "Number of DNS AAAA-records that exists both in source and registry.",
+		},
+	)
 )
 
 func init() {
@@ -126,12 +160,16 @@ func init() {
 	prometheus.MustRegister(sourceEndpointsTotal)
 	prometheus.MustRegister(registryEndpointsTotal)
 	prometheus.MustRegister(lastSyncTimestamp)
+	prometheus.MustRegister(lastReconcileTimestamp)
 	prometheus.MustRegister(deprecatedRegistryErrors)
 	prometheus.MustRegister(deprecatedSourceErrors)
 	prometheus.MustRegister(controllerNoChangesTotal)
 	prometheus.MustRegister(registryARecords)
+	prometheus.MustRegister(registryAAAARecords)
 	prometheus.MustRegister(sourceARecords)
+	prometheus.MustRegister(sourceAAAARecords)
 	prometheus.MustRegister(verifiedARecords)
+	prometheus.MustRegister(verifiedAAAARecords)
 }
 
 // Controller is responsible for orchestrating the different components.
@@ -148,19 +186,23 @@ type Controller struct {
 	// The interval between individual synchronizations
 	Interval time.Duration
 	// The DomainFilter defines which DNS records to keep or exclude
-	DomainFilter endpoint.DomainFilterInterface
+	DomainFilter endpoint.DomainFilter
 	// The nextRunAt used for throttling and batching reconciliation
 	nextRunAt time.Time
 	// The nextRunAtMux is for atomic updating of nextRunAt
 	nextRunAtMux sync.Mutex
-	// DNS record types that will be considered for management
+	// MangedRecordTypes are DNS record types that will be considered for management.
 	ManagedRecordTypes []string
+	// ExcludeRecordTypes are DNS record types that will be excluded from management.
+	ExcludeRecordTypes []string
 	// MinEventSyncInterval is used as window for batching events
 	MinEventSyncInterval time.Duration
 }
 
 // RunOnce runs a single iteration of a reconciliation loop.
 func (c *Controller) RunOnce(ctx context.Context) error {
+	lastReconcileTimestamp.SetToCurrentTime()
+
 	records, err := c.Registry.Records(ctx)
 	if err != nil {
 		registryErrorsTotal.Inc()
@@ -168,11 +210,10 @@ func (c *Controller) RunOnce(ctx context.Context) error {
 		return err
 	}
 
-	missingRecords := c.Registry.MissingRecords()
-
 	registryEndpointsTotal.Set(float64(len(records)))
-	regARecords := filterARecords(records)
-	registryARecords.Set(float64(len(regARecords)))
+	regARecords, regAAAARecords := countAddressRecords(records)
+	registryARecords.Set(float64(regARecords))
+	registryAAAARecords.Set(float64(regAAAARecords))
 	ctx = context.WithValue(ctx, provider.RecordsContextKey, records)
 
 	endpoints, err := c.Source.Endpoints(ctx)
@@ -182,42 +223,26 @@ func (c *Controller) RunOnce(ctx context.Context) error {
 		return err
 	}
 	sourceEndpointsTotal.Set(float64(len(endpoints)))
-	srcARecords := filterARecords(endpoints)
-	sourceARecords.Set(float64(len(srcARecords)))
-	vRecords := fetchMatchingARecords(endpoints, records)
-	verifiedARecords.Set(float64(len(vRecords)))
-	endpoints = c.Registry.AdjustEndpoints(endpoints)
-
-	if len(missingRecords) > 0 {
-		// Add missing records before the actual plan is applied.
-		// This prevents the problems when the missing TXT record needs to be
-		// created and deleted/upserted in the same batch.
-		missingRecordsPlan := &plan.Plan{
-			Policies:           []plan.Policy{c.Policy},
-			Missing:            missingRecords,
-			DomainFilter:       endpoint.MatchAllDomainFilters{c.DomainFilter, c.Registry.GetDomainFilter()},
-			PropertyComparator: c.Registry.PropertyValuesEqual,
-			ManagedRecords:     c.ManagedRecordTypes,
-		}
-		missingRecordsPlan = missingRecordsPlan.Calculate()
-		if missingRecordsPlan.Changes.HasChanges() {
-			err = c.Registry.ApplyChanges(ctx, missingRecordsPlan.Changes)
-			if err != nil {
-				registryErrorsTotal.Inc()
-				deprecatedRegistryErrors.Inc()
-				return err
-			}
-			log.Info("All missing records are created")
-		}
+	srcARecords, srcAAAARecords := countAddressRecords(endpoints)
+	sourceARecords.Set(float64(srcARecords))
+	sourceAAAARecords.Set(float64(srcAAAARecords))
+	vARecords, vAAAARecords := countMatchingAddressRecords(endpoints, records)
+	verifiedARecords.Set(float64(vARecords))
+	verifiedAAAARecords.Set(float64(vAAAARecords))
+	endpoints, err = c.Registry.AdjustEndpoints(endpoints)
+	if err != nil {
+		return fmt.Errorf("adjusting endpoints: %w", err)
 	}
+	registryFilter := c.Registry.GetDomainFilter()
 
 	plan := &plan.Plan{
-		Policies:           []plan.Policy{c.Policy},
-		Current:            records,
-		Desired:            endpoints,
-		DomainFilter:       endpoint.MatchAllDomainFilters{c.DomainFilter, c.Registry.GetDomainFilter()},
-		PropertyComparator: c.Registry.PropertyValuesEqual,
-		ManagedRecords:     c.ManagedRecordTypes,
+		Policies:       []plan.Policy{c.Policy},
+		Current:        records,
+		Desired:        endpoints,
+		DomainFilter:   endpoint.MatchAllDomainFilters{&c.DomainFilter, &registryFilter},
+		ManagedRecords: c.ManagedRecordTypes,
+		ExcludeRecords: c.ExcludeRecordTypes,
+		OwnerID:        c.Registry.OwnerID(),
 	}
 
 	plan = plan.Calculate()
@@ -235,33 +260,48 @@ func (c *Controller) RunOnce(ctx context.Context) error {
 	}
 
 	lastSyncTimestamp.SetToCurrentTime()
+
 	return nil
 }
 
-// Checks and returns the intersection of A records in endpoint and registry.
-func fetchMatchingARecords(endpoints []*endpoint.Endpoint, registryRecords []*endpoint.Endpoint) []string {
-	aRecords := filterARecords(endpoints)
-	recordsMap := make(map[string]struct{})
+// Counts the intersections of A and AAAA records in endpoint and registry.
+func countMatchingAddressRecords(endpoints []*endpoint.Endpoint, registryRecords []*endpoint.Endpoint) (int, int) {
+	recordsMap := make(map[string]map[string]struct{})
 	for _, regRecord := range registryRecords {
-		recordsMap[regRecord.DNSName] = struct{}{}
+		if _, found := recordsMap[regRecord.DNSName]; !found {
+			recordsMap[regRecord.DNSName] = make(map[string]struct{})
+		}
+		recordsMap[regRecord.DNSName][regRecord.RecordType] = struct{}{}
 	}
-	var cm []string
-	for _, sourceRecord := range aRecords {
-		if _, found := recordsMap[sourceRecord]; found {
-			cm = append(cm, sourceRecord)
+	aCount := 0
+	aaaaCount := 0
+	for _, sourceRecord := range endpoints {
+		if _, found := recordsMap[sourceRecord.DNSName]; found {
+			if _, found := recordsMap[sourceRecord.DNSName][sourceRecord.RecordType]; found {
+				switch sourceRecord.RecordType {
+				case endpoint.RecordTypeA:
+					aCount++
+				case endpoint.RecordTypeAAAA:
+					aaaaCount++
+				}
+			}
 		}
 	}
-	return cm
+	return aCount, aaaaCount
 }
 
-func filterARecords(endpoints []*endpoint.Endpoint) []string {
-	var aRecords []string
+func countAddressRecords(endpoints []*endpoint.Endpoint) (int, int) {
+	aCount := 0
+	aaaaCount := 0
 	for _, endPoint := range endpoints {
-		if endPoint.RecordType == endpoint.RecordTypeA {
-			aRecords = append(aRecords, endPoint.DNSName)
+		switch endPoint.RecordType {
+		case endpoint.RecordTypeA:
+			aCount++
+		case endpoint.RecordTypeAAAA:
+			aaaaCount++
 		}
 	}
-	return aRecords
+	return aCount, aaaaCount
 }
 
 // ScheduleRunOnce makes sure execution happens at most once per interval.
@@ -292,7 +332,11 @@ func (c *Controller) Run(ctx context.Context) {
 	for {
 		if c.ShouldRunOnce(time.Now()) {
 			if err := c.RunOnce(ctx); err != nil {
-				log.Error(err)
+				if errors.Is(err, provider.SoftError) {
+					log.Errorf("Failed to do run once: %v", err)
+				} else {
+					log.Fatalf("Failed to do run once: %v", err)
+				}
 			}
 		}
 		select {

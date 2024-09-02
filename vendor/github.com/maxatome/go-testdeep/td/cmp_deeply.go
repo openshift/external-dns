@@ -7,7 +7,6 @@
 package td
 
 import (
-	"bytes"
 	"reflect"
 	"strings"
 
@@ -119,7 +118,7 @@ func formatError(t TestingT, isFatal bool, err *ctxerr.Error, args ...any) {
 
 	args = flat.Interfaces(args...)
 
-	var buf bytes.Buffer
+	var buf strings.Builder
 	color.AppendTestNameOn(&buf)
 	if len(args) == 0 {
 		buf.WriteString(failedTest)
@@ -131,7 +130,7 @@ func formatError(t TestingT, isFatal bool, err *ctxerr.Error, args ...any) {
 	color.AppendTestNameOff(&buf)
 	buf.WriteString("\n")
 
-	err.Append(&buf, "")
+	err.Append(&buf, "", true)
 
 	// Stask trace
 	if s := stripTrace(trace.Retrieve(0, "testing.tRunner")); s.IsRelevant() {
@@ -147,7 +146,8 @@ func formatError(t TestingT, isFatal bool, err *ctxerr.Error, args ...any) {
 }
 
 func cmpDeeply(ctx ctxerr.Context, t TestingT, got, expected any,
-	args ...any) bool {
+	args ...any,
+) bool {
 	err := deepValueEqualFinal(ctx,
 		reflect.ValueOf(got), reflect.ValueOf(expected))
 	if err == nil {
@@ -157,6 +157,30 @@ func cmpDeeply(ctx ctxerr.Context, t TestingT, got, expected any,
 	t.Helper()
 	formatError(t, ctx.FailureIsFatal, err, args...)
 	return false
+}
+
+// S returns a string based on args as Cmp* functions do with their
+// own args parameter to name their test. So behind the scene,
+// [tdutil.BuildTestName] is used.
+//
+// If len(args) > 1 and the first item of args is a string and
+// contains a '%' rune then [fmt.Fprintf] is used to compose the
+// returned string, else args are passed to [fmt.Fprint].
+//
+// It can be used as a shorter [fmt.Sprintf]:
+//
+//	t.Run(fmt.Sprintf("Foo #%d", i), func(t *td.T) {})
+//	t.Run(td.S("Foo #%d", i), func(t *td.T) {})
+//
+// or to print any values as [fmt.Sprint] handles them:
+//
+//	a, ok := []int{1, 2, 3}, true
+//	t.Run(fmt.Sprint(a, ok), func(t *td.T) {})
+//	t.Run(td.S(a, ok), func(t *td.T) {})
+//
+// The only gain is less characters to type.
+func S(args ...any) string {
+	return tdutil.BuildTestName(args...)
 }
 
 // Cmp returns true if got matches expected. expected can

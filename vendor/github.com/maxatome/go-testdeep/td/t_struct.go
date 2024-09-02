@@ -7,8 +7,8 @@
 package td
 
 import (
-	"bytes"
 	"reflect"
+	"strings"
 	"sync"
 	"testing"
 
@@ -168,7 +168,7 @@ func NewT(t testing.TB, config ...ContextConfig) *T {
 	return &newT
 }
 
-// Assert return a new [*T] instance with FailureIsFatal flag set to
+// Assert returns a new [*T] instance with FailureIsFatal flag set to
 // false.
 //
 //	assert := Assert(t)
@@ -179,12 +179,12 @@ func NewT(t testing.TB, config ...ContextConfig) *T {
 //
 // See [NewT] documentation for usefulness of config optional parameter.
 //
-// See also [Require] and [AssertRequire].
+// See also [Require], [AssertRequire] and [T.Assert].
 func Assert(t testing.TB, config ...ContextConfig) *T {
 	return NewT(t, config...).FailureIsFatal(false)
 }
 
-// Require return a new [*T] instance with FailureIsFatal flag set to
+// Require returns a new [*T] instance with FailureIsFatal flag set to
 // true.
 //
 //	require := Require(t)
@@ -195,7 +195,7 @@ func Assert(t testing.TB, config ...ContextConfig) *T {
 //
 // See [NewT] documentation for usefulness of config optional parameter.
 //
-// See also [Assert] and [AssertRequire].
+// See also [Assert], [AssertRequire] and [T.Require].
 func Require(t testing.TB, config ...ContextConfig) *T {
 	return NewT(t, config...).FailureIsFatal()
 }
@@ -247,12 +247,12 @@ func AssertRequire(t testing.TB, config ...ContextConfig) (assert, require *T) {
 //
 // If "" is passed the name is set to "DATA", the default value.
 func (t *T) RootName(rootName string) *T {
-	new := *t
+	nt := *t
 	if rootName == "" {
 		rootName = contextDefaultRootName
 	}
-	new.Config.RootName = rootName
-	return &new
+	nt.Config.RootName = rootName
+	return &nt
 }
 
 // FailureIsFatal allows to choose whether t.TB.Fatal() or
@@ -282,10 +282,40 @@ func (t *T) RootName(rootName string) *T {
 //	t.Cmp(...)
 //
 // Note that t.FailureIsFatal() acts as t.FailureIsFatal(true).
+//
+// See also [T.Assert] and [T.Require].
 func (t *T) FailureIsFatal(enable ...bool) *T {
-	new := *t
-	new.Config.FailureIsFatal = len(enable) == 0 || enable[0]
-	return &new
+	nt := *t
+	nt.Config.FailureIsFatal = len(enable) == 0 || enable[0]
+	return &nt
+}
+
+// Assert returns a new [*T] instance inheriting the t config but with
+// FailureIsFatal flag set to false.
+//
+// It returns a new instance of [*T] so does not alter the original t
+//
+// It is a shortcut for:
+//
+//	t.FailureIsFatal(false)
+//
+// See also [T.FailureIsFatal] and [T.Require].
+func (t *T) Assert() *T {
+	return t.FailureIsFatal(false)
+}
+
+// Require returns a new [*T] instance inheriting the t config but
+// with FailureIsFatal flag set to true.
+//
+// It returns a new instance of [*T] so does not alter the original t
+//
+// It is a shortcut for:
+//
+//	t.FailureIsFatal(true)
+//
+// See also [T.FailureIsFatal] and [T.Assert].
+func (t *T) Require() *T {
+	return t.FailureIsFatal(true)
 }
 
 // UseEqual tells go-testdeep to delegate the comparison of items
@@ -318,17 +348,17 @@ func (t *T) FailureIsFatal(enable ...bool) *T {
 func (t *T) UseEqual(types ...any) *T {
 	// special case: UseEqual()
 	if len(types) == 0 {
-		new := *t
-		new.Config.UseEqual = true
-		return &new
+		nt := *t
+		nt.Config.UseEqual = true
+		return &nt
 	}
 
 	// special cases: UseEqual(true) or UseEqual(false)
 	if len(types) == 1 {
 		if ignore, ok := types[0].(bool); ok {
-			new := *t
-			new.Config.UseEqual = ignore
-			return &new
+			nt := *t
+			nt.Config.UseEqual = ignore
+			return &nt
 		}
 	}
 
@@ -355,9 +385,9 @@ func (t *T) UseEqual(types ...any) *T {
 //
 // Note that t.BeLax() acts as t.BeLax(true).
 func (t *T) BeLax(enable ...bool) *T {
-	new := *t
-	new.Config.BeLax = len(enable) == 0 || enable[0]
-	return &new
+	nt := *t
+	nt.Config.BeLax = len(enable) == 0 || enable[0]
+	return &nt
 }
 
 // IgnoreUnexported tells go-testdeep to ignore unexported fields of
@@ -380,17 +410,17 @@ func (t *T) BeLax(enable ...bool) *T {
 func (t *T) IgnoreUnexported(types ...any) *T {
 	// special case: IgnoreUnexported()
 	if len(types) == 0 {
-		new := *t
-		new.Config.IgnoreUnexported = true
-		return &new
+		nt := *t
+		nt.Config.IgnoreUnexported = true
+		return &nt
 	}
 
 	// special cases: IgnoreUnexported(true) or IgnoreUnexported(false)
 	if len(types) == 1 {
 		if ignore, ok := types[0].(bool); ok {
-			new := *t
-			new.Config.IgnoreUnexported = ignore
-			return &new
+			nt := *t
+			nt.Config.IgnoreUnexported = ignore
+			return &nt
 		}
 	}
 
@@ -404,6 +434,20 @@ func (t *T) IgnoreUnexported(types ...any) *T {
 	}
 
 	return t
+}
+
+// TestDeepInGotOK tells go-testdeep to not panic when a [TestDeep]
+// operator is found on got side. By default it is forbidden because
+// most of the time it is a mistake to compare (expected, got) instead
+// of official (got, expected).
+//
+// It returns a new instance of [*T] so does not alter the original t.
+//
+// Note that t.TestDeepInGotOK() acts as t.TestDeepInGotOK(true).
+func (t *T) TestDeepInGotOK(enable ...bool) *T {
+	nt := *t
+	nt.Config.TestDeepInGotOK = len(enable) == 0 || enable[0]
+	return &nt
 }
 
 // Cmp is mostly a shortcut for:
@@ -521,8 +565,12 @@ func (t *T) CmpNoError(got error, args ...any) bool {
 // expectedPanic parameter. It returns true only if both conditions
 // are fulfilled.
 //
-// Note that calling panic(nil) in fn body is detected as a panic
-// (in this case expectedPanic has to be nil).
+// Note that calling panic(nil) in fn body is always detected as a
+// panic. [runtime] package says: before Go 1.21, programs that called
+// panic(nil) observed recover returning nil. Starting in Go 1.21,
+// programs that call panic(nil) observe recover returning a
+// [*runtime.PanicNilError]. Programs can change back to the old
+// behavior by setting GODEBUG=panicnil=1.
 //
 //	t.CmpPanic(func() { panic("I am panicking!") },
 //	  "I am panicking!",
@@ -552,7 +600,12 @@ func (t *T) CmpPanic(fn func(), expected any, args ...any) bool {
 // occurred false is returned then the panic() parameter and the stack
 // trace appear in the test report.
 //
-// Note that calling panic(nil) in fn body is detected as a panic.
+// Note that calling panic(nil) in fn body is always detected as a
+// panic. [runtime] package says: before Go 1.21, programs that called
+// panic(nil) observed recover returning nil. Starting in Go 1.21,
+// programs that call panic(nil) observe recover returning a
+// [*runtime.PanicNilError]. Programs can change back to the old
+// behavior by setting GODEBUG=panicnil=1.
 //
 //	t.CmpNotPanic(func() {}) // succeeds as function does not panic
 //
@@ -753,12 +806,12 @@ func (t *T) RunT(name string, f func(t *T)) bool {
 }
 
 func getTrace(args ...any) string {
-	var b bytes.Buffer
+	var b strings.Builder
 	tdutil.FbuildTestName(&b, args...)
 
 	if b.Len() == 0 {
 		b.WriteString("Stack trace:\n")
-	} else if !bytes.HasSuffix(b.Bytes(), []byte{'\n'}) {
+	} else if !strings.HasSuffix(b.String(), "\n") {
 		b.WriteByte('\n')
 	}
 

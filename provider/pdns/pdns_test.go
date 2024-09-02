@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -82,9 +83,19 @@ var (
 		Type_: "CNAME",
 		Ttl:   300,
 		Records: []pgo.Record{
-			{Content: "example.by.any.other.name.com", Disabled: false, SetPtr: false},
+			{Content: "example.com.", Disabled: false, SetPtr: false},
 		},
 	}
+
+	RRSetALIASRecord = pgo.RrSet{
+		Name:  "alias.example.com.",
+		Type_: "ALIAS",
+		Ttl:   300,
+		Records: []pgo.Record{
+			{Content: "example.by.any.other.name.com.", Disabled: false, SetPtr: false},
+		},
+	}
+
 	RRSetTXTRecord = pgo.RrSet{
 		Name:  "example.com.",
 		Type_: "TXT",
@@ -129,9 +140,10 @@ var (
 	}
 
 	endpointsMixedRecords = []*endpoint.Endpoint{
-		endpoint.NewEndpointWithTTL("cname.example.com", endpoint.RecordTypeCNAME, endpoint.TTL(300), "example.by.any.other.name.com"),
+		endpoint.NewEndpointWithTTL("cname.example.com", endpoint.RecordTypeCNAME, endpoint.TTL(300), "example.com"),
 		endpoint.NewEndpointWithTTL("example.com", endpoint.RecordTypeTXT, endpoint.TTL(300), "'would smell as sweet'"),
 		endpoint.NewEndpointWithTTL("example.com", endpoint.RecordTypeA, endpoint.TTL(300), "8.8.8.8", "8.8.4.4", "4.4.4.4"),
+		endpoint.NewEndpointWithTTL("alias.example.com", endpoint.RecordTypeCNAME, endpoint.TTL(300), "example.by.any.other.name.com"),
 	}
 
 	endpointsMultipleZones = []*endpoint.Endpoint{
@@ -165,6 +177,12 @@ var (
 		endpoint.NewEndpointWithTTL("example.com", endpoint.RecordTypeTXT, endpoint.TTL(300), "\"heritage=external-dns,external-dns/owner=tower-pdns\""),
 		endpoint.NewEndpointWithTTL("test.simexample.com", endpoint.RecordTypeA, endpoint.TTL(300), "9.9.9.9"),
 		endpoint.NewEndpointWithTTL("test.simexample.com", endpoint.RecordTypeTXT, endpoint.TTL(300), "\"heritage=external-dns,external-dns/owner=tower-pdns\""),
+	}
+	endpointsApexRecords = []*endpoint.Endpoint{
+		endpoint.NewEndpointWithTTL("cname.example.com", endpoint.RecordTypeTXT, endpoint.TTL(300), "\"heritage=external-dns,external-dns/owner=tower-pdns\""),
+		endpoint.NewEndpointWithTTL("cname.example.com", endpoint.RecordTypeCNAME, endpoint.TTL(300), "example.by.any.other.name.com"),
+		endpoint.NewEndpointWithTTL("example.com", endpoint.RecordTypeTXT, endpoint.TTL(300), "\"heritage=external-dns,external-dns/owner=tower-pdns\""),
+		endpoint.NewEndpointWithTTL("example.com", endpoint.RecordTypeCNAME, endpoint.TTL(300), "example.by.any.other.name.com"),
 	}
 
 	ZoneEmpty = pgo.Zone{
@@ -215,7 +233,7 @@ var (
 		Type_:  "Zone",
 		Url:    "/api/v1/servers/localhost/zones/example.com.",
 		Kind:   "Native",
-		Rrsets: []pgo.RrSet{RRSetCNAMERecord, RRSetTXTRecord, RRSetMultipleRecords},
+		Rrsets: []pgo.RrSet{RRSetCNAMERecord, RRSetTXTRecord, RRSetMultipleRecords, RRSetALIASRecord},
 	}
 
 	ZoneEmptyToSimplePatch = pgo.Zone{
@@ -472,6 +490,72 @@ var (
 		},
 	}
 
+	ZoneEmptyToApexPatch = pgo.Zone{
+		Id:    "example.com.",
+		Name:  "example.com.",
+		Type_: "Zone",
+		Url:   "/api/v1/servers/localhost/zones/example.com.",
+		Kind:  "Native",
+		Rrsets: []pgo.RrSet{
+			{
+				Name:       "cname.example.com.",
+				Type_:      "CNAME",
+				Ttl:        300,
+				Changetype: "REPLACE",
+				Records: []pgo.Record{
+					{
+						Content:  "example.by.any.other.name.com.",
+						Disabled: false,
+						SetPtr:   false,
+					},
+				},
+				Comments: []pgo.Comment(nil),
+			},
+			{
+				Name:       "cname.example.com.",
+				Type_:      "TXT",
+				Ttl:        300,
+				Changetype: "REPLACE",
+				Records: []pgo.Record{
+					{
+						Content:  "\"heritage=external-dns,external-dns/owner=tower-pdns\"",
+						Disabled: false,
+						SetPtr:   false,
+					},
+				},
+				Comments: []pgo.Comment(nil),
+			},
+			{
+				Name:       "example.com.",
+				Type_:      "ALIAS",
+				Ttl:        300,
+				Changetype: "REPLACE",
+				Records: []pgo.Record{
+					{
+						Content:  "example.by.any.other.name.com.",
+						Disabled: false,
+						SetPtr:   false,
+					},
+				},
+				Comments: []pgo.Comment(nil),
+			},
+			{
+				Name:       "example.com.",
+				Type_:      "TXT",
+				Ttl:        300,
+				Changetype: "REPLACE",
+				Records: []pgo.Record{
+					{
+						Content:  "\"heritage=external-dns,external-dns/owner=tower-pdns\"",
+						Disabled: false,
+						SetPtr:   false,
+					},
+				},
+				Comments: []pgo.Comment(nil),
+			},
+		},
+	}
+
 	DomainFilterListSingle = endpoint.DomainFilter{
 		Filters: []string{
 			"example.com",
@@ -501,6 +585,8 @@ var (
 	DomainFilterListEmpty = endpoint.DomainFilter{
 		Filters: []string{},
 	}
+
+	RegexDomainFilter = endpoint.NewRegexDomainFilter(regexp.MustCompile("example.com"), nil)
 
 	DomainFilterEmptyClient = &PDNSAPIClient{
 		dryRun:       false,
@@ -535,6 +621,13 @@ var (
 		authCtx:      context.WithValue(context.Background(), pgo.ContextAPIKey, pgo.APIKey{Key: "TEST-API-KEY"}),
 		client:       pgo.NewAPIClient(pgo.NewConfiguration()),
 		domainFilter: DomainFilterChildListMultiple,
+	}
+
+	RegexDomainFilterClient = &PDNSAPIClient{
+		dryRun:       false,
+		authCtx:      context.WithValue(context.Background(), pgo.ContextAPIKey, pgo.APIKey{Key: "TEST-API-KEY"}),
+		client:       pgo.NewAPIClient(pgo.NewConfiguration()),
+		domainFilter: RegexDomainFilter,
 	}
 )
 
@@ -700,109 +793,43 @@ func (suite *NewPDNSProviderTestSuite) TestPDNSProviderCreate() {
 }
 
 func (suite *NewPDNSProviderTestSuite) TestPDNSProviderCreateTLS() {
-	_, err := NewPDNSProvider(
-		context.Background(),
-		PDNSConfig{
-			Server:       "http://localhost:8081",
-			APIKey:       "foo",
-			DomainFilter: endpoint.NewDomainFilter([]string{""}),
-		})
-	assert.Nil(suite.T(), err, "Omitted TLS Config case should raise no error")
+	newProvider := func(TLSConfig TLSConfig) error {
+		_, err := NewPDNSProvider(
+			context.Background(),
+			PDNSConfig{APIKey: "foo", TLSConfig: TLSConfig})
+		return err
+	}
 
-	_, err = NewPDNSProvider(
-		context.Background(),
-		PDNSConfig{
-			Server:       "http://localhost:8081",
-			APIKey:       "foo",
-			DomainFilter: endpoint.NewDomainFilter([]string{""}),
-			TLSConfig: TLSConfig{
-				TLSEnabled: false,
-			},
-		})
-	assert.Nil(suite.T(), err, "Disabled TLS Config should raise no error")
+	assert.Nil(suite.T(), newProvider(TLSConfig{SkipTLSVerify: true}), "Disabled TLS Config should raise no error")
 
-	_, err = NewPDNSProvider(
-		context.Background(),
-		PDNSConfig{
-			Server:       "http://localhost:8081",
-			APIKey:       "foo",
-			DomainFilter: endpoint.NewDomainFilter([]string{""}),
-			TLSConfig: TLSConfig{
-				TLSEnabled:            false,
-				CAFilePath:            "/path/to/ca.crt",
-				ClientCertFilePath:    "/path/to/cert.pem",
-				ClientCertKeyFilePath: "/path/to/cert-key.pem",
-			},
-		})
-	assert.Nil(suite.T(), err, "Disabled TLS Config with additional flags should raise no error")
+	assert.Nil(suite.T(), newProvider(TLSConfig{
+		SkipTLSVerify:         true,
+		CAFilePath:            "../../internal/testresources/ca.pem",
+		ClientCertFilePath:    "../../internal/testresources/client-cert.pem",
+		ClientCertKeyFilePath: "../../internal/testresources/client-cert-key.pem",
+	}), "Disabled TLS Config with additional flags should raise no error")
 
-	_, err = NewPDNSProvider(
-		context.Background(),
-		PDNSConfig{
-			Server:       "http://localhost:8081",
-			APIKey:       "foo",
-			DomainFilter: endpoint.NewDomainFilter([]string{""}),
-			TLSConfig: TLSConfig{
-				TLSEnabled: true,
-			},
-		})
-	assert.Error(suite.T(), err, "Enabled TLS Config without --tls-ca should raise an error")
+	assert.Nil(suite.T(), newProvider(TLSConfig{}), "Enabled TLS Config without --tls-ca should raise no error")
 
-	_, err = NewPDNSProvider(
-		context.Background(),
-		PDNSConfig{
-			Server:       "http://localhost:8081",
-			APIKey:       "foo",
-			DomainFilter: endpoint.NewDomainFilter([]string{""}),
-			TLSConfig: TLSConfig{
-				TLSEnabled: true,
-				CAFilePath: "../../internal/testresources/ca.pem",
-			},
-		})
-	assert.Nil(suite.T(), err, "Enabled TLS Config with --tls-ca should raise no error")
+	assert.Nil(suite.T(), newProvider(TLSConfig{
+		CAFilePath: "../../internal/testresources/ca.pem",
+	}), "Enabled TLS Config with --tls-ca should raise no error")
 
-	_, err = NewPDNSProvider(
-		context.Background(),
-		PDNSConfig{
-			Server:       "http://localhost:8081",
-			APIKey:       "foo",
-			DomainFilter: endpoint.NewDomainFilter([]string{""}),
-			TLSConfig: TLSConfig{
-				TLSEnabled:         true,
-				CAFilePath:         "../../internal/testresources/ca.pem",
-				ClientCertFilePath: "../../internal/testresources/client-cert.pem",
-			},
-		})
-	assert.Error(suite.T(), err, "Enabled TLS Config with --tls-client-cert only should raise an error")
+	assert.Error(suite.T(), newProvider(TLSConfig{
+		CAFilePath:         "../../internal/testresources/ca.pem",
+		ClientCertFilePath: "../../internal/testresources/client-cert.pem",
+	}), "Enabled TLS Config with --tls-client-cert only should raise an error")
 
-	_, err = NewPDNSProvider(
-		context.Background(),
-		PDNSConfig{
-			Server:       "http://localhost:8081",
-			APIKey:       "foo",
-			DomainFilter: endpoint.NewDomainFilter([]string{""}),
-			TLSConfig: TLSConfig{
-				TLSEnabled:            true,
-				CAFilePath:            "../../internal/testresources/ca.pem",
-				ClientCertKeyFilePath: "../../internal/testresources/client-cert-key.pem",
-			},
-		})
-	assert.Error(suite.T(), err, "Enabled TLS Config with --tls-client-cert-key only should raise an error")
+	assert.Error(suite.T(), newProvider(TLSConfig{
+		CAFilePath:            "../../internal/testresources/ca.pem",
+		ClientCertKeyFilePath: "../../internal/testresources/client-cert-key.pem",
+	}), "Enabled TLS Config with --tls-client-cert-key only should raise an error")
 
-	_, err = NewPDNSProvider(
-		context.Background(),
-		PDNSConfig{
-			Server:       "http://localhost:8081",
-			APIKey:       "foo",
-			DomainFilter: endpoint.NewDomainFilter([]string{""}),
-			TLSConfig: TLSConfig{
-				TLSEnabled:            true,
-				CAFilePath:            "../../internal/testresources/ca.pem",
-				ClientCertFilePath:    "../../internal/testresources/client-cert.pem",
-				ClientCertKeyFilePath: "../../internal/testresources/client-cert-key.pem",
-			},
-		})
-	assert.Nil(suite.T(), err, "Enabled TLS Config with all flags should raise no error")
+	assert.Nil(suite.T(), newProvider(TLSConfig{
+		CAFilePath:            "../../internal/testresources/ca.pem",
+		ClientCertFilePath:    "../../internal/testresources/client-cert.pem",
+		ClientCertKeyFilePath: "../../internal/testresources/client-cert-key.pem",
+	}), "Enabled TLS Config with all flags should raise no error")
 }
 
 func (suite *NewPDNSProviderTestSuite) TestPDNSRRSetToEndpoints() {
@@ -909,13 +936,18 @@ func (suite *NewPDNSProviderTestSuite) TestPDNSConvertEndpointsToZones() {
 
 	for _, z := range zlist {
 		for _, rs := range z.Rrsets {
-			if "CNAME" == rs.Type_ {
+			if rs.Type_ == "CNAME" {
 				for _, r := range rs.Records {
 					assert.Equal(suite.T(), uint8(0x2e), r.Content[len(r.Content)-1])
 				}
 			}
 		}
 	}
+
+	// Check endpoints of type CNAME are converted to ALIAS on the domain apex
+	zlist, err = p.ConvertEndpointsToZones(endpointsApexRecords, PdnsReplace)
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), []pgo.Zone{ZoneEmptyToApexPatch}, zlist)
 }
 
 func (suite *NewPDNSProviderTestSuite) TestPDNSConvertEndpointsToZonesPartitionZones() {
@@ -1038,15 +1070,9 @@ func (suite *NewPDNSProviderTestSuite) TestPDNSClientPartitionZones() {
 	assert.Equal(suite.T(), partitionResultFilteredMultipleFilter, filteredZones)
 	assert.Equal(suite.T(), partitionResultResidualMultipleFilter, residualZones)
 
-	// Check filtered, residual zones when a single child domain filter specified
-	filteredZones, residualZones = DomainFilterChildSingleClient.PartitionZones(zoneList)
+	filteredZones, residualZones = RegexDomainFilterClient.PartitionZones(zoneList)
 	assert.Equal(suite.T(), partitionResultFilteredSingleFilter, filteredZones)
 	assert.Equal(suite.T(), partitionResultResidualSingleFilter, residualZones)
-
-	// Check filter, residual zones when multiple child domain filters specified
-	filteredZones, residualZones = DomainFilterChildMultipleClient.PartitionZones(zoneList)
-	assert.Equal(suite.T(), partitionResultFilteredMultipleFilter, filteredZones)
-	assert.Equal(suite.T(), partitionResultResidualMultipleFilter, residualZones)
 }
 
 func TestNewPDNSProviderTestSuite(t *testing.T) {

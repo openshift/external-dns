@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
       - name: external-dns
-        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
+        image: registry.k8s.io/external-dns/external-dns:v0.14.1
         args:
         - --source=service
         - --source=ingress
@@ -98,7 +98,7 @@ spec:
       serviceAccountName: external-dns
       containers:
       - name: external-dns
-        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
+        image: registry.k8s.io/external-dns/external-dns:v0.14.1
         args:
         - --source=service
         - --source=ingress
@@ -246,6 +246,11 @@ spec:
 EOF
 ```
 
+To get the targets to the extracted DNS names, external-dns is able to gather information from the kubernetes service of the Istio Ingress Gateway.
+Please take a look at the [source service documentation](../sources/service.md) for more information on this.
+
+It is also possible to set the targets manually by using the `external-dns.alpha.kubernetes.io/target` annotation on the Istio Ingress Gateway resource or the Istio VirtualService.
+
 #### Access the sample service using `curl`
 ```bash
 $ curl -I http://httpbin.example.com/status/200
@@ -269,6 +274,34 @@ transfer-encoding: chunked
 ```
 
 **Note:** The `-H` flag in the original Istio tutorial is no longer necessary in the `curl` commands.
+
+### Optional Gateway Annotation
+
+To support setups where an Ingress resource is used provision an external LB you can add the following annotation to your Gateway
+
+**Note:** The Ingress namespace can be omitted if its in the same namespace as the gateway
+
+```bash
+$ cat <<EOF | kubectl apply -f -
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: httpbin-gateway
+  namespace: istio-system
+  annotations:
+    "external-dns.alpha.kubernetes.io/ingress": "$ingressNamespace/$ingressName"
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+EOF
+```
 
 ### Debug ExternalDNS
 

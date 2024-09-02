@@ -14,48 +14,76 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # v4.1.5
         with:
           fetch-depth: 0
 
-      - name: Run Artifact Hub lint
-        run: |
-          set -euo pipefail
-          curl -Lo ah_linux_amd64.tar.gz https://github.com/artifacthub/hub/releases/download/v1.9.0/ah_1.9.0_linux_amd64.tar.gz
-          tar -xzvf ah_linux_amd64.tar.gz ah
-          ./ah lint --kind helm || exit 1
-          rm -f ./ah ./ah_linux_amd64.tar.gz
-
-      - name: Set-up Helm
-        uses: azure/setup-helm@b5b231a831f96336bbfeccc1329990f0005c5bb1
+      - name: Install Helm Docs
+        uses: action-stars/install-tool-from-github-release@243ac555111a84756285bf7dc55df821a55d32d9 # v0.2.3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          owner: norwoodj
+          repository: helm-docs
+          arch_amd64: x86_64
+          os_linux: Linux
+          check_command: helm-docs --version
           version: latest
 
-      - name: Set-up Python
-        uses: actions/setup-python@b55428b1882923874294fa556849718a1d7f2ca5
+      - name: Run Helm Docs check
+        run: |
+          set -euo pipefail
+          helm-docs
+          if [[ -n "$(git status --porcelain --untracked-files=no)" ]]
+          then
+            echo "Documentation not up to date. Please run helm-docs and commit changes!" >&2
+            exit 1
+          fi
+
+      - name: Install Artifact Hub CLI
+        uses: action-stars/install-tool-from-github-release@243ac555111a84756285bf7dc55df821a55d32d9 # v0.2.3
         with:
+          github_token: ${{ github.token }}
+          owner: artifacthub
+          repository: hub
+          name: ah
+          check_command: ah version
+          version: latest
+
+      - name: Run Artifact Hub lint
+        run: ah lint --kind helm || exit 1
+
+      - name: Install Helm
+        uses: azure/setup-helm@fe7b79cd5ee1e45176fcad797de68ecaf3ca4814 # v4.2.0
+        with:
+          token: ${{ github.token }}
+          version: latest
+
+      - name: Install Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
+        with:
+          token: ${{ github.token }}
           python-version: "3.x"
 
       - name: Set-up chart-testing
-        uses: helm/chart-testing-action@dae259e86a35ff09145c0805e2d7dd3f7207064a
+        uses: helm/chart-testing-action@e6669bcd63d7cb57cb4380c33043eebe5d111992 # v2.6.1
 
-      - name: Run chart-testing (list-changed)
-        id: list-changed
+      - name: Check for changes
+        id: changes
         run: |
           changed=$(ct list-changed)
           if [[ -n "$changed" ]]; then
-            echo "::set-output name=changed::true"
+            echo "changed=true" >> "${GITHUB_OUTPUT}"
           fi
 
-      - name: Run chart-testing (lint)
+      - name: Run chart-testing lint
         run: ct lint --check-version-increment=false
 
-      - name: Set-up Kind cluster
-        uses: helm/kind-action@d08cf6ff1575077dee99962540d77ce91c62387d
+      - name: Create Kind cluster
+        if: steps.changes.outputs.changed == 'true'
+        uses: helm/kind-action@0025e74a8c7512023d06dc019c617aa3cf561fde # v1.10.0
         with:
           wait: 120s
-        if: steps.list-changed.outputs.changed == 'true'
 
-      - name: Run chart-testing (install)
+      - name: Run chart-testing install
+        if: steps.changes.outputs.changed == 'true'
         run: ct install

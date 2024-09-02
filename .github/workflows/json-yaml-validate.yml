@@ -1,0 +1,23 @@
+name: json-yaml-validate 
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write # enable write permissions for pull requests
+
+jobs:
+  json-yaml-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # v4.1.5
+
+      - name: json-yaml-validate
+        uses: GrantBirki/json-yaml-validate@v2.7.1
+        with:
+          comment: "true" # enable comment mode
+          yaml_exclude_regex: "(charts/external-dns/templates.*|mkdocs.yml)"

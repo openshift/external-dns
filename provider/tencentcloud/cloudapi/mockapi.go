@@ -18,7 +18,6 @@ package cloudapi
 
 import (
 	"math/rand"
-	"time"
 
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	dnspod "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod/v20210323"
@@ -34,7 +33,6 @@ type mockAPIService struct {
 }
 
 func NewMockService(privateZones []*privatedns.PrivateZone, privateZoneRecords map[string][]*privatedns.PrivateZoneRecord, dnspodDomains []*dnspod.DomainListItem, dnspodRecords map[string][]*dnspod.RecordListItem) *mockAPIService {
-	rand.Seed(time.Now().Unix())
 	return &mockAPIService{
 		privateZones:       privateZones,
 		privateZoneRecords: privateZoneRecords,
@@ -111,11 +109,7 @@ func (api *mockAPIService) ModifyPrivateZoneRecord(request *privatedns.ModifyPri
 
 func (api *mockAPIService) DescribePrivateZoneList(request *privatedns.DescribePrivateZoneListRequest) (response *privatedns.DescribePrivateZoneListResponse, err error) {
 	response = privatedns.NewDescribePrivateZoneListResponse()
-	response.Response = &struct {
-		TotalCount     *int64                    `json:"TotalCount,omitempty" name:"TotalCount"`
-		PrivateZoneSet []*privatedns.PrivateZone `json:"PrivateZoneSet,omitempty" name:"PrivateZoneSet"`
-		RequestId      *string                   `json:"RequestId,omitempty" name:"RequestId"`
-	}{
+	response.Response = &privatedns.DescribePrivateZoneListResponseParams{
 		TotalCount:     common.Int64Ptr(int64(len(api.privateZones))),
 		PrivateZoneSet: api.privateZones,
 	}
@@ -124,11 +118,7 @@ func (api *mockAPIService) DescribePrivateZoneList(request *privatedns.DescribeP
 
 func (api *mockAPIService) DescribePrivateZoneRecordList(request *privatedns.DescribePrivateZoneRecordListRequest) (response *privatedns.DescribePrivateZoneRecordListResponse, err error) {
 	response = privatedns.NewDescribePrivateZoneRecordListResponse()
-	response.Response = &struct {
-		TotalCount *int64                          `json:"TotalCount,omitempty" name:"TotalCount"`
-		RecordSet  []*privatedns.PrivateZoneRecord `json:"RecordSet,omitempty" name:"RecordSet"`
-		RequestId  *string                         `json:"RequestId,omitempty" name:"RequestId"`
-	}{}
+	response.Response = &privatedns.DescribePrivateZoneRecordListResponseParams{}
 	if _, exist := api.privateZoneRecords[*request.ZoneId]; !exist {
 		response.Response.TotalCount = common.Int64Ptr(0)
 		response.Response.RecordSet = make([]*privatedns.PrivateZoneRecord, 0)
@@ -145,11 +135,12 @@ func (api *mockAPIService) DescribePrivateZoneRecordList(request *privatedns.Des
 
 func (api *mockAPIService) DescribeDomainList(request *dnspod.DescribeDomainListRequest) (response *dnspod.DescribeDomainListResponse, err error) {
 	response = dnspod.NewDescribeDomainListResponse()
-	response.Response = &struct {
-		DomainCountInfo *dnspod.DomainCountInfo  `json:"DomainCountInfo,omitempty" name:"DomainCountInfo"`
-		DomainList      []*dnspod.DomainListItem `json:"DomainList,omitempty" name:"DomainList"`
-		RequestId       *string                  `json:"RequestId,omitempty" name:"RequestId"`
-	}{}
+	response.Response = &dnspod.DescribeDomainListResponseParams{
+		DomainCountInfo: &dnspod.DomainCountInfo{
+			AllTotal: common.Uint64Ptr(uint64(len(api.dnspodDomains))),
+		},
+		DomainList: api.dnspodDomains,
+	}
 	response.Response.DomainList = api.dnspodDomains
 	response.Response.DomainCountInfo = &dnspod.DomainCountInfo{
 		AllTotal: common.Uint64Ptr(uint64(len(api.dnspodDomains))),
@@ -159,11 +150,7 @@ func (api *mockAPIService) DescribeDomainList(request *dnspod.DescribeDomainList
 
 func (api *mockAPIService) DescribeRecordList(request *dnspod.DescribeRecordListRequest) (response *dnspod.DescribeRecordListResponse, err error) {
 	response = dnspod.NewDescribeRecordListResponse()
-	response.Response = &struct {
-		RecordCountInfo *dnspod.RecordCountInfo  `json:"RecordCountInfo,omitempty" name:"RecordCountInfo"`
-		RecordList      []*dnspod.RecordListItem `json:"RecordList,omitempty" name:"RecordList"`
-		RequestId       *string                  `json:"RequestId,omitempty" name:"RequestId"`
-	}{}
+	response.Response = &dnspod.DescribeRecordListResponseParams{}
 	if _, exist := api.dnspodRecords[*request.Domain]; !exist {
 		response.Response.RecordList = make([]*dnspod.RecordListItem, 0)
 		response.Response.RecordCountInfo = &dnspod.RecordCountInfo{

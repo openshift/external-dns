@@ -19,7 +19,7 @@
 cover:
 	go get github.com/wadey/gocovmerge
 	$(eval PKGS := $(shell go list ./... | grep -v /vendor/))
-	$(eval PKGS_DELIM := $(shell echo $(PKGS) | sed -e 's/ /,/g'))
+	$(eval PKGS_DELIM := $(shell echo $(PKGS) | tr / -'))
 	go list -f '{{if or (len .TestGoFiles) (len .XTestGoFiles)}}go test -test.v -test.timeout=120s -covermode=count -coverprofile={{.Name}}_{{len .Imports}}_{{len .Deps}}.coverprofile -coverpkg $(PKGS_DELIM) {{.ImportPath}}{{end}}' $(PKGS) | xargs -0 sh -c
 	gocovmerge `ls *.coverprofile` > cover.out
 	rm *.coverprofile
@@ -36,7 +36,7 @@ ifeq (, $(shell which controller-gen))
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.5.0 ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.14.0 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 CONTROLLER_GEN=$(GOBIN)/controller-gen
@@ -44,15 +44,16 @@ else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
 
-.PHONY: go-lint
+golangci-lint:
+	@command -v golangci-lint > /dev/null || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.57.2
 
 # Run the golangci-lint tool
-go-lint:
-	golangci-lint run --timeout=15m ./...
-
-.PHONY: licensecheck
+.PHONY: go-lint
+go-lint: golangci-lint
+	golangci-lint run --timeout=30m ./...
 
 # Run the licensecheck script to check for license headers
+.PHONY: licensecheck
 licensecheck:
 	@echo ">> checking license header"
 	@licRes=$$(for file in $$(find . -type f -iname '*.go' ! -path './vendor/*') ; do \
@@ -63,85 +64,99 @@ licensecheck:
                exit 1; \
        fi
 
-.PHONY: lint
-
 # Run all the linters
+.PHONY: lint
 lint: licensecheck go-lint
 
-.PHONY: crd
-
 # generates CRD using controller-gen
+.PHONY: crd
 crd: controller-gen
 	${CONTROLLER_GEN} crd:crdVersions=v1 paths="./endpoint/..." output:crd:stdout > docs/contributing/crd-source/crd-manifest.yaml
 
 # The verify target runs tasks similar to the CI tasks, but without code coverage
-.PHONY: verify test
-
+.PHONY: test
 test:
 	go test -race -coverprofile=profile.cov ./...
 
-# The build targets allow to build the binary and docker image
-.PHONY: build build.docker build.mini
+# The build targets allow to build the binary and container image
+.PHONY: build
 
 BINARY        ?= external-dns
 SOURCES        = $(shell find . -name '*.go')
 IMAGE_STAGING  = gcr.io/k8s-staging-external-dns/$(BINARY)
-IMAGE         ?= us.gcr.io/k8s-artifacts-prod/external-dns/$(BINARY)
-VERSION       ?= $(shell git describe --tags --always --dirty)
+REGISTRY      ?= us.gcr.io/k8s-artifacts-prod/external-dns
+IMAGE         ?= $(REGISTRY)/$(BINARY)
+VERSION       ?= $(shell git describe --tags --always --dirty --match "v*")
 BUILD_FLAGS   ?= -v
 LDFLAGS       ?= -X sigs.k8s.io/external-dns/pkg/apis/externaldns.Version=$(VERSION) -w -s
-ARCHS         = amd64 arm64v8 arm32v7
-SHELL         = /bin/bash
-
+ARCH          ?= amd64
+SHELL          = /bin/bash
+IMG_PLATFORM  ?= linux/amd64,linux/arm64,linux/arm/v7
+IMG_PUSH      ?= true
+IMG_SBOM      ?= none
 
 build: build/$(BINARY)
 
 build/$(BINARY): $(SOURCES)
 	CGO_ENABLED=0 go build -o build/$(BINARY) $(BUILD_FLAGS) -ldflags "$(LDFLAGS)" .
 
-build.push/multiarch:
-	arch_specific_tags=()
-	for arch in $(ARCHS); do \
-		image="$(IMAGE):$(VERSION)-$${arch}" ;\
-		# pre-pull due to https://github.com/kubernetes-sigs/cluster-addons/pull/84/files ;\
-		docker pull $${arch}/alpine:3.14 ;\
-		docker pull golang:1.18 ;\
-		DOCKER_BUILDKIT=1 docker build --rm --tag $${image} --build-arg VERSION="$(VERSION)" --build-arg ARCH="$${arch}" . ;\
-		docker push $${image} ;\
-		arch_specific_tags+=( "--amend $${image}" ) ;\
-	done ;\
-	DOCKER_CLI_EXPERIMENTAL=enabled docker manifest create "$(IMAGE):$(VERSION)" $${arch_specific_tags[@]} ;\
-	for arch in $(ARCHS); do \
-		DOCKER_CLI_EXPERIMENTAL=enabled docker manifest annotate --arch $${arch} "$(IMAGE):$(VERSION)" "$(IMAGE):$(VERSION)-$${arch}" ;\
-	done;\
-	DOCKER_CLI_EXPERIMENTAL=enabled docker manifest push "$(IMAGE):$(VERSION)" \
+build.push/multiarch: ko
+	KO_DOCKER_REPO=${IMAGE} \
+    VERSION=${VERSION} \
+    ko build --tags ${VERSION} --bare --sbom ${IMG_SBOM} \
+      --image-label org.opencontainers.image.source="https://github.com/kubernetes-sigs/external-dns" \
+      --image-label org.opencontainers.image.revision=$(shell git rev-parse HEAD) \
+      --platform=${IMG_PLATFORM}  --push=${IMG_PUSH} .
 
-build.push: build.docker
-	docker push "$(IMAGE):$(VERSION)"
+build.image/multiarch:
+	$(MAKE) IMG_PUSH=false build.push/multiarch
 
-build.arm64v8:
+build.image:
+	$(MAKE) IMG_PLATFORM=linux/$(ARCH) build.image/multiarch
+
+build.image-amd64:
+	$(MAKE) ARCH=amd64 build.image
+
+build.image-arm64:
+	$(MAKE) ARCH=arm64 build.image
+
+build.image-arm/v7:
+	$(MAKE) ARCH=arm/v7 build.image
+
+build.push:
+	$(MAKE) IMG_PLATFORM=linux/$(ARCH) build.push/multiarch
+
+build.push-amd64:
+	$(MAKE) ARCH=amd64 build.push
+
+build.push-arm64:
+	$(MAKE) ARCH=arm64 build.push
+
+build.push-arm/v7:
+	$(MAKE) ARCH=arm/v7 build.push
+
+build.arm64:
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o build/$(BINARY) $(BUILD_FLAGS) -ldflags "$(LDFLAGS)" .
 
 build.amd64:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/$(BINARY) $(BUILD_FLAGS) -ldflags "$(LDFLAGS)" .
 
-build.arm32v7:
+build.arm/v7:
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -o build/$(BINARY) $(BUILD_FLAGS) -ldflags "$(LDFLAGS)" .
-
-build.docker:
-	docker build --rm --tag "$(IMAGE):$(VERSION)" --build-arg VERSION="$(VERSION)" --build-arg ARCH="amd64" .
-
-build.mini:
-	docker build --rm --tag "$(IMAGE):$(VERSION)-mini" --build-arg VERSION="$(VERSION)" -f Dockerfile.mini .
 
 clean:
 	@rm -rf build
+	@go clean -cache
 
  # Builds and push container images to the staging bucket.
 .PHONY: release.staging
 
-release.staging:
+release.staging: test
 	IMAGE=$(IMAGE_STAGING) $(MAKE) build.push/multiarch
 
-release.prod:
+release.prod: test
 	$(MAKE) build.push/multiarch
+
+.PHONY: ko
+ko:
+	scripts/install-ko.sh

@@ -1,0 +1,37 @@
+name: Build all images
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+permissions:
+  contents: read  #  to fetch code (actions/checkout)
+
+jobs:
+
+  build:
+    permissions:
+      contents: read  #  to fetch code (actions/checkout)
+      checks: write  #  to create a new check based on the results (shogo82148/actions-goveralls)
+
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22.2'
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # v4.1.5
+
+    - name: Install CI
+      run: |
+        go get -v -t -d ./...
+
+    - name: Test
+      run: make build.image/multiarch

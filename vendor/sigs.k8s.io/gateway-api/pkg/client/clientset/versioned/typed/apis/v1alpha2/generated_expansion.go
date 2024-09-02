@@ -18,15 +18,11 @@ limitations under the License.
 
 package v1alpha2
 
-type GatewayExpansion interface{}
+type BackendLBPolicyExpansion interface{}
 
-type GatewayClassExpansion interface{}
-
-type HTTPRouteExpansion interface{}
+type GRPCRouteExpansion interface{}
 
 type ReferenceGrantExpansion interface{}
-
-type ReferencePolicyExpansion interface{}
 
 type TCPRouteExpansion interface{}
 

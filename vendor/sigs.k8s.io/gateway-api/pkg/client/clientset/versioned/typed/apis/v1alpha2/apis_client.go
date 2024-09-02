@@ -28,11 +28,9 @@ import (
 
 type GatewayV1alpha2Interface interface {
 	RESTClient() rest.Interface
-	GatewaysGetter
-	GatewayClassesGetter
-	HTTPRoutesGetter
+	BackendLBPoliciesGetter
+	GRPCRoutesGetter
 	ReferenceGrantsGetter
-	ReferencePoliciesGetter
 	TCPRoutesGetter
 	TLSRoutesGetter
 	UDPRoutesGetter
@@ -43,24 +41,16 @@ type GatewayV1alpha2Client struct {
 	restClient rest.Interface
 }
 
-func (c *GatewayV1alpha2Client) Gateways(namespace string) GatewayInterface {
-	return newGateways(c, namespace)
+func (c *GatewayV1alpha2Client) BackendLBPolicies(namespace string) BackendLBPolicyInterface {
+	return newBackendLBPolicies(c, namespace)
 }
 
-func (c *GatewayV1alpha2Client) GatewayClasses() GatewayClassInterface {
-	return newGatewayClasses(c)
-}
-
-func (c *GatewayV1alpha2Client) HTTPRoutes(namespace string) HTTPRouteInterface {
-	return newHTTPRoutes(c, namespace)
+func (c *GatewayV1alpha2Client) GRPCRoutes(namespace string) GRPCRouteInterface {
+	return newGRPCRoutes(c, namespace)
 }
 
 func (c *GatewayV1alpha2Client) ReferenceGrants(namespace string) ReferenceGrantInterface {
 	return newReferenceGrants(c, namespace)
-}
-
-func (c *GatewayV1alpha2Client) ReferencePolicies(namespace string) ReferencePolicyInterface {
-	return newReferencePolicies(c, namespace)
 }
 
 func (c *GatewayV1alpha2Client) TCPRoutes(namespace string) TCPRouteInterface {

@@ -18,17 +18,88 @@ Snippet from [Cloudflare - Getting Started](https://api.cloudflare.com/#getting-
 
 >The Cloudflare API is a RESTful API based on HTTPS requests and JSON responses. If you are registered with Cloudflare, you can obtain your API key from the bottom of the "My Account" page, found here: [Go to My account](https://dash.cloudflare.com/profile).
 
-API Token will be preferred for authentication if `CF_API_TOKEN` environment variable is set. 
+API Token will be preferred for authentication if `CF_API_TOKEN` environment variable is set.
 Otherwise `CF_API_KEY` and `CF_API_EMAIL` should be set to run ExternalDNS with Cloudflare.
+You may provide the Cloudflare API token through a file by setting the
+`CF_API_TOKEN="file:/path/to/token"`.
+
+Note. The `CF_API_KEY` and `CF_API_EMAIL` should not be present, if you are using a `CF_API_TOKEN`.
 
 When using API Token authentication, the token should be granted Zone `Read`, DNS `Edit` privileges, and access to `All zones`.
 
 If you would like to further restrict the API permissions to a specific zone (or zones), you also need to use the `--zone-id-filter` so that the underlying API requests only access the zones that you explicitly specify, as opposed to accessing all zones.
 
+## Throttling
+
+Cloudflare API has a [global rate limit of 1,200 requests per five minutes](https://developers.cloudflare.com/fundamentals/api/reference/limits/). Running several fast polling ExternalDNS instances in a given account can easily hit that limit. The AWS Provider [docs](./aws.md#throttling) has some recommendations that can be followed here too, but in particular, consider passing `--cloudflare-dns-records-per-page` with a high value (maximum is 5,000).
+
 ## Deploy ExternalDNS
 
 Connect your `kubectl` client to the cluster you want to test ExternalDNS with.
+
+Begin by creating a Kubernetes secret to securely store your CloudFlare API key. This key will enable ExternalDNS to authenticate with CloudFlare:
+
+```shell
+kubectl create secret generic cloudflare-api-key --from-literal=apiKey=YOUR_API_KEY --from-literal=email=YOUR_CLOUDFLARE_EMAIL
+```
+
+And for API Token it should look like :
+
+```shell
+kubectl create secret generic cloudflare-api-key --from-literal=apiKey=YOUR_API_TOKEN
+```
+
+Ensure to replace YOUR_API_KEY with your actual CloudFlare API key and YOUR_CLOUDFLARE_EMAIL with the email associated with your CloudFlare account.
+
 Then apply one of the following manifests file to deploy ExternalDNS.
+
+### Using Helm
+
+Create a values.yaml file to configure ExternalDNS to use CloudFlare as the DNS provider. This file should include the necessary environment variables:
+
+```shell
+provider: 
+  name: cloudflare
+env:
+  - name: CF_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: cloudflare-api-key
+        key: apiKey
+  - name: CF_API_EMAIL
+    valueFrom:
+      secretKeyRef:
+        name: cloudflare-api-key
+        key: email
+```
+
+Use this in your values.yaml, if you are using API Token:
+
+```shell
+provider: 
+  name: cloudflare
+env:
+  - name: CF_API_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: cloudflare-api-key
+        key: apiKey
+```
+
+
+Finally, install the ExternalDNS chart with Helm using the configuration specified in your values.yaml file:
+
+```shell
+helm repo add external-dns https://kubernetes-sigs.github.io/external-dns/
+```
+
+```shell
+helm repo update
+```
+
+```shell
+helm upgrade --install external-dns external-dns/external-dns --values values.yaml
+```
 
 ### Manifest (for clusters without RBAC enabled)
 
@@ -50,18 +121,25 @@ spec:
     spec:
       containers:
       - name: external-dns
-        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
+        image: registry.k8s.io/external-dns/external-dns:v0.14.1
         args:
         - --source=service # ingress is also possible
         - --domain-filter=example.com # (optional) limit to only example.com domains; change to match the zone created above.
         - --zone-id-filter=023e105f4ecef8ad9ca31a8372d0c353 # (optional) limit to a specific zone.
         - --provider=cloudflare
         - --cloudflare-proxied # (optional) enable the proxy feature of Cloudflare (DDOS protection, CDN...)
-        env:
-        - name: CF_API_KEY
-          value: "YOUR_CLOUDFLARE_API_KEY"
-        - name: CF_API_EMAIL
-          value: "YOUR_CLOUDFLARE_EMAIL"
+        - --cloudflare-dns-records-per-page=5000 # (optional) configure how many DNS records to fetch per request
+      env:
+       - name: CF_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cloudflare-api-key
+              key: apiKey
+       - name: CF_API_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: cloudflare-api-key
+              key: email
 ```
 
 ### Manifest (for clusters with RBAC enabled)
@@ -81,7 +159,7 @@ rules:
   resources: ["services","endpoints","pods"]
   verbs: ["get","watch","list"]
 - apiGroups: ["extensions","networking.k8s.io"]
-  resources: ["ingresses"] 
+  resources: ["ingresses"]
   verbs: ["get","watch","list"]
 - apiGroups: [""]
   resources: ["nodes"]
@@ -118,18 +196,25 @@ spec:
       serviceAccountName: external-dns
       containers:
       - name: external-dns
-        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
+        image: registry.k8s.io/external-dns/external-dns:v0.14.1
         args:
         - --source=service # ingress is also possible
         - --domain-filter=example.com # (optional) limit to only example.com domains; change to match the zone created above.
         - --zone-id-filter=023e105f4ecef8ad9ca31a8372d0c353 # (optional) limit to a specific zone.
         - --provider=cloudflare
         - --cloudflare-proxied # (optional) enable the proxy feature of Cloudflare (DDOS protection, CDN...)
+        - --cloudflare-dns-records-per-page=5000 # (optional) configure how many DNS records to fetch per request
         env:
-        - name: CF_API_KEY
-          value: "YOUR_CLOUDFLARE_API_KEY"
-        - name: CF_API_EMAIL
-          value: "YOUR_CLOUDFLARE_EMAIL"
+       - name: CF_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: cloudflare-api-key
+            key: apiKey
+       - name: CF_API_EMAIL
+         valueFrom:
+           secretKeyRef:
+             name: cloudflare-api-key
+             key: email
 ```
 
 ## Deploying an Nginx Service

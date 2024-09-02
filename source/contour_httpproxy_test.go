@@ -220,8 +220,9 @@ func testEndpointsFromHTTPProxy(t *testing.T) {
 			},
 			expected: []*endpoint.Endpoint{
 				{
-					DNSName: "foo.bar",
-					Targets: endpoint.Targets{"lb.com"},
+					DNSName:    "foo.bar",
+					RecordType: endpoint.RecordTypeCNAME,
+					Targets:    endpoint.Targets{"lb.com"},
 				},
 			},
 		},
@@ -235,8 +236,9 @@ func testEndpointsFromHTTPProxy(t *testing.T) {
 			},
 			expected: []*endpoint.Endpoint{
 				{
-					DNSName: "foo.bar",
-					Targets: endpoint.Targets{"8.8.8.8"},
+					DNSName:    "foo.bar",
+					RecordType: endpoint.RecordTypeA,
+					Targets:    endpoint.Targets{"8.8.8.8"},
 				},
 			},
 		},
@@ -251,12 +253,14 @@ func testEndpointsFromHTTPProxy(t *testing.T) {
 			},
 			expected: []*endpoint.Endpoint{
 				{
-					DNSName: "foo.bar",
-					Targets: endpoint.Targets{"8.8.8.8", "127.0.0.1"},
+					DNSName:    "foo.bar",
+					RecordType: endpoint.RecordTypeA,
+					Targets:    endpoint.Targets{"8.8.8.8", "127.0.0.1"},
 				},
 				{
-					DNSName: "foo.bar",
-					Targets: endpoint.Targets{"elb.com", "alb.com"},
+					DNSName:    "foo.bar",
+					RecordType: endpoint.RecordTypeCNAME,
+					Targets:    endpoint.Targets{"elb.com", "alb.com"},
 				},
 			},
 		},
@@ -264,14 +268,6 @@ func testEndpointsFromHTTPProxy(t *testing.T) {
 			title:     "no rule.host",
 			httpProxy: fakeHTTPProxy{},
 			expected:  []*endpoint.Endpoint{},
-		},
-		{
-			title: "one rule.host invalid httpproxy",
-			httpProxy: fakeHTTPProxy{
-				host:    "foo.bar",
-				invalid: true,
-			},
-			expected: []*endpoint.Endpoint{},
 		},
 		{
 			title:     "no targets",
@@ -342,20 +338,24 @@ func testHTTPProxyEndpoints(t *testing.T) {
 			},
 			expected: []*endpoint.Endpoint{
 				{
-					DNSName: "example.org",
-					Targets: endpoint.Targets{"8.8.8.8"},
+					DNSName:    "example.org",
+					RecordType: endpoint.RecordTypeA,
+					Targets:    endpoint.Targets{"8.8.8.8"},
 				},
 				{
-					DNSName: "example.org",
-					Targets: endpoint.Targets{"lb.com"},
+					DNSName:    "example.org",
+					RecordType: endpoint.RecordTypeCNAME,
+					Targets:    endpoint.Targets{"lb.com"},
 				},
 				{
-					DNSName: "new.org",
-					Targets: endpoint.Targets{"8.8.8.8"},
+					DNSName:    "new.org",
+					RecordType: endpoint.RecordTypeA,
+					Targets:    endpoint.Targets{"8.8.8.8"},
 				},
 				{
-					DNSName: "new.org",
-					Targets: endpoint.Targets{"lb.com"},
+					DNSName:    "new.org",
+					RecordType: endpoint.RecordTypeCNAME,
+					Targets:    endpoint.Targets{"lb.com"},
 				},
 			},
 		},
@@ -380,20 +380,24 @@ func testHTTPProxyEndpoints(t *testing.T) {
 			},
 			expected: []*endpoint.Endpoint{
 				{
-					DNSName: "example.org",
-					Targets: endpoint.Targets{"8.8.8.8"},
+					DNSName:    "example.org",
+					RecordType: endpoint.RecordTypeA,
+					Targets:    endpoint.Targets{"8.8.8.8"},
 				},
 				{
-					DNSName: "example.org",
-					Targets: endpoint.Targets{"lb.com"},
+					DNSName:    "example.org",
+					RecordType: endpoint.RecordTypeCNAME,
+					Targets:    endpoint.Targets{"lb.com"},
 				},
 				{
-					DNSName: "new.org",
-					Targets: endpoint.Targets{"8.8.8.8"},
+					DNSName:    "new.org",
+					RecordType: endpoint.RecordTypeA,
+					Targets:    endpoint.Targets{"8.8.8.8"},
 				},
 				{
-					DNSName: "new.org",
-					Targets: endpoint.Targets{"lb.com"},
+					DNSName:    "new.org",
+					RecordType: endpoint.RecordTypeCNAME,
+					Targets:    endpoint.Targets{"lb.com"},
 				},
 			},
 		},
@@ -418,12 +422,14 @@ func testHTTPProxyEndpoints(t *testing.T) {
 			},
 			expected: []*endpoint.Endpoint{
 				{
-					DNSName: "example.org",
-					Targets: endpoint.Targets{"8.8.8.8"},
+					DNSName:    "example.org",
+					RecordType: endpoint.RecordTypeA,
+					Targets:    endpoint.Targets{"8.8.8.8"},
 				},
 				{
-					DNSName: "example.org",
-					Targets: endpoint.Targets{"lb.com"},
+					DNSName:    "example.org",
+					RecordType: endpoint.RecordTypeCNAME,
+					Targets:    endpoint.Targets{"lb.com"},
 				},
 			},
 		},
@@ -446,8 +452,9 @@ func testHTTPProxyEndpoints(t *testing.T) {
 			},
 			expected: []*endpoint.Endpoint{
 				{
-					DNSName: "example.org",
-					Targets: endpoint.Targets{"8.8.8.8"},
+					DNSName:    "example.org",
+					RecordType: endpoint.RecordTypeA,
+					Targets:    endpoint.Targets{"8.8.8.8"},
 				},
 			},
 		},
@@ -509,8 +516,9 @@ func testHTTPProxyEndpoints(t *testing.T) {
 			},
 			expected: []*endpoint.Endpoint{
 				{
-					DNSName: "example.org",
-					Targets: endpoint.Targets{"8.8.8.8"},
+					DNSName:    "example.org",
+					RecordType: endpoint.RecordTypeA,
+					Targets:    endpoint.Targets{"8.8.8.8"},
 				},
 			},
 		},
@@ -551,8 +559,9 @@ func testHTTPProxyEndpoints(t *testing.T) {
 			},
 			expected: []*endpoint.Endpoint{
 				{
-					DNSName: "example.org",
-					Targets: endpoint.Targets{"8.8.8.8"},
+					DNSName:    "example.org",
+					RecordType: endpoint.RecordTypeA,
+					Targets:    endpoint.Targets{"8.8.8.8"},
 				},
 			},
 		},
@@ -593,12 +602,14 @@ func testHTTPProxyEndpoints(t *testing.T) {
 			},
 			expected: []*endpoint.Endpoint{
 				{
-					DNSName: "fake1.ext-dns.test.com",
-					Targets: endpoint.Targets{"8.8.8.8"},
+					DNSName:    "fake1.ext-dns.test.com",
+					RecordType: endpoint.RecordTypeA,
+					Targets:    endpoint.Targets{"8.8.8.8"},
 				},
 				{
-					DNSName: "fake1.ext-dns.test.com",
-					Targets: endpoint.Targets{"elb.com"},
+					DNSName:    "fake1.ext-dns.test.com",
+					RecordType: endpoint.RecordTypeCNAME,
+					Targets:    endpoint.Targets{"elb.com"},
 				},
 			},
 			fqdnTemplate: "{{.Name}}.ext-dns.test.com",
@@ -882,19 +893,22 @@ func testHTTPProxyEndpoints(t *testing.T) {
 			},
 			expected: []*endpoint.Endpoint{
 				{
-					DNSName:   "example.org",
-					Targets:   endpoint.Targets{"httpproxy-target.com"},
-					RecordTTL: endpoint.TTL(6),
+					DNSName:    "example.org",
+					RecordType: endpoint.RecordTypeCNAME,
+					Targets:    endpoint.Targets{"httpproxy-target.com"},
+					RecordTTL:  endpoint.TTL(6),
 				},
 				{
-					DNSName:   "example2.org",
-					Targets:   endpoint.Targets{"httpproxy-target.com"},
-					RecordTTL: endpoint.TTL(1),
+					DNSName:    "example2.org",
+					RecordType: endpoint.RecordTypeCNAME,
+					Targets:    endpoint.Targets{"httpproxy-target.com"},
+					RecordTTL:  endpoint.TTL(1),
 				},
 				{
-					DNSName:   "example3.org",
-					Targets:   endpoint.Targets{"httpproxy-target.com"},
-					RecordTTL: endpoint.TTL(10),
+					DNSName:    "example3.org",
+					RecordType: endpoint.RecordTypeCNAME,
+					Targets:    endpoint.Targets{"httpproxy-target.com"},
+					RecordTTL:  endpoint.TTL(10),
 				},
 			},
 		},
@@ -997,20 +1011,24 @@ func testHTTPProxyEndpoints(t *testing.T) {
 			},
 			expected: []*endpoint.Endpoint{
 				{
-					DNSName: "example.org",
-					Targets: endpoint.Targets{"8.8.8.8"},
+					DNSName:    "example.org",
+					RecordType: endpoint.RecordTypeA,
+					Targets:    endpoint.Targets{"8.8.8.8"},
 				},
 				{
-					DNSName: "example.org",
-					Targets: endpoint.Targets{"lb.com"},
+					DNSName:    "example.org",
+					RecordType: endpoint.RecordTypeCNAME,
+					Targets:    endpoint.Targets{"lb.com"},
 				},
 				{
-					DNSName: "new.org",
-					Targets: endpoint.Targets{"8.8.8.8"},
+					DNSName:    "new.org",
+					RecordType: endpoint.RecordTypeA,
+					Targets:    endpoint.Targets{"8.8.8.8"},
 				},
 				{
-					DNSName: "new.org",
-					Targets: endpoint.Targets{"lb.com"},
+					DNSName:    "new.org",
+					RecordType: endpoint.RecordTypeCNAME,
+					Targets:    endpoint.Targets{"lb.com"},
 				},
 			},
 			ignoreHostnameAnnotation: true,
@@ -1088,19 +1106,11 @@ type fakeHTTPProxy struct {
 	annotations map[string]string
 
 	host         string
-	invalid      bool
 	delegate     bool
 	loadBalancer fakeLoadBalancerService
 }
 
 func (ir fakeHTTPProxy) HTTPProxy() *projectcontour.HTTPProxy {
-	var status string
-	if ir.invalid {
-		status = "invalid"
-	} else {
-		status = "valid"
-	}
-
 	var spec projectcontour.HTTPProxySpec
 	if ir.delegate {
 		spec = projectcontour.HTTPProxySpec{}
@@ -1135,7 +1145,6 @@ func (ir fakeHTTPProxy) HTTPProxy() *projectcontour.HTTPProxy {
 		},
 		Spec: spec,
 		Status: projectcontour.HTTPProxyStatus{
-			CurrentStatus: status,
 			LoadBalancer:  lb,
 		},
 	}

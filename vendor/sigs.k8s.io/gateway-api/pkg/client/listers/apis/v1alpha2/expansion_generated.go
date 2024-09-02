@@ -18,25 +18,21 @@ limitations under the License.
 
 package v1alpha2
 
-// GatewayListerExpansion allows custom methods to be added to
-// GatewayLister.
-type GatewayListerExpansion interface{}
+// BackendLBPolicyListerExpansion allows custom methods to be added to
+// BackendLBPolicyLister.
+type BackendLBPolicyListerExpansion interface{}
 
-// GatewayNamespaceListerExpansion allows custom methods to be added to
-// GatewayNamespaceLister.
-type GatewayNamespaceListerExpansion interface{}
+// BackendLBPolicyNamespaceListerExpansion allows custom methods to be added to
+// BackendLBPolicyNamespaceLister.
+type BackendLBPolicyNamespaceListerExpansion interface{}
 
-// GatewayClassListerExpansion allows custom methods to be added to
-// GatewayClassLister.
-type GatewayClassListerExpansion interface{}
+// GRPCRouteListerExpansion allows custom methods to be added to
+// GRPCRouteLister.
+type GRPCRouteListerExpansion interface{}
 
-// HTTPRouteListerExpansion allows custom methods to be added to
-// HTTPRouteLister.
-type HTTPRouteListerExpansion interface{}
-
-// HTTPRouteNamespaceListerExpansion allows custom methods to be added to
-// HTTPRouteNamespaceLister.
-type HTTPRouteNamespaceListerExpansion interface{}
+// GRPCRouteNamespaceListerExpansion allows custom methods to be added to
+// GRPCRouteNamespaceLister.
+type GRPCRouteNamespaceListerExpansion interface{}
 
 // ReferenceGrantListerExpansion allows custom methods to be added to
 // ReferenceGrantLister.
@@ -45,14 +41,6 @@ type ReferenceGrantListerExpansion interface{}
 // ReferenceGrantNamespaceListerExpansion allows custom methods to be added to
 // ReferenceGrantNamespaceLister.
 type ReferenceGrantNamespaceListerExpansion interface{}
-
-// ReferencePolicyListerExpansion allows custom methods to be added to
-// ReferencePolicyLister.
-type ReferencePolicyListerExpansion interface{}
-
-// ReferencePolicyNamespaceListerExpansion allows custom methods to be added to
-// ReferencePolicyNamespaceLister.
-type ReferencePolicyNamespaceListerExpansion interface{}
 
 // TCPRouteListerExpansion allows custom methods to be added to
 // TCPRouteLister.

@@ -24,6 +24,26 @@ Using the [GoDaddy documentation](https://developer.godaddy.com/getstarted) you 
 
 Connect your `kubectl` client to the cluster with which you want to test ExternalDNS, and then apply one of the following manifest files for deployment:
 
+## Using Helm
+
+Create a values.yaml file to configure ExternalDNS to use NS1 as the DNS provider. This file should include the necessary environment variables:
+
+```shell
+provider: 
+  name: godaddy 
+extraArgs:
+  - --godaddy-api-key=YOUR_API_KEY
+  - --godaddy-api-secret=YOUR_API_SECRET
+```
+
+Ensure to replace YOUR_API_KEY and YOUR_API_SECRET with your actual godaddy API key and godaddy API secret.
+
+Finally, install the ExternalDNS chart with Helm using the configuration specified in your values.yaml file:
+
+```shell
+helm upgrade --install external-dns external-dns/external-dns --values values.yaml
+```
+
 ### Manifest (for clusters without RBAC enabled)
 
 ```yaml
@@ -44,7 +64,7 @@ spec:
     spec:
       containers:
       - name: external-dns
-        image: k8s.gcr.io/external-dns/external-dns:v0.7.7
+        image: registry.k8s.io/external-dns/external-dns:v0.14.1
         args:
         - --source=service # ingress is also possible
         - --domain-filter=example.com # (optional) limit to only example.com domains; change to match the zone created above.
@@ -115,7 +135,7 @@ spec:
       serviceAccountName: external-dns
       containers:
       - name: external-dns
-        image: k8s.gcr.io/external-dns/external-dns:v0.7.7
+        image: registry.k8s.io/external-dns/external-dns:v0.14.1
         args:
         - --source=service # ingress is also possible
         - --domain-filter=example.com # (optional) limit to only example.com domains; change to match the zone created above.

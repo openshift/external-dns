@@ -17,7 +17,7 @@ limitations under the License.
 package provider
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -26,7 +26,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 	os.Exit(m.Run())
 }
 
@@ -53,13 +53,4 @@ func TestDifference(t *testing.T) {
 	assert.Equal(t, add, []string{"baz"})
 	assert.Equal(t, remove, []string{"foo"})
 	assert.Equal(t, leave, []string{"bar"})
-}
-
-func TestBaseProviderPropertyEquality(t *testing.T) {
-	p := BaseProvider{}
-	assert.True(t, p.PropertyValuesEqual("some.property", "", ""), "Both properties not present")
-	assert.False(t, p.PropertyValuesEqual("some.property", "", "Foo"), "First property missing")
-	assert.False(t, p.PropertyValuesEqual("some.property", "Foo", ""), "Second property missing")
-	assert.True(t, p.PropertyValuesEqual("some.property", "Foo", "Foo"), "Properties the same")
-	assert.False(t, p.PropertyValuesEqual("some.property", "Foo", "Bar"), "Attributes differ")
 }

@@ -7,12 +7,11 @@
 package td
 
 import (
-	"bytes"
 	"reflect"
+	"strings"
 
 	"github.com/maxatome/go-testdeep/internal/ctxerr"
 	"github.com/maxatome/go-testdeep/internal/flat"
-	"github.com/maxatome/go-testdeep/internal/types"
 	"github.com/maxatome/go-testdeep/internal/util"
 )
 
@@ -50,11 +49,7 @@ func (s *tdSetBase) Match(ctx ctxerr.Context, got reflect.Value) *ctxerr.Error {
 			if ctx.BooleanError {
 				return ctxerr.BooleanError
 			}
-			return ctx.CollectError(&ctxerr.Error{
-				Message:  "nil pointer",
-				Got:      types.RawString("nil " + got.Type().String()),
-				Expected: types.RawString("Slice OR Array OR *Slice OR *Array"),
-			})
+			return ctx.CollectError(ctxerr.NilPointer(got, "non-nil *slice OR *array"))
 		}
 
 		if gotElem.Kind() != reflect.Array && gotElem.Kind() != reflect.Slice {
@@ -163,24 +158,13 @@ func (s *tdSetBase) Match(ctx ctxerr.Context, got reflect.Value) *ctxerr.Error {
 	if ctx.BooleanError {
 		return ctxerr.BooleanError
 	}
-
-	var gotStr types.RawString
-	if got.IsValid() {
-		gotStr = types.RawString(got.Type().String())
-	} else {
-		gotStr = "nil"
-	}
-
-	return ctx.CollectError(&ctxerr.Error{
-		Message:  "bad type",
-		Got:      gotStr,
-		Expected: types.RawString("Slice OR Array OR *Slice OR *Array"),
-	})
+	return ctx.CollectError(ctxerr.BadKind(got, "slice OR array OR *slice OR *array"))
 }
 
 func (s *tdSetBase) String() string {
-	return util.SliceToBuffer(
-		bytes.NewBufferString(s.GetLocation().Func), s.expectedItems).String()
+	var b strings.Builder
+	b.WriteString(s.GetLocation().Func)
+	return util.SliceToString(&b, s.expectedItems).String()
 }
 
 func (s *tdSetBase) TypeBehind() reflect.Type {

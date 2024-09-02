@@ -16,6 +16,7 @@ package v20201028
 
 import (
     "context"
+    "errors"
     "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
     tchttp "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/http"
     "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
@@ -44,10 +45,120 @@ func NewClient(credential common.CredentialIface, region string, clientProfile *
 }
 
 
+func NewAddSpecifyPrivateZoneVpcRequest() (request *AddSpecifyPrivateZoneVpcRequest) {
+    request = &AddSpecifyPrivateZoneVpcRequest{
+        BaseRequest: &tchttp.BaseRequest{},
+    }
+    
+    request.Init().WithApiInfo("privatedns", APIVersion, "AddSpecifyPrivateZoneVpc")
+    
+    
+    return
+}
+
+func NewAddSpecifyPrivateZoneVpcResponse() (response *AddSpecifyPrivateZoneVpcResponse) {
+    response = &AddSpecifyPrivateZoneVpcResponse{
+        BaseResponse: &tchttp.BaseResponse{},
+    } 
+    return
+
+}
+
+// AddSpecifyPrivateZoneVpc
+// 追加与私有域关联的VPC
+//
+// 可能返回的错误码:
+//  AUTHFAILURE = "AuthFailure"
+//  AUTHFAILURE_TOKENFAILURE = "AuthFailure.TokenFailure"
+//  DRYRUNOPERATION = "DryRunOperation"
+//  FAILEDOPERATION = "FailedOperation"
+//  FAILEDOPERATION_BINDZONEVPCFAILED = "FailedOperation.BindZoneVpcFailed"
+//  FAILEDOPERATION_DATAERROR = "FailedOperation.DataError"
+//  INTERNALERROR = "InternalError"
+//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
+//  INVALIDPARAMETER = "InvalidParameter"
+//  INVALIDPARAMETER_ILLEGALVPCINFO = "InvalidParameter.IllegalVpcInfo"
+//  INVALIDPARAMETER_VPCBINDED = "InvalidParameter.VpcBinded"
+//  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
+//  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
+//  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
+//  MISSINGPARAMETER = "MissingParameter"
+//  OPERATIONDENIED = "OperationDenied"
+//  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
+//  RESOURCEINUSE = "ResourceInUse"
+//  RESOURCEINSUFFICIENT = "ResourceInsufficient"
+//  RESOURCENOTFOUND = "ResourceNotFound"
+//  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
+//  RESOURCESSOLDOUT = "ResourcesSoldOut"
+//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
+//  UNAUTHORIZEDOPERATION_ROLEUNAUTHORIZED = "UnauthorizedOperation.RoleUnAuthorized"
+//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
+//  UNKNOWNPARAMETER = "UnknownParameter"
+//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+func (c *Client) AddSpecifyPrivateZoneVpc(request *AddSpecifyPrivateZoneVpcRequest) (response *AddSpecifyPrivateZoneVpcResponse, err error) {
+    return c.AddSpecifyPrivateZoneVpcWithContext(context.Background(), request)
+}
+
+// AddSpecifyPrivateZoneVpc
+// 追加与私有域关联的VPC
+//
+// 可能返回的错误码:
+//  AUTHFAILURE = "AuthFailure"
+//  AUTHFAILURE_TOKENFAILURE = "AuthFailure.TokenFailure"
+//  DRYRUNOPERATION = "DryRunOperation"
+//  FAILEDOPERATION = "FailedOperation"
+//  FAILEDOPERATION_BINDZONEVPCFAILED = "FailedOperation.BindZoneVpcFailed"
+//  FAILEDOPERATION_DATAERROR = "FailedOperation.DataError"
+//  INTERNALERROR = "InternalError"
+//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
+//  INVALIDPARAMETER = "InvalidParameter"
+//  INVALIDPARAMETER_ILLEGALVPCINFO = "InvalidParameter.IllegalVpcInfo"
+//  INVALIDPARAMETER_VPCBINDED = "InvalidParameter.VpcBinded"
+//  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
+//  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
+//  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
+//  MISSINGPARAMETER = "MissingParameter"
+//  OPERATIONDENIED = "OperationDenied"
+//  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
+//  RESOURCEINUSE = "ResourceInUse"
+//  RESOURCEINSUFFICIENT = "ResourceInsufficient"
+//  RESOURCENOTFOUND = "ResourceNotFound"
+//  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
+//  RESOURCESSOLDOUT = "ResourcesSoldOut"
+//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
+//  UNAUTHORIZEDOPERATION_ROLEUNAUTHORIZED = "UnauthorizedOperation.RoleUnAuthorized"
+//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
+//  UNKNOWNPARAMETER = "UnknownParameter"
+//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+func (c *Client) AddSpecifyPrivateZoneVpcWithContext(ctx context.Context, request *AddSpecifyPrivateZoneVpcRequest) (response *AddSpecifyPrivateZoneVpcResponse, err error) {
+    if request == nil {
+        request = NewAddSpecifyPrivateZoneVpcRequest()
+    }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("AddSpecifyPrivateZoneVpc require credential")
+    }
+
+    request.SetContext(ctx)
+    
+    response = NewAddSpecifyPrivateZoneVpcResponse()
+    err = c.Send(request, response)
+    return
+}
+
 func NewCreatePrivateDNSAccountRequest() (request *CreatePrivateDNSAccountRequest) {
     request = &CreatePrivateDNSAccountRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "CreatePrivateDNSAccount")
     
     
@@ -57,8 +168,9 @@ func NewCreatePrivateDNSAccountRequest() (request *CreatePrivateDNSAccountReques
 func NewCreatePrivateDNSAccountResponse() (response *CreatePrivateDNSAccountResponse) {
     response = &CreatePrivateDNSAccountResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // CreatePrivateDNSAccount
@@ -89,13 +201,7 @@ func NewCreatePrivateDNSAccountResponse() (response *CreatePrivateDNSAccountResp
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 func (c *Client) CreatePrivateDNSAccount(request *CreatePrivateDNSAccountRequest) (response *CreatePrivateDNSAccountResponse, err error) {
-    if request == nil {
-        request = NewCreatePrivateDNSAccountRequest()
-    }
-    
-    response = NewCreatePrivateDNSAccountResponse()
-    err = c.Send(request, response)
-    return
+    return c.CreatePrivateDNSAccountWithContext(context.Background(), request)
 }
 
 // CreatePrivateDNSAccount
@@ -129,6 +235,11 @@ func (c *Client) CreatePrivateDNSAccountWithContext(ctx context.Context, request
     if request == nil {
         request = NewCreatePrivateDNSAccountRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("CreatePrivateDNSAccount require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewCreatePrivateDNSAccountResponse()
@@ -140,6 +251,7 @@ func NewCreatePrivateZoneRequest() (request *CreatePrivateZoneRequest) {
     request = &CreatePrivateZoneRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "CreatePrivateZone")
     
     
@@ -149,8 +261,9 @@ func NewCreatePrivateZoneRequest() (request *CreatePrivateZoneRequest) {
 func NewCreatePrivateZoneResponse() (response *CreatePrivateZoneResponse) {
     response = &CreatePrivateZoneResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // CreatePrivateZone
@@ -174,7 +287,10 @@ func NewCreatePrivateZoneResponse() (response *CreatePrivateZoneResponse) {
 //  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
 //  INVALIDPARAMETER_VPCPTRZONEBINDEXCEED = "InvalidParameter.VpcPtrZoneBindExceed"
 //  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  INVALIDPARAMETERVALUE_RESERVEDDOMAIN = "InvalidParameterValue.ReservedDomain"
 //  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
 //  MISSINGPARAMETER = "MissingParameter"
 //  OPERATIONDENIED = "OperationDenied"
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
@@ -183,6 +299,7 @@ func NewCreatePrivateZoneResponse() (response *CreatePrivateZoneResponse) {
 //  RESOURCENOTFOUND = "ResourceNotFound"
 //  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
 //  UNAUTHORIZEDOPERATION_ROLEUNAUTHORIZED = "UnauthorizedOperation.RoleUnAuthorized"
@@ -190,14 +307,9 @@ func NewCreatePrivateZoneResponse() (response *CreatePrivateZoneResponse) {
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 //  UNSUPPORTEDOPERATION_ACCOUNTNOTBOUND = "UnsupportedOperation.AccountNotBound"
+//  UNSUPPORTEDOPERATION_NOTSUPPORTDNSFORWARD = "UnsupportedOperation.NotSupportDnsForward"
 func (c *Client) CreatePrivateZone(request *CreatePrivateZoneRequest) (response *CreatePrivateZoneResponse, err error) {
-    if request == nil {
-        request = NewCreatePrivateZoneRequest()
-    }
-    
-    response = NewCreatePrivateZoneResponse()
-    err = c.Send(request, response)
-    return
+    return c.CreatePrivateZoneWithContext(context.Background(), request)
 }
 
 // CreatePrivateZone
@@ -221,7 +333,10 @@ func (c *Client) CreatePrivateZone(request *CreatePrivateZoneRequest) (response 
 //  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
 //  INVALIDPARAMETER_VPCPTRZONEBINDEXCEED = "InvalidParameter.VpcPtrZoneBindExceed"
 //  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  INVALIDPARAMETERVALUE_RESERVEDDOMAIN = "InvalidParameterValue.ReservedDomain"
 //  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
 //  MISSINGPARAMETER = "MissingParameter"
 //  OPERATIONDENIED = "OperationDenied"
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
@@ -230,6 +345,7 @@ func (c *Client) CreatePrivateZone(request *CreatePrivateZoneRequest) (response 
 //  RESOURCENOTFOUND = "ResourceNotFound"
 //  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
 //  UNAUTHORIZEDOPERATION_ROLEUNAUTHORIZED = "UnauthorizedOperation.RoleUnAuthorized"
@@ -237,10 +353,16 @@ func (c *Client) CreatePrivateZone(request *CreatePrivateZoneRequest) (response 
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 //  UNSUPPORTEDOPERATION_ACCOUNTNOTBOUND = "UnsupportedOperation.AccountNotBound"
+//  UNSUPPORTEDOPERATION_NOTSUPPORTDNSFORWARD = "UnsupportedOperation.NotSupportDnsForward"
 func (c *Client) CreatePrivateZoneWithContext(ctx context.Context, request *CreatePrivateZoneRequest) (response *CreatePrivateZoneResponse, err error) {
     if request == nil {
         request = NewCreatePrivateZoneRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("CreatePrivateZone require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewCreatePrivateZoneResponse()
@@ -252,6 +374,7 @@ func NewCreatePrivateZoneRecordRequest() (request *CreatePrivateZoneRecordReques
     request = &CreatePrivateZoneRecordRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "CreatePrivateZoneRecord")
     
     
@@ -261,8 +384,9 @@ func NewCreatePrivateZoneRecordRequest() (request *CreatePrivateZoneRecordReques
 func NewCreatePrivateZoneRecordResponse() (response *CreatePrivateZoneRecordResponse) {
     response = &CreatePrivateZoneRecordResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // CreatePrivateZoneRecord
@@ -273,6 +397,7 @@ func NewCreatePrivateZoneRecordResponse() (response *CreatePrivateZoneRecordResp
 //  DRYRUNOPERATION = "DryRunOperation"
 //  FAILEDOPERATION = "FailedOperation"
 //  FAILEDOPERATION_CREATERECORDFAILED = "FailedOperation.CreateRecordFailed"
+//  FAILEDOPERATION_DATAERROR = "FailedOperation.DataError"
 //  INTERNALERROR = "InternalError"
 //  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
 //  INVALIDPARAMETER = "InvalidParameter"
@@ -280,6 +405,7 @@ func NewCreatePrivateZoneRecordResponse() (response *CreatePrivateZoneRecordResp
 //  INVALIDPARAMETER_ILLEGALRECORD = "InvalidParameter.IllegalRecord"
 //  INVALIDPARAMETER_ILLEGALRECORDVALUE = "InvalidParameter.IllegalRecordValue"
 //  INVALIDPARAMETER_INVALIDMX = "InvalidParameter.InvalidMX"
+//  INVALIDPARAMETER_MXNOTSUPPORTED = "InvalidParameter.MXNotSupported"
 //  INVALIDPARAMETER_RECORDAAAACOUNTEXCEED = "InvalidParameter.RecordAAAACountExceed"
 //  INVALIDPARAMETER_RECORDACOUNTEXCEED = "InvalidParameter.RecordACountExceed"
 //  INVALIDPARAMETER_RECORDCNAMECOUNTEXCEED = "InvalidParameter.RecordCNAMECountExceed"
@@ -293,27 +419,25 @@ func NewCreatePrivateZoneRecordResponse() (response *CreatePrivateZoneRecordResp
 //  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
 //  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
 //  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  INVALIDPARAMETERVALUE_ILLEGALTTLVALUE = "InvalidParameterValue.IllegalTTLValue"
 //  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
 //  MISSINGPARAMETER = "MissingParameter"
 //  OPERATIONDENIED = "OperationDenied"
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
 //  RESOURCEINUSE = "ResourceInUse"
 //  RESOURCEINSUFFICIENT = "ResourceInsufficient"
 //  RESOURCENOTFOUND = "ResourceNotFound"
+//  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
 //  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 func (c *Client) CreatePrivateZoneRecord(request *CreatePrivateZoneRecordRequest) (response *CreatePrivateZoneRecordResponse, err error) {
-    if request == nil {
-        request = NewCreatePrivateZoneRecordRequest()
-    }
-    
-    response = NewCreatePrivateZoneRecordResponse()
-    err = c.Send(request, response)
-    return
+    return c.CreatePrivateZoneRecordWithContext(context.Background(), request)
 }
 
 // CreatePrivateZoneRecord
@@ -324,6 +448,7 @@ func (c *Client) CreatePrivateZoneRecord(request *CreatePrivateZoneRecordRequest
 //  DRYRUNOPERATION = "DryRunOperation"
 //  FAILEDOPERATION = "FailedOperation"
 //  FAILEDOPERATION_CREATERECORDFAILED = "FailedOperation.CreateRecordFailed"
+//  FAILEDOPERATION_DATAERROR = "FailedOperation.DataError"
 //  INTERNALERROR = "InternalError"
 //  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
 //  INVALIDPARAMETER = "InvalidParameter"
@@ -331,6 +456,7 @@ func (c *Client) CreatePrivateZoneRecord(request *CreatePrivateZoneRecordRequest
 //  INVALIDPARAMETER_ILLEGALRECORD = "InvalidParameter.IllegalRecord"
 //  INVALIDPARAMETER_ILLEGALRECORDVALUE = "InvalidParameter.IllegalRecordValue"
 //  INVALIDPARAMETER_INVALIDMX = "InvalidParameter.InvalidMX"
+//  INVALIDPARAMETER_MXNOTSUPPORTED = "InvalidParameter.MXNotSupported"
 //  INVALIDPARAMETER_RECORDAAAACOUNTEXCEED = "InvalidParameter.RecordAAAACountExceed"
 //  INVALIDPARAMETER_RECORDACOUNTEXCEED = "InvalidParameter.RecordACountExceed"
 //  INVALIDPARAMETER_RECORDCNAMECOUNTEXCEED = "InvalidParameter.RecordCNAMECountExceed"
@@ -344,14 +470,18 @@ func (c *Client) CreatePrivateZoneRecord(request *CreatePrivateZoneRecordRequest
 //  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
 //  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
 //  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  INVALIDPARAMETERVALUE_ILLEGALTTLVALUE = "InvalidParameterValue.IllegalTTLValue"
 //  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
 //  MISSINGPARAMETER = "MissingParameter"
 //  OPERATIONDENIED = "OperationDenied"
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
 //  RESOURCEINUSE = "ResourceInUse"
 //  RESOURCEINSUFFICIENT = "ResourceInsufficient"
 //  RESOURCENOTFOUND = "ResourceNotFound"
+//  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
 //  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
@@ -361,9 +491,89 @@ func (c *Client) CreatePrivateZoneRecordWithContext(ctx context.Context, request
     if request == nil {
         request = NewCreatePrivateZoneRecordRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("CreatePrivateZoneRecord require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewCreatePrivateZoneRecordResponse()
+    err = c.Send(request, response)
+    return
+}
+
+func NewDeleteEndPointRequest() (request *DeleteEndPointRequest) {
+    request = &DeleteEndPointRequest{
+        BaseRequest: &tchttp.BaseRequest{},
+    }
+    
+    request.Init().WithApiInfo("privatedns", APIVersion, "DeleteEndPoint")
+    
+    
+    return
+}
+
+func NewDeleteEndPointResponse() (response *DeleteEndPointResponse) {
+    response = &DeleteEndPointResponse{
+        BaseResponse: &tchttp.BaseResponse{},
+    } 
+    return
+
+}
+
+// DeleteEndPoint
+// 删除终端节点
+//
+// 可能返回的错误码:
+//  AUTHFAILURE = "AuthFailure"
+//  FAILEDOPERATION = "FailedOperation"
+//  FAILEDOPERATION_DELETEVPCENDPOINTFAILED = "FailedOperation.DeleteVpcEndPointFailed"
+//  INTERNALERROR = "InternalError"
+//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
+//  INVALIDPARAMETER = "InvalidParameter"
+//  INVALIDPARAMETER_ENDPOINTBINDFORWARDRULE = "InvalidParameter.EndPointBindForwardRule"
+//  INVALIDPARAMETER_ENDPOINTNOTEXISTS = "InvalidParameter.EndPointNotExists"
+//  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
+//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
+//  UNKNOWNPARAMETER = "UnknownParameter"
+//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+//  UNSUPPORTEDOPERATION_FREQUENCYLIMIT = "UnsupportedOperation.FrequencyLimit"
+func (c *Client) DeleteEndPoint(request *DeleteEndPointRequest) (response *DeleteEndPointResponse, err error) {
+    return c.DeleteEndPointWithContext(context.Background(), request)
+}
+
+// DeleteEndPoint
+// 删除终端节点
+//
+// 可能返回的错误码:
+//  AUTHFAILURE = "AuthFailure"
+//  FAILEDOPERATION = "FailedOperation"
+//  FAILEDOPERATION_DELETEVPCENDPOINTFAILED = "FailedOperation.DeleteVpcEndPointFailed"
+//  INTERNALERROR = "InternalError"
+//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
+//  INVALIDPARAMETER = "InvalidParameter"
+//  INVALIDPARAMETER_ENDPOINTBINDFORWARDRULE = "InvalidParameter.EndPointBindForwardRule"
+//  INVALIDPARAMETER_ENDPOINTNOTEXISTS = "InvalidParameter.EndPointNotExists"
+//  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
+//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
+//  UNKNOWNPARAMETER = "UnknownParameter"
+//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+//  UNSUPPORTEDOPERATION_FREQUENCYLIMIT = "UnsupportedOperation.FrequencyLimit"
+func (c *Client) DeleteEndPointWithContext(ctx context.Context, request *DeleteEndPointRequest) (response *DeleteEndPointResponse, err error) {
+    if request == nil {
+        request = NewDeleteEndPointRequest()
+    }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DeleteEndPoint require credential")
+    }
+
+    request.SetContext(ctx)
+    
+    response = NewDeleteEndPointResponse()
     err = c.Send(request, response)
     return
 }
@@ -372,6 +582,7 @@ func NewDeletePrivateDNSAccountRequest() (request *DeletePrivateDNSAccountReques
     request = &DeletePrivateDNSAccountRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "DeletePrivateDNSAccount")
     
     
@@ -381,8 +592,9 @@ func NewDeletePrivateDNSAccountRequest() (request *DeletePrivateDNSAccountReques
 func NewDeletePrivateDNSAccountResponse() (response *DeletePrivateDNSAccountResponse) {
     response = &DeletePrivateDNSAccountResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // DeletePrivateDNSAccount
@@ -410,14 +622,9 @@ func NewDeletePrivateDNSAccountResponse() (response *DeletePrivateDNSAccountResp
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 //  UNSUPPORTEDOPERATION_EXISTBOUNDVPC = "UnsupportedOperation.ExistBoundVpc"
+//  UNSUPPORTEDOPERATION_FREQUENCYLIMIT = "UnsupportedOperation.FrequencyLimit"
 func (c *Client) DeletePrivateDNSAccount(request *DeletePrivateDNSAccountRequest) (response *DeletePrivateDNSAccountResponse, err error) {
-    if request == nil {
-        request = NewDeletePrivateDNSAccountRequest()
-    }
-    
-    response = NewDeletePrivateDNSAccountResponse()
-    err = c.Send(request, response)
-    return
+    return c.DeletePrivateDNSAccountWithContext(context.Background(), request)
 }
 
 // DeletePrivateDNSAccount
@@ -445,10 +652,16 @@ func (c *Client) DeletePrivateDNSAccount(request *DeletePrivateDNSAccountRequest
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 //  UNSUPPORTEDOPERATION_EXISTBOUNDVPC = "UnsupportedOperation.ExistBoundVpc"
+//  UNSUPPORTEDOPERATION_FREQUENCYLIMIT = "UnsupportedOperation.FrequencyLimit"
 func (c *Client) DeletePrivateDNSAccountWithContext(ctx context.Context, request *DeletePrivateDNSAccountRequest) (response *DeletePrivateDNSAccountResponse, err error) {
     if request == nil {
         request = NewDeletePrivateDNSAccountRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DeletePrivateDNSAccount require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewDeletePrivateDNSAccountResponse()
@@ -460,6 +673,7 @@ func NewDeletePrivateZoneRequest() (request *DeletePrivateZoneRequest) {
     request = &DeletePrivateZoneRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "DeletePrivateZone")
     
     
@@ -469,8 +683,9 @@ func NewDeletePrivateZoneRequest() (request *DeletePrivateZoneRequest) {
 func NewDeletePrivateZoneResponse() (response *DeletePrivateZoneResponse) {
     response = &DeletePrivateZoneResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // DeletePrivateZone
@@ -491,22 +706,19 @@ func NewDeletePrivateZoneResponse() (response *DeletePrivateZoneResponse) {
 //  OPERATIONDENIED = "OperationDenied"
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
 //  RESOURCEINUSE = "ResourceInUse"
+//  RESOURCEINUSE_ZONEBINDFORWARDRULE = "ResourceInUse.ZoneBindForwardRule"
 //  RESOURCEINSUFFICIENT = "ResourceInsufficient"
 //  RESOURCENOTFOUND = "ResourceNotFound"
+//  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
 //  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+//  UNSUPPORTEDOPERATION_FREQUENCYLIMIT = "UnsupportedOperation.FrequencyLimit"
 func (c *Client) DeletePrivateZone(request *DeletePrivateZoneRequest) (response *DeletePrivateZoneResponse, err error) {
-    if request == nil {
-        request = NewDeletePrivateZoneRequest()
-    }
-    
-    response = NewDeletePrivateZoneResponse()
-    err = c.Send(request, response)
-    return
+    return c.DeletePrivateZoneWithContext(context.Background(), request)
 }
 
 // DeletePrivateZone
@@ -527,18 +739,26 @@ func (c *Client) DeletePrivateZone(request *DeletePrivateZoneRequest) (response 
 //  OPERATIONDENIED = "OperationDenied"
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
 //  RESOURCEINUSE = "ResourceInUse"
+//  RESOURCEINUSE_ZONEBINDFORWARDRULE = "ResourceInUse.ZoneBindForwardRule"
 //  RESOURCEINSUFFICIENT = "ResourceInsufficient"
 //  RESOURCENOTFOUND = "ResourceNotFound"
+//  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
 //  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+//  UNSUPPORTEDOPERATION_FREQUENCYLIMIT = "UnsupportedOperation.FrequencyLimit"
 func (c *Client) DeletePrivateZoneWithContext(ctx context.Context, request *DeletePrivateZoneRequest) (response *DeletePrivateZoneResponse, err error) {
     if request == nil {
         request = NewDeletePrivateZoneRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DeletePrivateZone require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewDeletePrivateZoneResponse()
@@ -550,6 +770,7 @@ func NewDeletePrivateZoneRecordRequest() (request *DeletePrivateZoneRecordReques
     request = &DeletePrivateZoneRecordRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "DeletePrivateZoneRecord")
     
     
@@ -559,8 +780,9 @@ func NewDeletePrivateZoneRecordRequest() (request *DeletePrivateZoneRecordReques
 func NewDeletePrivateZoneRecordResponse() (response *DeletePrivateZoneRecordResponse) {
     response = &DeletePrivateZoneRecordResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // DeletePrivateZoneRecord
@@ -571,6 +793,7 @@ func NewDeletePrivateZoneRecordResponse() (response *DeletePrivateZoneRecordResp
 //  DRYRUNOPERATION = "DryRunOperation"
 //  FAILEDOPERATION = "FailedOperation"
 //  FAILEDOPERATION_DELETELASTBINDVPCRECORDFAILED = "FailedOperation.DeleteLastBindVpcRecordFailed"
+//  FAILEDOPERATION_DELETERECORDFAILED = "FailedOperation.DeleteRecordFailed"
 //  INTERNALERROR = "InternalError"
 //  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
 //  INVALIDPARAMETER = "InvalidParameter"
@@ -584,37 +807,104 @@ func NewDeletePrivateZoneRecordResponse() (response *DeletePrivateZoneRecordResp
 //  RESOURCEINUSE = "ResourceInUse"
 //  RESOURCEINSUFFICIENT = "ResourceInsufficient"
 //  RESOURCENOTFOUND = "ResourceNotFound"
+//  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
 //  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+//  UNSUPPORTEDOPERATION_FREQUENCYLIMIT = "UnsupportedOperation.FrequencyLimit"
 func (c *Client) DeletePrivateZoneRecord(request *DeletePrivateZoneRecordRequest) (response *DeletePrivateZoneRecordResponse, err error) {
+    return c.DeletePrivateZoneRecordWithContext(context.Background(), request)
+}
+
+// DeletePrivateZoneRecord
+// 删除私有域解析记录
+//
+// 可能返回的错误码:
+//  AUTHFAILURE = "AuthFailure"
+//  DRYRUNOPERATION = "DryRunOperation"
+//  FAILEDOPERATION = "FailedOperation"
+//  FAILEDOPERATION_DELETELASTBINDVPCRECORDFAILED = "FailedOperation.DeleteLastBindVpcRecordFailed"
+//  FAILEDOPERATION_DELETERECORDFAILED = "FailedOperation.DeleteRecordFailed"
+//  INTERNALERROR = "InternalError"
+//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
+//  INVALIDPARAMETER = "InvalidParameter"
+//  INVALIDPARAMETER_RECORDNOTEXIST = "InvalidParameter.RecordNotExist"
+//  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
+//  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  LIMITEXCEEDED = "LimitExceeded"
+//  MISSINGPARAMETER = "MissingParameter"
+//  OPERATIONDENIED = "OperationDenied"
+//  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
+//  RESOURCEINUSE = "ResourceInUse"
+//  RESOURCEINSUFFICIENT = "ResourceInsufficient"
+//  RESOURCENOTFOUND = "ResourceNotFound"
+//  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
+//  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCESSOLDOUT = "ResourcesSoldOut"
+//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
+//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
+//  UNKNOWNPARAMETER = "UnknownParameter"
+//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+//  UNSUPPORTEDOPERATION_FREQUENCYLIMIT = "UnsupportedOperation.FrequencyLimit"
+func (c *Client) DeletePrivateZoneRecordWithContext(ctx context.Context, request *DeletePrivateZoneRecordRequest) (response *DeletePrivateZoneRecordResponse, err error) {
     if request == nil {
         request = NewDeletePrivateZoneRecordRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DeletePrivateZoneRecord require credential")
+    }
+
+    request.SetContext(ctx)
     
     response = NewDeletePrivateZoneRecordResponse()
     err = c.Send(request, response)
     return
 }
 
-// DeletePrivateZoneRecord
-// 删除私有域解析记录
+func NewDeleteSpecifyPrivateZoneVpcRequest() (request *DeleteSpecifyPrivateZoneVpcRequest) {
+    request = &DeleteSpecifyPrivateZoneVpcRequest{
+        BaseRequest: &tchttp.BaseRequest{},
+    }
+    
+    request.Init().WithApiInfo("privatedns", APIVersion, "DeleteSpecifyPrivateZoneVpc")
+    
+    
+    return
+}
+
+func NewDeleteSpecifyPrivateZoneVpcResponse() (response *DeleteSpecifyPrivateZoneVpcResponse) {
+    response = &DeleteSpecifyPrivateZoneVpcResponse{
+        BaseResponse: &tchttp.BaseResponse{},
+    } 
+    return
+
+}
+
+// DeleteSpecifyPrivateZoneVpc
+// 删除与私有域关联的VPC
 //
 // 可能返回的错误码:
 //  AUTHFAILURE = "AuthFailure"
+//  AUTHFAILURE_TOKENFAILURE = "AuthFailure.TokenFailure"
 //  DRYRUNOPERATION = "DryRunOperation"
 //  FAILEDOPERATION = "FailedOperation"
-//  FAILEDOPERATION_DELETELASTBINDVPCRECORDFAILED = "FailedOperation.DeleteLastBindVpcRecordFailed"
+//  FAILEDOPERATION_BINDZONEVPCFAILED = "FailedOperation.BindZoneVpcFailed"
+//  FAILEDOPERATION_DATAERROR = "FailedOperation.DataError"
 //  INTERNALERROR = "InternalError"
 //  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
 //  INVALIDPARAMETER = "InvalidParameter"
-//  INVALIDPARAMETER_RECORDNOTEXIST = "InvalidParameter.RecordNotExist"
+//  INVALIDPARAMETER_ILLEGALVPCINFO = "InvalidParameter.IllegalVpcInfo"
+//  INVALIDPARAMETER_VPCBINDED = "InvalidParameter.VpcBinded"
+//  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
 //  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
 //  INVALIDPARAMETERVALUE = "InvalidParameterValue"
 //  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
 //  MISSINGPARAMETER = "MissingParameter"
 //  OPERATIONDENIED = "OperationDenied"
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
@@ -622,18 +912,64 @@ func (c *Client) DeletePrivateZoneRecord(request *DeletePrivateZoneRecordRequest
 //  RESOURCEINSUFFICIENT = "ResourceInsufficient"
 //  RESOURCENOTFOUND = "ResourceNotFound"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
+//  UNAUTHORIZEDOPERATION_ROLEUNAUTHORIZED = "UnauthorizedOperation.RoleUnAuthorized"
 //  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
-func (c *Client) DeletePrivateZoneRecordWithContext(ctx context.Context, request *DeletePrivateZoneRecordRequest) (response *DeletePrivateZoneRecordResponse, err error) {
+func (c *Client) DeleteSpecifyPrivateZoneVpc(request *DeleteSpecifyPrivateZoneVpcRequest) (response *DeleteSpecifyPrivateZoneVpcResponse, err error) {
+    return c.DeleteSpecifyPrivateZoneVpcWithContext(context.Background(), request)
+}
+
+// DeleteSpecifyPrivateZoneVpc
+// 删除与私有域关联的VPC
+//
+// 可能返回的错误码:
+//  AUTHFAILURE = "AuthFailure"
+//  AUTHFAILURE_TOKENFAILURE = "AuthFailure.TokenFailure"
+//  DRYRUNOPERATION = "DryRunOperation"
+//  FAILEDOPERATION = "FailedOperation"
+//  FAILEDOPERATION_BINDZONEVPCFAILED = "FailedOperation.BindZoneVpcFailed"
+//  FAILEDOPERATION_DATAERROR = "FailedOperation.DataError"
+//  INTERNALERROR = "InternalError"
+//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
+//  INVALIDPARAMETER = "InvalidParameter"
+//  INVALIDPARAMETER_ILLEGALVPCINFO = "InvalidParameter.IllegalVpcInfo"
+//  INVALIDPARAMETER_VPCBINDED = "InvalidParameter.VpcBinded"
+//  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
+//  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
+//  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
+//  MISSINGPARAMETER = "MissingParameter"
+//  OPERATIONDENIED = "OperationDenied"
+//  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
+//  RESOURCEINUSE = "ResourceInUse"
+//  RESOURCEINSUFFICIENT = "ResourceInsufficient"
+//  RESOURCENOTFOUND = "ResourceNotFound"
+//  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
+//  RESOURCESSOLDOUT = "ResourcesSoldOut"
+//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
+//  UNAUTHORIZEDOPERATION_ROLEUNAUTHORIZED = "UnauthorizedOperation.RoleUnAuthorized"
+//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
+//  UNKNOWNPARAMETER = "UnknownParameter"
+//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+func (c *Client) DeleteSpecifyPrivateZoneVpcWithContext(ctx context.Context, request *DeleteSpecifyPrivateZoneVpcRequest) (response *DeleteSpecifyPrivateZoneVpcResponse, err error) {
     if request == nil {
-        request = NewDeletePrivateZoneRecordRequest()
+        request = NewDeleteSpecifyPrivateZoneVpcRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DeleteSpecifyPrivateZoneVpc require credential")
+    }
+
     request.SetContext(ctx)
     
-    response = NewDeletePrivateZoneRecordResponse()
+    response = NewDeleteSpecifyPrivateZoneVpcResponse()
     err = c.Send(request, response)
     return
 }
@@ -642,6 +978,7 @@ func NewDescribeAccountVpcListRequest() (request *DescribeAccountVpcListRequest)
     request = &DescribeAccountVpcListRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "DescribeAccountVpcList")
     
     
@@ -651,8 +988,9 @@ func NewDescribeAccountVpcListRequest() (request *DescribeAccountVpcListRequest)
 func NewDescribeAccountVpcListResponse() (response *DescribeAccountVpcListResponse) {
     response = &DescribeAccountVpcListResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // DescribeAccountVpcList
@@ -682,13 +1020,7 @@ func NewDescribeAccountVpcListResponse() (response *DescribeAccountVpcListRespon
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 //  UNSUPPORTEDOPERATION_ACCOUNTNOTBOUND = "UnsupportedOperation.AccountNotBound"
 func (c *Client) DescribeAccountVpcList(request *DescribeAccountVpcListRequest) (response *DescribeAccountVpcListResponse, err error) {
-    if request == nil {
-        request = NewDescribeAccountVpcListRequest()
-    }
-    
-    response = NewDescribeAccountVpcListResponse()
-    err = c.Send(request, response)
-    return
+    return c.DescribeAccountVpcListWithContext(context.Background(), request)
 }
 
 // DescribeAccountVpcList
@@ -721,6 +1053,11 @@ func (c *Client) DescribeAccountVpcListWithContext(ctx context.Context, request 
     if request == nil {
         request = NewDescribeAccountVpcListRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DescribeAccountVpcList require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewDescribeAccountVpcListResponse()
@@ -732,6 +1069,7 @@ func NewDescribeAuditLogRequest() (request *DescribeAuditLogRequest) {
     request = &DescribeAuditLogRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "DescribeAuditLog")
     
     
@@ -741,8 +1079,9 @@ func NewDescribeAuditLogRequest() (request *DescribeAuditLogRequest) {
 func NewDescribeAuditLogResponse() (response *DescribeAuditLogResponse) {
     response = &DescribeAuditLogResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // DescribeAuditLog
@@ -768,13 +1107,7 @@ func NewDescribeAuditLogResponse() (response *DescribeAuditLogResponse) {
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 func (c *Client) DescribeAuditLog(request *DescribeAuditLogRequest) (response *DescribeAuditLogResponse, err error) {
-    if request == nil {
-        request = NewDescribeAuditLogRequest()
-    }
-    
-    response = NewDescribeAuditLogResponse()
-    err = c.Send(request, response)
-    return
+    return c.DescribeAuditLogWithContext(context.Background(), request)
 }
 
 // DescribeAuditLog
@@ -803,6 +1136,11 @@ func (c *Client) DescribeAuditLogWithContext(ctx context.Context, request *Descr
     if request == nil {
         request = NewDescribeAuditLogRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DescribeAuditLog require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewDescribeAuditLogResponse()
@@ -814,6 +1152,7 @@ func NewDescribeDashboardRequest() (request *DescribeDashboardRequest) {
     request = &DescribeDashboardRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "DescribeDashboard")
     
     
@@ -823,8 +1162,9 @@ func NewDescribeDashboardRequest() (request *DescribeDashboardRequest) {
 func NewDescribeDashboardResponse() (response *DescribeDashboardResponse) {
     response = &DescribeDashboardResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // DescribeDashboard
@@ -853,13 +1193,7 @@ func NewDescribeDashboardResponse() (response *DescribeDashboardResponse) {
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 func (c *Client) DescribeDashboard(request *DescribeDashboardRequest) (response *DescribeDashboardResponse, err error) {
-    if request == nil {
-        request = NewDescribeDashboardRequest()
-    }
-    
-    response = NewDescribeDashboardResponse()
-    err = c.Send(request, response)
-    return
+    return c.DescribeDashboardWithContext(context.Background(), request)
 }
 
 // DescribeDashboard
@@ -891,6 +1225,11 @@ func (c *Client) DescribeDashboardWithContext(ctx context.Context, request *Desc
     if request == nil {
         request = NewDescribeDashboardRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DescribeDashboard require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewDescribeDashboardResponse()
@@ -902,6 +1241,7 @@ func NewDescribePrivateDNSAccountListRequest() (request *DescribePrivateDNSAccou
     request = &DescribePrivateDNSAccountListRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "DescribePrivateDNSAccountList")
     
     
@@ -911,8 +1251,9 @@ func NewDescribePrivateDNSAccountListRequest() (request *DescribePrivateDNSAccou
 func NewDescribePrivateDNSAccountListResponse() (response *DescribePrivateDNSAccountListResponse) {
     response = &DescribePrivateDNSAccountListResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // DescribePrivateDNSAccountList
@@ -940,13 +1281,7 @@ func NewDescribePrivateDNSAccountListResponse() (response *DescribePrivateDNSAcc
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 func (c *Client) DescribePrivateDNSAccountList(request *DescribePrivateDNSAccountListRequest) (response *DescribePrivateDNSAccountListResponse, err error) {
-    if request == nil {
-        request = NewDescribePrivateDNSAccountListRequest()
-    }
-    
-    response = NewDescribePrivateDNSAccountListResponse()
-    err = c.Send(request, response)
-    return
+    return c.DescribePrivateDNSAccountListWithContext(context.Background(), request)
 }
 
 // DescribePrivateDNSAccountList
@@ -977,6 +1312,11 @@ func (c *Client) DescribePrivateDNSAccountListWithContext(ctx context.Context, r
     if request == nil {
         request = NewDescribePrivateDNSAccountListRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DescribePrivateDNSAccountList require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewDescribePrivateDNSAccountListResponse()
@@ -988,6 +1328,7 @@ func NewDescribePrivateZoneRequest() (request *DescribePrivateZoneRequest) {
     request = &DescribePrivateZoneRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "DescribePrivateZone")
     
     
@@ -997,8 +1338,9 @@ func NewDescribePrivateZoneRequest() (request *DescribePrivateZoneRequest) {
 func NewDescribePrivateZoneResponse() (response *DescribePrivateZoneResponse) {
     response = &DescribePrivateZoneResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // DescribePrivateZone
@@ -1028,13 +1370,7 @@ func NewDescribePrivateZoneResponse() (response *DescribePrivateZoneResponse) {
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 func (c *Client) DescribePrivateZone(request *DescribePrivateZoneRequest) (response *DescribePrivateZoneResponse, err error) {
-    if request == nil {
-        request = NewDescribePrivateZoneRequest()
-    }
-    
-    response = NewDescribePrivateZoneResponse()
-    err = c.Send(request, response)
-    return
+    return c.DescribePrivateZoneWithContext(context.Background(), request)
 }
 
 // DescribePrivateZone
@@ -1067,6 +1403,11 @@ func (c *Client) DescribePrivateZoneWithContext(ctx context.Context, request *De
     if request == nil {
         request = NewDescribePrivateZoneRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DescribePrivateZone require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewDescribePrivateZoneResponse()
@@ -1078,6 +1419,7 @@ func NewDescribePrivateZoneListRequest() (request *DescribePrivateZoneListReques
     request = &DescribePrivateZoneListRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "DescribePrivateZoneList")
     
     
@@ -1087,8 +1429,9 @@ func NewDescribePrivateZoneListRequest() (request *DescribePrivateZoneListReques
 func NewDescribePrivateZoneListResponse() (response *DescribePrivateZoneListResponse) {
     response = &DescribePrivateZoneListResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // DescribePrivateZoneList
@@ -1116,13 +1459,7 @@ func NewDescribePrivateZoneListResponse() (response *DescribePrivateZoneListResp
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 func (c *Client) DescribePrivateZoneList(request *DescribePrivateZoneListRequest) (response *DescribePrivateZoneListResponse, err error) {
-    if request == nil {
-        request = NewDescribePrivateZoneListRequest()
-    }
-    
-    response = NewDescribePrivateZoneListResponse()
-    err = c.Send(request, response)
-    return
+    return c.DescribePrivateZoneListWithContext(context.Background(), request)
 }
 
 // DescribePrivateZoneList
@@ -1153,6 +1490,11 @@ func (c *Client) DescribePrivateZoneListWithContext(ctx context.Context, request
     if request == nil {
         request = NewDescribePrivateZoneListRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DescribePrivateZoneList require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewDescribePrivateZoneListResponse()
@@ -1164,6 +1506,7 @@ func NewDescribePrivateZoneRecordListRequest() (request *DescribePrivateZoneReco
     request = &DescribePrivateZoneRecordListRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "DescribePrivateZoneRecordList")
     
     
@@ -1173,8 +1516,9 @@ func NewDescribePrivateZoneRecordListRequest() (request *DescribePrivateZoneReco
 func NewDescribePrivateZoneRecordListResponse() (response *DescribePrivateZoneRecordListResponse) {
     response = &DescribePrivateZoneRecordListResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // DescribePrivateZoneRecordList
@@ -1194,13 +1538,7 @@ func NewDescribePrivateZoneRecordListResponse() (response *DescribePrivateZoneRe
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 func (c *Client) DescribePrivateZoneRecordList(request *DescribePrivateZoneRecordListRequest) (response *DescribePrivateZoneRecordListResponse, err error) {
-    if request == nil {
-        request = NewDescribePrivateZoneRecordListRequest()
-    }
-    
-    response = NewDescribePrivateZoneRecordListResponse()
-    err = c.Send(request, response)
-    return
+    return c.DescribePrivateZoneRecordListWithContext(context.Background(), request)
 }
 
 // DescribePrivateZoneRecordList
@@ -1223,6 +1561,11 @@ func (c *Client) DescribePrivateZoneRecordListWithContext(ctx context.Context, r
     if request == nil {
         request = NewDescribePrivateZoneRecordListRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DescribePrivateZoneRecordList require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewDescribePrivateZoneRecordListResponse()
@@ -1234,6 +1577,7 @@ func NewDescribePrivateZoneServiceRequest() (request *DescribePrivateZoneService
     request = &DescribePrivateZoneServiceRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "DescribePrivateZoneService")
     
     
@@ -1243,8 +1587,9 @@ func NewDescribePrivateZoneServiceRequest() (request *DescribePrivateZoneService
 func NewDescribePrivateZoneServiceResponse() (response *DescribePrivateZoneServiceResponse) {
     response = &DescribePrivateZoneServiceResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // DescribePrivateZoneService
@@ -1271,13 +1616,7 @@ func NewDescribePrivateZoneServiceResponse() (response *DescribePrivateZoneServi
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 func (c *Client) DescribePrivateZoneService(request *DescribePrivateZoneServiceRequest) (response *DescribePrivateZoneServiceResponse, err error) {
-    if request == nil {
-        request = NewDescribePrivateZoneServiceRequest()
-    }
-    
-    response = NewDescribePrivateZoneServiceResponse()
-    err = c.Send(request, response)
-    return
+    return c.DescribePrivateZoneServiceWithContext(context.Background(), request)
 }
 
 // DescribePrivateZoneService
@@ -1307,9 +1646,75 @@ func (c *Client) DescribePrivateZoneServiceWithContext(ctx context.Context, requ
     if request == nil {
         request = NewDescribePrivateZoneServiceRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DescribePrivateZoneService require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewDescribePrivateZoneServiceResponse()
+    err = c.Send(request, response)
+    return
+}
+
+func NewDescribeQuotaUsageRequest() (request *DescribeQuotaUsageRequest) {
+    request = &DescribeQuotaUsageRequest{
+        BaseRequest: &tchttp.BaseRequest{},
+    }
+    
+    request.Init().WithApiInfo("privatedns", APIVersion, "DescribeQuotaUsage")
+    
+    
+    return
+}
+
+func NewDescribeQuotaUsageResponse() (response *DescribeQuotaUsageResponse) {
+    response = &DescribeQuotaUsageResponse{
+        BaseResponse: &tchttp.BaseResponse{},
+    } 
+    return
+
+}
+
+// DescribeQuotaUsage
+// 查询额度使用情况
+//
+// 可能返回的错误码:
+//  INTERNALERROR = "InternalError"
+//  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
+//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
+//  UNAUTHORIZEDOPERATION_ROLEUNAUTHORIZED = "UnauthorizedOperation.RoleUnAuthorized"
+//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
+//  UNKNOWNPARAMETER = "UnknownParameter"
+//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+func (c *Client) DescribeQuotaUsage(request *DescribeQuotaUsageRequest) (response *DescribeQuotaUsageResponse, err error) {
+    return c.DescribeQuotaUsageWithContext(context.Background(), request)
+}
+
+// DescribeQuotaUsage
+// 查询额度使用情况
+//
+// 可能返回的错误码:
+//  INTERNALERROR = "InternalError"
+//  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
+//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
+//  UNAUTHORIZEDOPERATION_ROLEUNAUTHORIZED = "UnauthorizedOperation.RoleUnAuthorized"
+//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
+//  UNKNOWNPARAMETER = "UnknownParameter"
+//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+func (c *Client) DescribeQuotaUsageWithContext(ctx context.Context, request *DescribeQuotaUsageRequest) (response *DescribeQuotaUsageResponse, err error) {
+    if request == nil {
+        request = NewDescribeQuotaUsageRequest()
+    }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DescribeQuotaUsage require credential")
+    }
+
+    request.SetContext(ctx)
+    
+    response = NewDescribeQuotaUsageResponse()
     err = c.Send(request, response)
     return
 }
@@ -1318,6 +1723,7 @@ func NewDescribeRequestDataRequest() (request *DescribeRequestDataRequest) {
     request = &DescribeRequestDataRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "DescribeRequestData")
     
     
@@ -1327,8 +1733,9 @@ func NewDescribeRequestDataRequest() (request *DescribeRequestDataRequest) {
 func NewDescribeRequestDataResponse() (response *DescribeRequestDataResponse) {
     response = &DescribeRequestDataResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // DescribeRequestData
@@ -1339,13 +1746,7 @@ func NewDescribeRequestDataResponse() (response *DescribeRequestDataResponse) {
 //  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
 //  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
 func (c *Client) DescribeRequestData(request *DescribeRequestDataRequest) (response *DescribeRequestDataResponse, err error) {
-    if request == nil {
-        request = NewDescribeRequestDataRequest()
-    }
-    
-    response = NewDescribeRequestDataResponse()
-    err = c.Send(request, response)
-    return
+    return c.DescribeRequestDataWithContext(context.Background(), request)
 }
 
 // DescribeRequestData
@@ -1359,6 +1760,11 @@ func (c *Client) DescribeRequestDataWithContext(ctx context.Context, request *De
     if request == nil {
         request = NewDescribeRequestDataRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DescribeRequestData require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewDescribeRequestDataResponse()
@@ -1370,6 +1776,7 @@ func NewModifyPrivateZoneRequest() (request *ModifyPrivateZoneRequest) {
     request = &ModifyPrivateZoneRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "ModifyPrivateZone")
     
     
@@ -1379,8 +1786,9 @@ func NewModifyPrivateZoneRequest() (request *ModifyPrivateZoneRequest) {
 func NewModifyPrivateZoneResponse() (response *ModifyPrivateZoneResponse) {
     response = &ModifyPrivateZoneResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // ModifyPrivateZone
@@ -1397,6 +1805,8 @@ func NewModifyPrivateZoneResponse() (response *ModifyPrivateZoneResponse) {
 //  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
 //  INVALIDPARAMETERVALUE = "InvalidParameterValue"
 //  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
 //  MISSINGPARAMETER = "MissingParameter"
 //  OPERATIONDENIED = "OperationDenied"
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
@@ -1405,19 +1815,15 @@ func NewModifyPrivateZoneResponse() (response *ModifyPrivateZoneResponse) {
 //  RESOURCENOTFOUND = "ResourceNotFound"
 //  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
 //  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+//  UNSUPPORTEDOPERATION_NOTSUPPORTDNSFORWARD = "UnsupportedOperation.NotSupportDnsForward"
 func (c *Client) ModifyPrivateZone(request *ModifyPrivateZoneRequest) (response *ModifyPrivateZoneResponse, err error) {
-    if request == nil {
-        request = NewModifyPrivateZoneRequest()
-    }
-    
-    response = NewModifyPrivateZoneResponse()
-    err = c.Send(request, response)
-    return
+    return c.ModifyPrivateZoneWithContext(context.Background(), request)
 }
 
 // ModifyPrivateZone
@@ -1434,6 +1840,8 @@ func (c *Client) ModifyPrivateZone(request *ModifyPrivateZoneRequest) (response 
 //  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
 //  INVALIDPARAMETERVALUE = "InvalidParameterValue"
 //  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
 //  MISSINGPARAMETER = "MissingParameter"
 //  OPERATIONDENIED = "OperationDenied"
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
@@ -1442,15 +1850,22 @@ func (c *Client) ModifyPrivateZone(request *ModifyPrivateZoneRequest) (response 
 //  RESOURCENOTFOUND = "ResourceNotFound"
 //  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
 //  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+//  UNSUPPORTEDOPERATION_NOTSUPPORTDNSFORWARD = "UnsupportedOperation.NotSupportDnsForward"
 func (c *Client) ModifyPrivateZoneWithContext(ctx context.Context, request *ModifyPrivateZoneRequest) (response *ModifyPrivateZoneResponse, err error) {
     if request == nil {
         request = NewModifyPrivateZoneRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("ModifyPrivateZone require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewModifyPrivateZoneResponse()
@@ -1462,6 +1877,7 @@ func NewModifyPrivateZoneRecordRequest() (request *ModifyPrivateZoneRecordReques
     request = &ModifyPrivateZoneRecordRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "ModifyPrivateZoneRecord")
     
     
@@ -1471,8 +1887,9 @@ func NewModifyPrivateZoneRecordRequest() (request *ModifyPrivateZoneRecordReques
 func NewModifyPrivateZoneRecordResponse() (response *ModifyPrivateZoneRecordResponse) {
     response = &ModifyPrivateZoneRecordResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // ModifyPrivateZoneRecord
@@ -1482,6 +1899,7 @@ func NewModifyPrivateZoneRecordResponse() (response *ModifyPrivateZoneRecordResp
 //  AUTHFAILURE = "AuthFailure"
 //  DRYRUNOPERATION = "DryRunOperation"
 //  FAILEDOPERATION = "FailedOperation"
+//  FAILEDOPERATION_DATAERROR = "FailedOperation.DataError"
 //  FAILEDOPERATION_MODIFYRECORDFAILED = "FailedOperation.ModifyRecordFailed"
 //  INTERNALERROR = "InternalError"
 //  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
@@ -1499,33 +1917,33 @@ func NewModifyPrivateZoneRecordResponse() (response *ModifyPrivateZoneRecordResp
 //  INVALIDPARAMETER_RECORDEXIST = "InvalidParameter.RecordExist"
 //  INVALIDPARAMETER_RECORDLEVELEXCEED = "InvalidParameter.RecordLevelExceed"
 //  INVALIDPARAMETER_RECORDMXCOUNTEXCEED = "InvalidParameter.RecordMXCountExceed"
+//  INVALIDPARAMETER_RECORDNOTEXIST = "InvalidParameter.RecordNotExist"
 //  INVALIDPARAMETER_RECORDROLLLIMITCOUNTEXCEED = "InvalidParameter.RecordRolllimitCountExceed"
 //  INVALIDPARAMETER_RECORDTXTCOUNTEXCEED = "InvalidParameter.RecordTXTCountExceed"
 //  INVALIDPARAMETER_RECORDUNSUPPORTWEIGHT = "InvalidParameter.RecordUnsupportWeight"
 //  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
 //  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
 //  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  INVALIDPARAMETERVALUE_ILLEGALTTLVALUE = "InvalidParameterValue.IllegalTTLValue"
 //  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
 //  MISSINGPARAMETER = "MissingParameter"
 //  OPERATIONDENIED = "OperationDenied"
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
 //  RESOURCEINUSE = "ResourceInUse"
 //  RESOURCEINSUFFICIENT = "ResourceInsufficient"
 //  RESOURCENOTFOUND = "ResourceNotFound"
+//  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
 //  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 func (c *Client) ModifyPrivateZoneRecord(request *ModifyPrivateZoneRecordRequest) (response *ModifyPrivateZoneRecordResponse, err error) {
-    if request == nil {
-        request = NewModifyPrivateZoneRecordRequest()
-    }
-    
-    response = NewModifyPrivateZoneRecordResponse()
-    err = c.Send(request, response)
-    return
+    return c.ModifyPrivateZoneRecordWithContext(context.Background(), request)
 }
 
 // ModifyPrivateZoneRecord
@@ -1535,6 +1953,7 @@ func (c *Client) ModifyPrivateZoneRecord(request *ModifyPrivateZoneRecordRequest
 //  AUTHFAILURE = "AuthFailure"
 //  DRYRUNOPERATION = "DryRunOperation"
 //  FAILEDOPERATION = "FailedOperation"
+//  FAILEDOPERATION_DATAERROR = "FailedOperation.DataError"
 //  FAILEDOPERATION_MODIFYRECORDFAILED = "FailedOperation.ModifyRecordFailed"
 //  INTERNALERROR = "InternalError"
 //  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
@@ -1552,20 +1971,26 @@ func (c *Client) ModifyPrivateZoneRecord(request *ModifyPrivateZoneRecordRequest
 //  INVALIDPARAMETER_RECORDEXIST = "InvalidParameter.RecordExist"
 //  INVALIDPARAMETER_RECORDLEVELEXCEED = "InvalidParameter.RecordLevelExceed"
 //  INVALIDPARAMETER_RECORDMXCOUNTEXCEED = "InvalidParameter.RecordMXCountExceed"
+//  INVALIDPARAMETER_RECORDNOTEXIST = "InvalidParameter.RecordNotExist"
 //  INVALIDPARAMETER_RECORDROLLLIMITCOUNTEXCEED = "InvalidParameter.RecordRolllimitCountExceed"
 //  INVALIDPARAMETER_RECORDTXTCOUNTEXCEED = "InvalidParameter.RecordTXTCountExceed"
 //  INVALIDPARAMETER_RECORDUNSUPPORTWEIGHT = "InvalidParameter.RecordUnsupportWeight"
 //  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
 //  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
 //  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  INVALIDPARAMETERVALUE_ILLEGALTTLVALUE = "InvalidParameterValue.IllegalTTLValue"
 //  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
 //  MISSINGPARAMETER = "MissingParameter"
 //  OPERATIONDENIED = "OperationDenied"
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
 //  RESOURCEINUSE = "ResourceInUse"
 //  RESOURCEINSUFFICIENT = "ResourceInsufficient"
 //  RESOURCENOTFOUND = "ResourceNotFound"
+//  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
 //  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
@@ -1575,6 +2000,11 @@ func (c *Client) ModifyPrivateZoneRecordWithContext(ctx context.Context, request
     if request == nil {
         request = NewModifyPrivateZoneRecordRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("ModifyPrivateZoneRecord require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewModifyPrivateZoneRecordResponse()
@@ -1586,6 +2016,7 @@ func NewModifyPrivateZoneVpcRequest() (request *ModifyPrivateZoneVpcRequest) {
     request = &ModifyPrivateZoneVpcRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "ModifyPrivateZoneVpc")
     
     
@@ -1595,8 +2026,9 @@ func NewModifyPrivateZoneVpcRequest() (request *ModifyPrivateZoneVpcRequest) {
 func NewModifyPrivateZoneVpcResponse() (response *ModifyPrivateZoneVpcResponse) {
     response = &ModifyPrivateZoneVpcResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // ModifyPrivateZoneVpc
@@ -1608,6 +2040,7 @@ func NewModifyPrivateZoneVpcResponse() (response *ModifyPrivateZoneVpcResponse) 
 //  DRYRUNOPERATION = "DryRunOperation"
 //  FAILEDOPERATION = "FailedOperation"
 //  FAILEDOPERATION_BINDZONEVPCFAILED = "FailedOperation.BindZoneVpcFailed"
+//  FAILEDOPERATION_DATAERROR = "FailedOperation.DataError"
 //  INTERNALERROR = "InternalError"
 //  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
 //  INVALIDPARAMETER = "InvalidParameter"
@@ -1617,6 +2050,8 @@ func NewModifyPrivateZoneVpcResponse() (response *ModifyPrivateZoneVpcResponse) 
 //  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
 //  INVALIDPARAMETERVALUE = "InvalidParameterValue"
 //  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
 //  MISSINGPARAMETER = "MissingParameter"
 //  OPERATIONDENIED = "OperationDenied"
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
@@ -1624,6 +2059,7 @@ func NewModifyPrivateZoneVpcResponse() (response *ModifyPrivateZoneVpcResponse) 
 //  RESOURCEINSUFFICIENT = "ResourceInsufficient"
 //  RESOURCENOTFOUND = "ResourceNotFound"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
 //  UNAUTHORIZEDOPERATION_ROLEUNAUTHORIZED = "UnauthorizedOperation.RoleUnAuthorized"
@@ -1631,13 +2067,7 @@ func NewModifyPrivateZoneVpcResponse() (response *ModifyPrivateZoneVpcResponse) 
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 func (c *Client) ModifyPrivateZoneVpc(request *ModifyPrivateZoneVpcRequest) (response *ModifyPrivateZoneVpcResponse, err error) {
-    if request == nil {
-        request = NewModifyPrivateZoneVpcRequest()
-    }
-    
-    response = NewModifyPrivateZoneVpcResponse()
-    err = c.Send(request, response)
-    return
+    return c.ModifyPrivateZoneVpcWithContext(context.Background(), request)
 }
 
 // ModifyPrivateZoneVpc
@@ -1649,6 +2079,7 @@ func (c *Client) ModifyPrivateZoneVpc(request *ModifyPrivateZoneVpcRequest) (res
 //  DRYRUNOPERATION = "DryRunOperation"
 //  FAILEDOPERATION = "FailedOperation"
 //  FAILEDOPERATION_BINDZONEVPCFAILED = "FailedOperation.BindZoneVpcFailed"
+//  FAILEDOPERATION_DATAERROR = "FailedOperation.DataError"
 //  INTERNALERROR = "InternalError"
 //  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
 //  INVALIDPARAMETER = "InvalidParameter"
@@ -1658,6 +2089,8 @@ func (c *Client) ModifyPrivateZoneVpc(request *ModifyPrivateZoneVpcRequest) (res
 //  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
 //  INVALIDPARAMETERVALUE = "InvalidParameterValue"
 //  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
 //  MISSINGPARAMETER = "MissingParameter"
 //  OPERATIONDENIED = "OperationDenied"
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
@@ -1665,6 +2098,7 @@ func (c *Client) ModifyPrivateZoneVpc(request *ModifyPrivateZoneVpcRequest) (res
 //  RESOURCEINSUFFICIENT = "ResourceInsufficient"
 //  RESOURCENOTFOUND = "ResourceNotFound"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
 //  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
 //  UNAUTHORIZEDOPERATION_ROLEUNAUTHORIZED = "UnauthorizedOperation.RoleUnAuthorized"
@@ -1675,9 +2109,192 @@ func (c *Client) ModifyPrivateZoneVpcWithContext(ctx context.Context, request *M
     if request == nil {
         request = NewModifyPrivateZoneVpcRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("ModifyPrivateZoneVpc require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewModifyPrivateZoneVpcResponse()
+    err = c.Send(request, response)
+    return
+}
+
+func NewModifyRecordsStatusRequest() (request *ModifyRecordsStatusRequest) {
+    request = &ModifyRecordsStatusRequest{
+        BaseRequest: &tchttp.BaseRequest{},
+    }
+    
+    request.Init().WithApiInfo("privatedns", APIVersion, "ModifyRecordsStatus")
+    
+    
+    return
+}
+
+func NewModifyRecordsStatusResponse() (response *ModifyRecordsStatusResponse) {
+    response = &ModifyRecordsStatusResponse{
+        BaseResponse: &tchttp.BaseResponse{},
+    } 
+    return
+
+}
+
+// ModifyRecordsStatus
+// 修改解析记录状态
+//
+// 可能返回的错误码:
+//  FAILEDOPERATION_MODIFYRECORDFAILED = "FailedOperation.ModifyRecordFailed"
+//  FAILEDOPERATION_UPDATERECORDFAILED = "FailedOperation.UpdateRecordFailed"
+//  INTERNALERROR = "InternalError"
+//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
+//  INVALIDPARAMETER = "InvalidParameter"
+//  INVALIDPARAMETER_RECORDNOTEXIST = "InvalidParameter.RecordNotExist"
+//  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
+func (c *Client) ModifyRecordsStatus(request *ModifyRecordsStatusRequest) (response *ModifyRecordsStatusResponse, err error) {
+    return c.ModifyRecordsStatusWithContext(context.Background(), request)
+}
+
+// ModifyRecordsStatus
+// 修改解析记录状态
+//
+// 可能返回的错误码:
+//  FAILEDOPERATION_MODIFYRECORDFAILED = "FailedOperation.ModifyRecordFailed"
+//  FAILEDOPERATION_UPDATERECORDFAILED = "FailedOperation.UpdateRecordFailed"
+//  INTERNALERROR = "InternalError"
+//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
+//  INVALIDPARAMETER = "InvalidParameter"
+//  INVALIDPARAMETER_RECORDNOTEXIST = "InvalidParameter.RecordNotExist"
+//  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
+func (c *Client) ModifyRecordsStatusWithContext(ctx context.Context, request *ModifyRecordsStatusRequest) (response *ModifyRecordsStatusResponse, err error) {
+    if request == nil {
+        request = NewModifyRecordsStatusRequest()
+    }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("ModifyRecordsStatus require credential")
+    }
+
+    request.SetContext(ctx)
+    
+    response = NewModifyRecordsStatusResponse()
+    err = c.Send(request, response)
+    return
+}
+
+func NewQueryAsyncBindVpcStatusRequest() (request *QueryAsyncBindVpcStatusRequest) {
+    request = &QueryAsyncBindVpcStatusRequest{
+        BaseRequest: &tchttp.BaseRequest{},
+    }
+    
+    request.Init().WithApiInfo("privatedns", APIVersion, "QueryAsyncBindVpcStatus")
+    
+    
+    return
+}
+
+func NewQueryAsyncBindVpcStatusResponse() (response *QueryAsyncBindVpcStatusResponse) {
+    response = &QueryAsyncBindVpcStatusResponse{
+        BaseResponse: &tchttp.BaseResponse{},
+    } 
+    return
+
+}
+
+// QueryAsyncBindVpcStatus
+// 查询异步绑定vpc操作状态
+//
+// 可能返回的错误码:
+//  AUTHFAILURE = "AuthFailure"
+//  AUTHFAILURE_TOKENFAILURE = "AuthFailure.TokenFailure"
+//  DRYRUNOPERATION = "DryRunOperation"
+//  FAILEDOPERATION = "FailedOperation"
+//  FAILEDOPERATION_BINDZONEVPCFAILED = "FailedOperation.BindZoneVpcFailed"
+//  FAILEDOPERATION_DATAERROR = "FailedOperation.DataError"
+//  INTERNALERROR = "InternalError"
+//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
+//  INVALIDPARAMETER = "InvalidParameter"
+//  INVALIDPARAMETER_ILLEGALVPCINFO = "InvalidParameter.IllegalVpcInfo"
+//  INVALIDPARAMETER_UNIQUEIDNOTEXIST = "InvalidParameter.UniqueIdNotExist"
+//  INVALIDPARAMETER_VPCBINDED = "InvalidParameter.VpcBinded"
+//  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
+//  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
+//  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
+//  MISSINGPARAMETER = "MissingParameter"
+//  OPERATIONDENIED = "OperationDenied"
+//  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
+//  RESOURCEINUSE = "ResourceInUse"
+//  RESOURCEINSUFFICIENT = "ResourceInsufficient"
+//  RESOURCENOTFOUND = "ResourceNotFound"
+//  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
+//  RESOURCESSOLDOUT = "ResourcesSoldOut"
+//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
+//  UNAUTHORIZEDOPERATION_ROLEUNAUTHORIZED = "UnauthorizedOperation.RoleUnAuthorized"
+//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
+//  UNKNOWNPARAMETER = "UnknownParameter"
+//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+func (c *Client) QueryAsyncBindVpcStatus(request *QueryAsyncBindVpcStatusRequest) (response *QueryAsyncBindVpcStatusResponse, err error) {
+    return c.QueryAsyncBindVpcStatusWithContext(context.Background(), request)
+}
+
+// QueryAsyncBindVpcStatus
+// 查询异步绑定vpc操作状态
+//
+// 可能返回的错误码:
+//  AUTHFAILURE = "AuthFailure"
+//  AUTHFAILURE_TOKENFAILURE = "AuthFailure.TokenFailure"
+//  DRYRUNOPERATION = "DryRunOperation"
+//  FAILEDOPERATION = "FailedOperation"
+//  FAILEDOPERATION_BINDZONEVPCFAILED = "FailedOperation.BindZoneVpcFailed"
+//  FAILEDOPERATION_DATAERROR = "FailedOperation.DataError"
+//  INTERNALERROR = "InternalError"
+//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
+//  INVALIDPARAMETER = "InvalidParameter"
+//  INVALIDPARAMETER_ILLEGALVPCINFO = "InvalidParameter.IllegalVpcInfo"
+//  INVALIDPARAMETER_UNIQUEIDNOTEXIST = "InvalidParameter.UniqueIdNotExist"
+//  INVALIDPARAMETER_VPCBINDED = "InvalidParameter.VpcBinded"
+//  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
+//  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
+//  INVALIDPARAMETERVALUE = "InvalidParameterValue"
+//  LIMITEXCEEDED = "LimitExceeded"
+//  LIMITEXCEEDED_TLDOUTOFLIMIT = "LimitExceeded.TldOutOfLimit"
+//  LIMITEXCEEDED_TLDOUTOFRANGE = "LimitExceeded.TldOutOfRange"
+//  MISSINGPARAMETER = "MissingParameter"
+//  OPERATIONDENIED = "OperationDenied"
+//  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
+//  RESOURCEINUSE = "ResourceInUse"
+//  RESOURCEINSUFFICIENT = "ResourceInsufficient"
+//  RESOURCENOTFOUND = "ResourceNotFound"
+//  RESOURCEUNAVAILABLE = "ResourceUnavailable"
+//  RESOURCEUNAVAILABLE_TLDPACKAGEEXPIRED = "ResourceUnavailable.TldPackageExpired"
+//  RESOURCESSOLDOUT = "ResourcesSoldOut"
+//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
+//  UNAUTHORIZEDOPERATION_ROLEUNAUTHORIZED = "UnauthorizedOperation.RoleUnAuthorized"
+//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
+//  UNKNOWNPARAMETER = "UnknownParameter"
+//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+func (c *Client) QueryAsyncBindVpcStatusWithContext(ctx context.Context, request *QueryAsyncBindVpcStatusRequest) (response *QueryAsyncBindVpcStatusResponse, err error) {
+    if request == nil {
+        request = NewQueryAsyncBindVpcStatusRequest()
+    }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("QueryAsyncBindVpcStatus require credential")
+    }
+
+    request.SetContext(ctx)
+    
+    response = NewQueryAsyncBindVpcStatusResponse()
     err = c.Send(request, response)
     return
 }
@@ -1686,6 +2303,7 @@ func NewSubscribePrivateZoneServiceRequest() (request *SubscribePrivateZoneServi
     request = &SubscribePrivateZoneServiceRequest{
         BaseRequest: &tchttp.BaseRequest{},
     }
+    
     request.Init().WithApiInfo("privatedns", APIVersion, "SubscribePrivateZoneService")
     
     
@@ -1695,8 +2313,9 @@ func NewSubscribePrivateZoneServiceRequest() (request *SubscribePrivateZoneServi
 func NewSubscribePrivateZoneServiceResponse() (response *SubscribePrivateZoneServiceResponse) {
     response = &SubscribePrivateZoneServiceResponse{
         BaseResponse: &tchttp.BaseResponse{},
-    }
+    } 
     return
+
 }
 
 // SubscribePrivateZoneService
@@ -1715,6 +2334,7 @@ func NewSubscribePrivateZoneServiceResponse() (response *SubscribePrivateZoneSer
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
 //  RESOURCEINUSE = "ResourceInUse"
 //  RESOURCEINSUFFICIENT = "ResourceInsufficient"
+//  RESOURCEINSUFFICIENT_BALANCE = "ResourceInsufficient.Balance"
 //  RESOURCENOTFOUND = "ResourceNotFound"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
@@ -1723,13 +2343,7 @@ func NewSubscribePrivateZoneServiceResponse() (response *SubscribePrivateZoneSer
 //  UNKNOWNPARAMETER = "UnknownParameter"
 //  UNSUPPORTEDOPERATION = "UnsupportedOperation"
 func (c *Client) SubscribePrivateZoneService(request *SubscribePrivateZoneServiceRequest) (response *SubscribePrivateZoneServiceResponse, err error) {
-    if request == nil {
-        request = NewSubscribePrivateZoneServiceRequest()
-    }
-    
-    response = NewSubscribePrivateZoneServiceResponse()
-    err = c.Send(request, response)
-    return
+    return c.SubscribePrivateZoneServiceWithContext(context.Background(), request)
 }
 
 // SubscribePrivateZoneService
@@ -1748,6 +2362,7 @@ func (c *Client) SubscribePrivateZoneService(request *SubscribePrivateZoneServic
 //  REQUESTLIMITEXCEEDED = "RequestLimitExceeded"
 //  RESOURCEINUSE = "ResourceInUse"
 //  RESOURCEINSUFFICIENT = "ResourceInsufficient"
+//  RESOURCEINSUFFICIENT_BALANCE = "ResourceInsufficient.Balance"
 //  RESOURCENOTFOUND = "ResourceNotFound"
 //  RESOURCEUNAVAILABLE = "ResourceUnavailable"
 //  RESOURCESSOLDOUT = "ResourcesSoldOut"
@@ -1759,6 +2374,11 @@ func (c *Client) SubscribePrivateZoneServiceWithContext(ctx context.Context, req
     if request == nil {
         request = NewSubscribePrivateZoneServiceRequest()
     }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("SubscribePrivateZoneService require credential")
+    }
+
     request.SetContext(ctx)
     
     response = NewSubscribePrivateZoneServiceResponse()

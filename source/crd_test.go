@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
@@ -54,10 +53,10 @@ func defaultHeader() http.Header {
 }
 
 func objBody(codec runtime.Encoder, obj runtime.Object) io.ReadCloser {
-	return ioutil.NopCloser(bytes.NewReader([]byte(runtime.EncodeOrDie(codec, obj))))
+	return io.NopCloser(bytes.NewReader([]byte(runtime.EncodeOrDie(codec, obj))))
 }
 
-func fakeRESTClient(endpoints []*endpoint.Endpoint, apiVersion, kind, namespace, name string, annotations map[string]string, labels map[string]string, t *testing.T) rest.Interface {
+func fakeRESTClient(endpoints []*endpoint.Endpoint, apiVersion, kind, namespace, name string, annotations map[string]string, labels map[string]string, _ *testing.T) rest.Interface {
 	groupVersion, _ := schema.ParseGroupVersion(apiVersion)
 	scheme := runtime.NewScheme()
 	addKnownTypes(scheme, groupVersion)
@@ -384,6 +383,90 @@ func testCRDSourceEndpoints(t *testing.T) {
 			expectEndpoints: true,
 			expectError:     false,
 		},
+		{
+			title:                "Create SRV record",
+			registeredAPIVersion: "test.k8s.io/v1alpha1",
+			apiVersion:           "test.k8s.io/v1alpha1",
+			registeredKind:       "DNSEndpoint",
+			kind:                 "DNSEndpoint",
+			namespace:            "foo",
+			registeredNamespace:  "foo",
+			labels:               map[string]string{"test": "that"},
+			labelFilter:          "test=that",
+			endpoints: []*endpoint.Endpoint{
+				{
+					DNSName:    "_svc._tcp.example.org",
+					Targets:    endpoint.Targets{"0 0 80 abc.example.org", "0 0 80 def.example.org"},
+					RecordType: endpoint.RecordTypeSRV,
+					RecordTTL:  180,
+				},
+			},
+			expectEndpoints: true,
+			expectError:     false,
+		},
+		{
+			title:                "Create NAPTR record",
+			registeredAPIVersion: "test.k8s.io/v1alpha1",
+			apiVersion:           "test.k8s.io/v1alpha1",
+			registeredKind:       "DNSEndpoint",
+			kind:                 "DNSEndpoint",
+			namespace:            "foo",
+			registeredNamespace:  "foo",
+			labels:               map[string]string{"test": "that"},
+			labelFilter:          "test=that",
+			endpoints: []*endpoint.Endpoint{
+				{
+					DNSName:    "example.org",
+					Targets:    endpoint.Targets{`100 10 "S" "SIP+D2U" "!^.*$!sip:customer-service@example.org!" _sip._udp.example.org.`, `102 10 "S" "SIP+D2T" "!^.*$!sip:customer-service@example.org!" _sip._tcp.example.org.`},
+					RecordType: endpoint.RecordTypeNAPTR,
+					RecordTTL:  180,
+				},
+			},
+			expectEndpoints: true,
+			expectError:     false,
+		},
+		{
+			title:                "illegal target CNAME",
+			registeredAPIVersion: "test.k8s.io/v1alpha1",
+			apiVersion:           "test.k8s.io/v1alpha1",
+			registeredKind:       "DNSEndpoint",
+			kind:                 "DNSEndpoint",
+			namespace:            "foo",
+			registeredNamespace:  "foo",
+			labels:               map[string]string{"test": "that"},
+			labelFilter:          "test=that",
+			endpoints: []*endpoint.Endpoint{
+				{
+					DNSName:    "example.org",
+					Targets:    endpoint.Targets{"foo.example.org."},
+					RecordType: endpoint.RecordTypeCNAME,
+					RecordTTL:  180,
+				},
+			},
+			expectEndpoints: false,
+			expectError:     false,
+		},
+		{
+			title:                "illegal target NAPTR",
+			registeredAPIVersion: "test.k8s.io/v1alpha1",
+			apiVersion:           "test.k8s.io/v1alpha1",
+			registeredKind:       "DNSEndpoint",
+			kind:                 "DNSEndpoint",
+			namespace:            "foo",
+			registeredNamespace:  "foo",
+			labels:               map[string]string{"test": "that"},
+			labelFilter:          "test=that",
+			endpoints: []*endpoint.Endpoint{
+				{
+					DNSName:    "example.org",
+					Targets:    endpoint.Targets{`100 10 "S" "SIP+D2U" "!^.*$!sip:customer-service@example.org!" _sip._udp.example.org`, `102 10 "S" "SIP+D2T" "!^.*$!sip:customer-service@example.org!" _sip._tcp.example.org`},
+					RecordType: endpoint.RecordTypeNAPTR,
+					RecordTTL:  180,
+				},
+			},
+			expectEndpoints: false,
+			expectError:     false,
+		},
 	} {
 		ti := ti
 		t.Run(ti.title, func(t *testing.T) {
@@ -399,7 +482,12 @@ func testCRDSourceEndpoints(t *testing.T) {
 			labelSelector, err := labels.Parse(ti.labelFilter)
 			require.NoError(t, err)
 
-			cs, err := NewCRDSource(restClient, ti.namespace, ti.kind, ti.annotationFilter, labelSelector, scheme)
+			// At present, client-go's fake.RESTClient (used by crd_test.go) is known to cause race conditions when used
+			// with informers: https://github.com/kubernetes/kubernetes/issues/95372
+			// So don't start the informer during testing.
+			startInformer := false
+
+			cs, err := NewCRDSource(restClient, ti.namespace, ti.kind, ti.annotationFilter, labelSelector, scheme, startInformer)
 			require.NoError(t, err)
 
 			receivedEndpoints, err := cs.Endpoints(context.Background())

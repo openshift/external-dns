@@ -7,7 +7,6 @@
 package ctxerr
 
 import (
-	"bytes"
 	"reflect"
 	"strings"
 
@@ -92,21 +91,36 @@ func TypeMismatch(got, expected reflect.Type) *Error {
 
 // Error implements error interface.
 func (e *Error) Error() string {
-	buf := bytes.Buffer{}
+	buf := strings.Builder{}
 
-	e.Append(&buf, "")
+	e.Append(&buf, "", true)
+
+	return buf.String()
+}
+
+// ErrorWithoutColors is the same as [Error.Error] but guarantees the
+// resulting string does not contain any ANSI color escape sequences.
+func (e *Error) ErrorWithoutColors() string {
+	buf := strings.Builder{}
+
+	e.Append(&buf, "", false)
 
 	return buf.String()
 }
 
 // Append appends the a contents to buf using prefix prefix for each
 // line.
-func (e *Error) Append(buf *bytes.Buffer, prefix string) {
+func (e *Error) Append(buf *strings.Builder, prefix string, colorized bool) {
 	if e == BooleanError {
 		return
 	}
 
-	color.Init()
+	var badOn, badOff, okOn, okOff string
+	if colorized {
+		color.Init()
+		badOn, badOff = color.BadOn, color.BadOff
+		okOn, okOff = color.OKOn, color.OKOff
+	}
 
 	var writeEolPrefix func()
 	if prefix != "" {
@@ -125,13 +139,19 @@ func (e *Error) Append(buf *bytes.Buffer, prefix string) {
 	}
 
 	if e == ErrTooManyErrors {
-		buf.WriteString(color.TitleOn)
+		if colorized {
+			buf.WriteString(color.TitleOn)
+		}
 		buf.WriteString(e.Message)
-		buf.WriteString(color.TitleOff)
+		if colorized {
+			buf.WriteString(color.TitleOff)
+		}
 		return
 	}
 
-	buf.WriteString(color.TitleOn)
+	if colorized {
+		buf.WriteString(color.TitleOn)
+	}
 	if pos := strings.Index(e.Message, "%%"); pos >= 0 {
 		buf.WriteString(e.Message[:pos])
 		buf.WriteString(e.Context.Path.String())
@@ -141,24 +161,26 @@ func (e *Error) Append(buf *bytes.Buffer, prefix string) {
 		buf.WriteString(": ")
 		buf.WriteString(e.Message)
 	}
-	buf.WriteString(color.TitleOff)
+	if colorized {
+		buf.WriteString(color.TitleOff)
+	}
 
 	if e.Summary != nil {
 		buf.WriteByte('\n')
-		e.Summary.AppendSummary(buf, prefix+"\t")
+		e.Summary.AppendSummary(buf, prefix+"\t", colorized)
 	} else {
 		writeEolPrefix()
-		buf.WriteString(color.BadOnBold)
+		if colorized {
+			buf.WriteString(color.BadOnBold)
+		}
 		buf.WriteString("\t     got: ")
-		buf.WriteString(color.BadOn)
-		util.IndentStringIn(buf, e.GotString(), prefix+"\t          ", color.BadOn, color.BadOff)
-		buf.WriteString(color.BadOff)
+		util.IndentColorizeStringIn(buf, e.GotString(), prefix+"\t          ", badOn, badOff)
 		writeEolPrefix()
-		buf.WriteString(color.OKOnBold)
+		if colorized {
+			buf.WriteString(color.OKOnBold)
+		}
 		buf.WriteString("\texpected: ")
-		buf.WriteString(color.OKOn)
-		util.IndentStringIn(buf, e.ExpectedString(), prefix+"\t          ", color.OKOn, color.OKOff)
-		buf.WriteString(color.OKOff)
+		util.IndentColorizeStringIn(buf, e.ExpectedString(), prefix+"\t          ", okOn, okOff)
 	}
 
 	// This error comes from another one
@@ -166,7 +188,7 @@ func (e *Error) Append(buf *bytes.Buffer, prefix string) {
 		writeEolPrefix()
 		buf.WriteString("Originates from following error:\n")
 
-		e.Origin.Append(buf, prefix+"\t")
+		e.Origin.Append(buf, prefix+"\t", colorized)
 	}
 
 	if e.Location.IsInitialized() &&
@@ -180,7 +202,7 @@ func (e *Error) Append(buf *bytes.Buffer, prefix string) {
 
 	if e.Next != nil {
 		buf.WriteByte('\n')
-		e.Next.Append(buf, prefix) // next error at same level
+		e.Next.Append(buf, prefix, colorized) // next error at same level
 	}
 }
 
@@ -202,14 +224,15 @@ func (e *Error) ExpectedString() string {
 	return util.ToString(e.Expected)
 }
 
-// SummaryString returns the string corresponding to the Summary
-// field. Returns the empty string if the e Summary field is nil.
+// SummaryString returns the string corresponding to the Summary field
+// without any ANSI color escape sequences. Returns the empty string
+// if the e Summary field is nil.
 func (e *Error) SummaryString() string {
 	if e.Summary == nil {
 		return ""
 	}
 
-	var buf bytes.Buffer
-	e.Summary.AppendSummary(&buf, "")
+	var buf strings.Builder
+	e.Summary.AppendSummary(&buf, "", false)
 	return buf.String()
 }

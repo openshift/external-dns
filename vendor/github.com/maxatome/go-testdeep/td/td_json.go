@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021, Maxime Soulé
+// Copyright (c) 2019-2023, Maxime Soulé
 // All rights reserved.
 //
 // This source code is licensed under the BSD-style license found in the
@@ -12,7 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"os"
 	"reflect"
 	"strings"
 
@@ -34,12 +34,14 @@ var forbiddenOpsInJSON = map[string]string{
 	"Catch":        "",
 	"Code":         "",
 	"Delay":        "",
+	"ErrorIs":      "",
 	"Isa":          "",
 	"JSON":         "literal JSON",
 	"Lax":          "",
 	"Map":          "literal {}",
 	"PPtr":         "",
 	"Ptr":          "",
+	"Recv":         "",
 	"SStruct":      "",
 	"Shallow":      "",
 	"Slice":        "literal []",
@@ -51,20 +53,6 @@ var forbiddenOpsInJSON = map[string]string{
 	"Struct":       "",
 	"Tag":          "",
 	"TruncTime":    "",
-}
-
-// jsonOpShortcuts contains operator that can be used as
-// $^OperatorName inside JSON, SubJSONOf or SuperJSONOf.
-var jsonOpShortcuts = map[string]func() TestDeep{
-	"Empty":    Empty,
-	"Ignore":   Ignore,
-	"NaN":      NaN,
-	"Nil":      Nil,
-	"NotEmpty": NotEmpty,
-	"NotNaN":   NotNaN,
-	"NotNil":   NotNil,
-	"NotZero":  NotZero,
-	"Zero":     Zero,
 }
 
 // tdJSONUnmarshaler handles the JSON unmarshaling of JSON, SubJSONOf
@@ -109,7 +97,7 @@ func (u tdJSONUnmarshaler) unmarshal(expectedJSON any, params []any) (any, *ctxe
 		// a JSON content)
 		if strings.HasSuffix(data, ".json") {
 			// It could be a file name, try to read from it
-			b, err = ioutil.ReadFile(data)
+			b, err = os.ReadFile(data)
 			if err != nil {
 				return nil, ctxerr.OpBad(u.Func, "JSON file %s cannot be read: %s", data, err)
 			}
@@ -120,15 +108,18 @@ func (u tdJSONUnmarshaler) unmarshal(expectedJSON any, params []any) (any, *ctxe
 	case []byte:
 		b = data
 
+	case ejson.RawMessage:
+		b = data
+
 	case io.Reader:
-		b, err = ioutil.ReadAll(data)
+		b, err = io.ReadAll(data)
 		if err != nil {
 			return nil, ctxerr.OpBad(u.Func, "JSON read error: %s", err)
 		}
 
 	default:
 		return nil, ctxerr.OpBadUsage(
-			u.Func, "(STRING_JSON|STRING_FILENAME|[]byte|io.Reader, ...)",
+			u.Func, "(STRING_JSON|STRING_FILENAME|[]byte|json.RawMessage|io.Reader, ...)",
 			expectedJSON, 1, false)
 	}
 
@@ -136,8 +127,7 @@ func (u tdJSONUnmarshaler) unmarshal(expectedJSON any, params []any) (any, *ctxe
 	var byTag map[string]any
 
 	for i, p := range params {
-		switch op := p.(type) {
-		case *tdTag:
+		if op, ok := p.(*tdTag); ok && op.err == nil {
 			if byTag[op.tag] != nil {
 				return nil, ctxerr.OpBad(u.Func, `2 params have the same tag "%s"`, op.tag)
 			}
@@ -150,16 +140,13 @@ func (u tdJSONUnmarshaler) unmarshal(expectedJSON any, params []any) (any, *ctxe
 				p = op.expectedValue.Interface()
 			}
 			byTag[op.tag] = newJSONNamedPlaceholder(op.tag, p)
-
-		default:
-			params[i] = newJSONNumPlaceholder(uint64(i+1), p)
 		}
+		params[i] = newJSONNumPlaceholder(uint64(i+1), p)
 	}
 
 	final, err := json.Parse(b, json.ParseOpts{
 		Placeholders:       params,
 		PlaceholdersByName: byTag,
-		OpShortcutFn:       u.resolveOpShortcut(),
 		OpFn:               u.resolveOp(),
 	})
 	if err != nil {
@@ -295,22 +282,6 @@ func (u tdJSONUnmarshaler) resolveOp() func(json.Operator, json.Position) (any, 
 	}
 }
 
-// resolveOpShortcut returns a closure usable as json.ParseOpts.OpShortcutFn.
-func (u tdJSONUnmarshaler) resolveOpShortcut() func(string, json.Position) (any, bool) {
-	return func(opName string, posInJSON json.Position) (any, bool) {
-		opFn := jsonOpShortcuts[opName]
-		if opFn != nil {
-			tdOp := opFn()
-
-			// replace the location by the JSON/SubJSONOf/SuperJSONOf one
-			u.replaceLocation(tdOp, posInJSON)
-
-			return newJSONNamedPlaceholder("^"+opName, tdOp), true
-		}
-		return nil, false
-	}
-}
-
 // tdJSONSmuggler is the base type for tdJSONPlaceholder & tdJSONEmbedded.
 type tdJSONSmuggler struct {
 	tdSmugglerBase // ignored by tools/gen_funcs.pl
@@ -356,7 +327,7 @@ type tdJSONPlaceholder struct {
 func newJSONNamedPlaceholder(name string, expectedValue any) TestDeep {
 	p := tdJSONPlaceholder{
 		tdJSONSmuggler: tdJSONSmuggler{
-			tdSmugglerBase: newSmugglerBase(expectedValue, 1),
+			tdSmugglerBase: newSmugglerBase(expectedValue, -100), // without location
 		},
 		name: name,
 	}
@@ -370,7 +341,7 @@ func newJSONNamedPlaceholder(name string, expectedValue any) TestDeep {
 func newJSONNumPlaceholder(num uint64, expectedValue any) TestDeep {
 	p := tdJSONPlaceholder{
 		tdJSONSmuggler: tdJSONSmuggler{
-			tdSmugglerBase: newSmugglerBase(expectedValue, 1),
+			tdSmugglerBase: newSmugglerBase(expectedValue, -100), // without location
 		},
 		num: num,
 	}
@@ -392,22 +363,16 @@ func (p *tdJSONPlaceholder) MarshalJSON() ([]byte, error) {
 
 	var b bytes.Buffer
 
-	start := b.Len()
 	if p.num == 0 {
 		fmt.Fprintf(&b, `"$%s"`, p.name)
-
-		// Don't add a comment for operator shortcuts (aka $^NotZero)
-		if p.name[0] == '^' {
-			return b.Bytes(), nil
-		}
 	} else {
 		fmt.Fprintf(&b, `"$%d"`, p.num)
 	}
 
 	b.WriteString(` /* `)
 
-	indent := "\n" + strings.Repeat(" ", b.Len()-start)
-	b.WriteString(strings.Replace(p.String(), "\n", indent, -1)) //nolint: gocritic
+	indent := "\n" + strings.Repeat(" ", b.Len())
+	b.WriteString(strings.ReplaceAll(p.String(), "\n", indent))
 
 	b.WriteString(` */`)
 
@@ -429,11 +394,12 @@ type tdJSONEmbedded struct {
 }
 
 func newJSONEmbedded(tdOp TestDeep) TestDeep {
-	return &tdJSONEmbedded{
+	e := tdJSONEmbedded{
 		tdJSONSmuggler: tdJSONSmuggler{
-			tdSmugglerBase: newSmugglerBase(tdOp, 1),
+			tdSmugglerBase: newSmugglerBase(tdOp, -100), // without location
 		},
 	}
+	return &e
 }
 
 func (e *tdJSONEmbedded) MarshalJSON() ([]byte, error) {
@@ -488,9 +454,10 @@ func jsonify(ctx ctxerr.Context, got reflect.Value) (any, *ctxerr.Error) {
 //
 //   - string containing JSON data like `{"fullname":"Bob","age":42}`
 //   - string containing a JSON filename, ending with ".json" (its
-//     content is [ioutil.ReadFile] before unmarshaling)
+//     content is [os.ReadFile] before unmarshaling)
 //   - []byte containing JSON data
-//   - [io.Reader] stream containing JSON data (is [ioutil.ReadAll]
+//   - [encoding/json.RawMessage] containing JSON data
+//   - [io.Reader] stream containing JSON data (is [io.ReadAll]
 //     before unmarshaling)
 //
 // expectedJSON JSON value can contain placeholders. The params
@@ -537,7 +504,8 @@ func jsonify(ctx ctxerr.Context, got reflect.Value) (any, *ctxerr.Error) {
 // as is, in its freshly unmarshaled JSON form (so as bool, float64,
 // string, []any, map[string]any or simply nil).
 //
-// Note expectedJSON can be a []byte, a JSON filename or a [io.Reader]:
+// Note expectedJSON can be a []byte, an [encoding/json.RawMessage], a
+// JSON filename or a [io.Reader]:
 //
 //	td.Cmp(t, gotValue, td.JSON("file.json", td.Between(12, 34)))
 //	td.Cmp(t, gotValue, td.JSON([]byte(`[1, $1, 3]`), td.Between(12, 34)))
@@ -584,11 +552,14 @@ func jsonify(ctx ctxerr.Context, got reflect.Value) (any, *ctxerr.Error) {
 //
 // Other JSON divergences:
 //   - ',' can precede a '}' or a ']' (as in go);
+//   - strings can contain non-escaped \n, \r and \t;
+//   - raw strings are accepted (r{raw}, r!raw!, …), see below;
 //   - int_lit & float_lit numbers as defined in go spec are accepted;
 //   - numbers can be prefixed by '+'.
 //
 // Most operators can be directly embedded in JSON without requiring
-// any placeholder.
+// any placeholder. If an operators does not take any parameter, the
+// parenthesis can be omitted.
 //
 //	td.Cmp(t, gotValue,
 //	  td.JSON(`
@@ -596,7 +567,7 @@ func jsonify(ctx ctxerr.Context, got reflect.Value) (any, *ctxerr.Error) {
 //	  "fullname": HasPrefix("Foo"),
 //	  "age":      Between(41, 43),
 //	  "details":  SuperMapOf({
-//	    "address": NotEmpty(),
+//	    "address": NotEmpty, // () are optional when no parameters
 //	    "car":     Any("Peugeot", "Tesla", "Jeep") // any of these
 //	  })
 //	}`))
@@ -610,43 +581,96 @@ func jsonify(ctx ctxerr.Context, got reflect.Value) (any, *ctxerr.Error) {
 //   - the optional 3rd parameter of [Between] has to be specified as a string
 //     and can be: "[]" or "BoundsInIn" (default), "[[" or "BoundsInOut",
 //     "]]" or "BoundsOutIn", "][" or "BoundsOutOut";
-//   - not all operators are embeddable only the following are:
-//     [All], [Any], [ArrayEach], [Bag], [Between], [Contains],
-//     [ContainsKey], [Empty], [Gt], [Gte], [HasPrefix], [HasSuffix],
-//     [Ignore], [JSONPointer], [Keys], [Len], [Lt], [Lte], [MapEach],
-//     [N], [NaN], [Nil], [None], [Not], [NotAny], [NotEmpty], [NotNaN],
-//     [NotNil], [NotZero], [Re], [ReAll], [Set], [SubBagOf],
-//     [SubMapOf], [SubSetOf], [SuperBagOf], [SuperMapOf], [SuperSetOf],
-//     [Values] and [Zero].
+//   - not all operators are embeddable only the following are: [All],
+//     [Any], [ArrayEach], [Bag], [Between], [Contains],
+//     [ContainsKey], [Empty], [First], [Grep], [Gt], [Gte],
+//     [HasPrefix], [HasSuffix], [Ignore], [JSONPointer], [Keys],
+//     [Last], [Len], [Lt], [Lte], [MapEach], [N], [NaN], [Nil],
+//     [None], [Not], [NotAny], [NotEmpty], [NotNaN], [NotNil],
+//     [NotZero], [Re], [ReAll], [Set], [SubBagOf], [SubMapOf],
+//     [SubSetOf], [SuperBagOf], [SuperMapOf], [SuperSetOf], [Values]
+//     and [Zero].
 //
-// Operators taking no parameters can also be directly embedded in
-// JSON data using $^OperatorName or "$^OperatorName" notation. They
-// are named shortcut operators (they predate the above operators embedding
-// but they still subsist for compatibility):
+// It is also possible to embed operators in JSON strings. This way,
+// the JSON specification can be fulfilled. To avoid collision with
+// possible strings, just prefix the first operator name with
+// "$^". The previous example becomes:
+//
+//	td.Cmp(t, gotValue,
+//	  td.JSON(`
+//	{
+//	  "fullname": "$^HasPrefix(\"Foo\")",
+//	  "age":      "$^Between(41, 43)",
+//	  "details":  "$^SuperMapOf({
+//	    \"address\": NotEmpty, // () are optional when no parameters
+//	    \"car\":     Any(\"Peugeot\", \"Tesla\", \"Jeep\") // any of these
+//	  })"
+//	}`))
+//
+// As you can see, in this case, strings in strings have to be
+// escaped. Fortunately, newlines are accepted, but unfortunately they
+// are forbidden by JSON specification. To avoid too much escaping,
+// raw strings are accepted. A raw string is a "r" followed by a
+// delimiter, the corresponding delimiter closes the string. The
+// following raw strings are all the same as "foo\\bar(\"zip\")!":
+//   - r'foo\bar"zip"!'
+//   - r,foo\bar"zip"!,
+//   - r%foo\bar"zip"!%
+//   - r(foo\bar("zip")!)
+//   - r{foo\bar("zip")!}
+//   - r[foo\bar("zip")!]
+//   - r<foo\bar("zip")!>
+//
+// So non-bracketing delimiters use the same character before and
+// after, but the 4 sorts of ASCII brackets (round, angle, square,
+// curly) all nest: r[x[y]z] equals "x[y]z". The end delimiter cannot
+// be escaped.
+//
+// With raw strings, the previous example becomes:
+//
+//	td.Cmp(t, gotValue,
+//	  td.JSON(`
+//	{
+//	  "fullname": "$^HasPrefix(r<Foo>)",
+//	  "age":      "$^Between(41, 43)",
+//	  "details":  "$^SuperMapOf({
+//	    r<address>: NotEmpty, // () are optional when no parameters
+//	    r<car>:     Any(r<Peugeot>, r<Tesla>, r<Jeep>) // any of these
+//	  })"
+//	}`))
+//
+// Note that raw strings are accepted anywhere, not only in original
+// JSON strings.
+//
+// To be complete, $^ can prefix an operator even outside a
+// string. This is accepted for compatibility purpose as the first
+// operator embedding feature used this way to embed some operators.
+//
+// So the following calls are all equivalent:
 //
 //	td.Cmp(t, gotValue, td.JSON(`{"id": $1}`, td.NotZero()))
-//
-// can be written as:
-//
+//	td.Cmp(t, gotValue, td.JSON(`{"id": NotZero}`))
+//	td.Cmp(t, gotValue, td.JSON(`{"id": NotZero()}`))
 //	td.Cmp(t, gotValue, td.JSON(`{"id": $^NotZero}`))
-//
-// or
-//
+//	td.Cmp(t, gotValue, td.JSON(`{"id": $^NotZero()}`))
 //	td.Cmp(t, gotValue, td.JSON(`{"id": "$^NotZero"}`))
+//	td.Cmp(t, gotValue, td.JSON(`{"id": "$^NotZero()"}`))
 //
 // As for placeholders, there is no differences between $^NotZero and
 // "$^NotZero".
 //
-// The allowed shortcut operators follow:
-//   - [Empty]    → $^Empty
-//   - [Ignore]   → $^Ignore
-//   - [NaN]      → $^NaN
-//   - [Nil]      → $^Nil
-//   - [NotEmpty] → $^NotEmpty
-//   - [NotNaN]   → $^NotNaN
-//   - [NotNil]   → $^NotNil
-//   - [NotZero]  → $^NotZero
-//   - [Zero]     → $^Zero
+// Tip: when an [io.Reader] is expected to contain JSON data, it
+// cannot be tested directly, but using the [Smuggle] operator simply
+// solves the problem:
+//
+//	var body io.Reader
+//	// …
+//	td.Cmp(t, body, td.Smuggle(json.RawMessage{}, td.JSON(`{"foo":1}`)))
+//	// or equally
+//	td.Cmp(t, body, td.Smuggle(json.RawMessage(nil), td.JSON(`{"foo":1}`)))
+//
+// [Smuggle] reads from body into an [encoding/json.RawMessage] then
+// this buffer is unmarshaled by JSON operator before the comparison.
 //
 // TypeBehind method returns the [reflect.Type] of the expectedJSON
 // once JSON unmarshaled. So it can be bool, string, float64, []any,
@@ -738,9 +762,10 @@ var _ TestDeep = &tdMapJSON{}
 //
 //   - string containing JSON data like `{"fullname":"Bob","age":42}`
 //   - string containing a JSON filename, ending with ".json" (its
-//     content is [ioutil.ReadFile] before unmarshaling)
+//     content is [os.ReadFile] before unmarshaling)
 //   - []byte containing JSON data
-//   - [io.Reader] stream containing JSON data (is [ioutil.ReadAll] before
+//   - [encoding/json.RawMessage] containing JSON data
+//   - [io.Reader] stream containing JSON data (is [io.ReadAll] before
 //     unmarshaling)
 //
 // JSON data contained in expectedJSON must be a JSON object/map
@@ -805,7 +830,8 @@ var _ TestDeep = &tdMapJSON{}
 // as is, in its freshly unmarshaled JSON form (so as bool, float64,
 // string, []any, map[string]any or simply nil).
 //
-// Note expectedJSON can be a []byte, JSON filename or [io.Reader]:
+// Note expectedJSON can be a []byte, an [encoding/json.RawMessage], a
+// JSON filename or a [io.Reader]:
 //
 //	td.Cmp(t, gotValue, td.SubJSONOf("file.json", td.Between(12, 34)))
 //	td.Cmp(t, gotValue, td.SubJSONOf([]byte(`[1, $1, 3]`), td.Between(12, 34)))
@@ -852,11 +878,14 @@ var _ TestDeep = &tdMapJSON{}
 //
 // Other JSON divergences:
 //   - ',' can precede a '}' or a ']' (as in go);
+//   - strings can contain non-escaped \n, \r and \t;
+//   - raw strings are accepted (r{raw}, r!raw!, …), see below;
 //   - int_lit & float_lit numbers as defined in go spec are accepted;
 //   - numbers can be prefixed by '+'.
 //
 // Most operators can be directly embedded in SubJSONOf without requiring
-// any placeholder.
+// any placeholder. If an operators does not take any parameter, the
+// parenthesis can be omitted.
 //
 //	td.Cmp(t, gotValue,
 //	  td.SubJSONOf(`
@@ -864,7 +893,7 @@ var _ TestDeep = &tdMapJSON{}
 //	  "fullname": HasPrefix("Foo"),
 //	  "age":      Between(41, 43),
 //	  "details":  SuperMapOf({
-//	    "address": NotEmpty(),
+//	    "address": NotEmpty, // () are optional when no parameters
 //	    "car":     Any("Peugeot", "Tesla", "Jeep") // any of these
 //	  })
 //	}`))
@@ -879,43 +908,96 @@ var _ TestDeep = &tdMapJSON{}
 //   - the optional 3rd parameter of [Between] has to be specified as a string
 //     and can be: "[]" or "BoundsInIn" (default), "[[" or "BoundsInOut",
 //     "]]" or "BoundsOutIn", "][" or "BoundsOutOut";
-//   - not all operators are embeddable only the following are:
-//     [All], [Any], [ArrayEach], [Bag], [Between], [Contains],
-//     [ContainsKey], [Empty], [Gt], [Gte], [HasPrefix], [HasSuffix],
-//     [Ignore], [JSONPointer], [Keys], [Len], [Lt], [Lte], [MapEach],
-//     [N], [NaN], [Nil], [None], [Not], [NotAny], [NotEmpty], [NotNaN],
-//     [NotNil], [NotZero], [Re], [ReAll], [Set], [SubBagOf],
-//     [SubMapOf], [SubSetOf], [SuperBagOf], [SuperMapOf], [SuperSetOf],
-//     [Values] and [Zero].
+//   - not all operators are embeddable only the following are: [All],
+//     [Any], [ArrayEach], [Bag], [Between], [Contains],
+//     [ContainsKey], [Empty], [First], [Grep], [Gt], [Gte],
+//     [HasPrefix], [HasSuffix], [Ignore], [JSONPointer], [Keys],
+//     [Last], [Len], [Lt], [Lte], [MapEach], [N], [NaN], [Nil],
+//     [None], [Not], [NotAny], [NotEmpty], [NotNaN], [NotNil],
+//     [NotZero], [Re], [ReAll], [Set], [SubBagOf], [SubMapOf],
+//     [SubSetOf], [SuperBagOf], [SuperMapOf], [SuperSetOf], [Values]
+//     and [Zero].
 //
-// Operators taking no parameters can also be directly embedded in
-// JSON data using $^OperatorName or "$^OperatorName" notation. They
-// are named shortcut operators (they predate the above operators embedding
-// but they subsist for compatibility):
+// It is also possible to embed operators in JSON strings. This way,
+// the JSON specification can be fulfilled. To avoid collision with
+// possible strings, just prefix the first operator name with
+// "$^". The previous example becomes:
 //
-//	td.Cmp(t, gotValue, td.SubJSONOf(`{"id": $1, "bar": 42}`, td.NotZero()))
+//	td.Cmp(t, gotValue,
+//	  td.SubJSONOf(`
+//	{
+//	  "fullname": "$^HasPrefix(\"Foo\")",
+//	  "age":      "$^Between(41, 43)",
+//	  "details":  "$^SuperMapOf({
+//	    \"address\": NotEmpty, // () are optional when no parameters
+//	    \"car\":     Any(\"Peugeot\", \"Tesla\", \"Jeep\") // any of these
+//	  })"
+//	}`))
 //
-// can be written as:
+// As you can see, in this case, strings in strings have to be
+// escaped. Fortunately, newlines are accepted, but unfortunately they
+// are forbidden by JSON specification. To avoid too much escaping,
+// raw strings are accepted. A raw string is a "r" followed by a
+// delimiter, the corresponding delimiter closes the string. The
+// following raw strings are all the same as "foo\\bar(\"zip\")!":
+//   - r'foo\bar"zip"!'
+//   - r,foo\bar"zip"!,
+//   - r%foo\bar"zip"!%
+//   - r(foo\bar("zip")!)
+//   - r{foo\bar("zip")!}
+//   - r[foo\bar("zip")!]
+//   - r<foo\bar("zip")!>
 //
-//	td.Cmp(t, gotValue, td.SubJSONOf(`{"id": $^NotZero, "bar": 42}`))
+// So non-bracketing delimiters use the same character before and
+// after, but the 4 sorts of ASCII brackets (round, angle, square,
+// curly) all nest: r[x[y]z] equals "x[y]z". The end delimiter cannot
+// be escaped.
 //
-// or
+// With raw strings, the previous example becomes:
 //
-//	td.Cmp(t, gotValue, td.SubJSONOf(`{"id": "$^NotZero", "bar": 42}`))
+//	td.Cmp(t, gotValue,
+//	  td.SubJSONOf(`
+//	{
+//	  "fullname": "$^HasPrefix(r<Foo>)",
+//	  "age":      "$^Between(41, 43)",
+//	  "details":  "$^SuperMapOf({
+//	    r<address>: NotEmpty, // () are optional when no parameters
+//	    r<car>:     Any(r<Peugeot>, r<Tesla>, r<Jeep>) // any of these
+//	  })"
+//	}`))
+//
+// Note that raw strings are accepted anywhere, not only in original
+// JSON strings.
+//
+// To be complete, $^ can prefix an operator even outside a
+// string. This is accepted for compatibility purpose as the first
+// operator embedding feature used this way to embed some operators.
+//
+// So the following calls are all equivalent:
+//
+//	td.Cmp(t, gotValue, td.SubJSONOf(`{"id": $1}`, td.NotZero()))
+//	td.Cmp(t, gotValue, td.SubJSONOf(`{"id": NotZero}`))
+//	td.Cmp(t, gotValue, td.SubJSONOf(`{"id": NotZero()}`))
+//	td.Cmp(t, gotValue, td.SubJSONOf(`{"id": $^NotZero}`))
+//	td.Cmp(t, gotValue, td.SubJSONOf(`{"id": $^NotZero()}`))
+//	td.Cmp(t, gotValue, td.SubJSONOf(`{"id": "$^NotZero"}`))
+//	td.Cmp(t, gotValue, td.SubJSONOf(`{"id": "$^NotZero()"}`))
 //
 // As for placeholders, there is no differences between $^NotZero and
 // "$^NotZero".
 //
-// The allowed shortcut operators follow:
-//   - [Empty]    → $^Empty
-//   - [Ignore]   → $^Ignore
-//   - [NaN]      → $^NaN
-//   - [Nil]      → $^Nil
-//   - [NotEmpty] → $^NotEmpty
-//   - [NotNaN]   → $^NotNaN
-//   - [NotNil]   → $^NotNil
-//   - [NotZero]  → $^NotZero
-//   - [Zero]     → $^Zero
+// Tip: when an [io.Reader] is expected to contain JSON data, it
+// cannot be tested directly, but using the [Smuggle] operator simply
+// solves the problem:
+//
+//	var body io.Reader
+//	// …
+//	td.Cmp(t, body, td.Smuggle(json.RawMessage{}, td.SubJSONOf(`{"foo":1,"bar":2}`)))
+//	// or equally
+//	td.Cmp(t, body, td.Smuggle(json.RawMessage(nil), td.SubJSONOf(`{"foo":1,"bar":2}`)))
+//
+// [Smuggle] reads from body into an [encoding/json.RawMessage] then
+// this buffer is unmarshaled by SubJSONOf operator before the comparison.
 //
 // TypeBehind method returns the map[string]any type.
 //
@@ -959,9 +1041,10 @@ func SubJSONOf(expectedJSON any, params ...any) TestDeep {
 //
 //   - string containing JSON data like `{"fullname":"Bob","age":42}`
 //   - string containing a JSON filename, ending with ".json" (its
-//     content is [ioutil.ReadFile] before unmarshaling)
+//     content is [os.ReadFile] before unmarshaling)
 //   - []byte containing JSON data
-//   - [io.Reader] stream containing JSON data (is [ioutil.ReadAll] before
+//   - [encoding/json.RawMessage] containing JSON data
+//   - [io.Reader] stream containing JSON data (is [io.ReadAll] before
 //     unmarshaling)
 //
 // JSON data contained in expectedJSON must be a JSON object/map
@@ -1028,7 +1111,8 @@ func SubJSONOf(expectedJSON any, params ...any) TestDeep {
 // as is, in its freshly unmarshaled JSON form (so as bool, float64,
 // string, []any, map[string]any or simply nil).
 //
-// Note expectedJSON can be a []byte, JSON filename or [io.Reader]:
+// Note expectedJSON can be a []byte, an [encoding/json.RawMessage], a
+// JSON filename or a [io.Reader]:
 //
 //	td.Cmp(t, gotValue, td.SuperJSONOf("file.json", td.Between(12, 34)))
 //	td.Cmp(t, gotValue, td.SuperJSONOf([]byte(`[1, $1, 3]`), td.Between(12, 34)))
@@ -1075,11 +1159,14 @@ func SubJSONOf(expectedJSON any, params ...any) TestDeep {
 //
 // Other JSON divergences:
 //   - ',' can precede a '}' or a ']' (as in go);
+//   - strings can contain non-escaped \n, \r and \t;
+//   - raw strings are accepted (r{raw}, r!raw!, …), see below;
 //   - int_lit & float_lit numbers as defined in go spec are accepted;
 //   - numbers can be prefixed by '+'.
 //
 // Most operators can be directly embedded in SuperJSONOf without requiring
-// any placeholder.
+// any placeholder. If an operators does not take any parameter, the
+// parenthesis can be omitted.
 //
 //	td.Cmp(t, gotValue,
 //	  td.SuperJSONOf(`
@@ -1087,7 +1174,7 @@ func SubJSONOf(expectedJSON any, params ...any) TestDeep {
 //	  "fullname": HasPrefix("Foo"),
 //	  "age":      Between(41, 43),
 //	  "details":  SuperMapOf({
-//	    "address": NotEmpty(),
+//	    "address": NotEmpty, // () are optional when no parameters
 //	    "car":     Any("Peugeot", "Tesla", "Jeep") // any of these
 //	  })
 //	}`))
@@ -1101,43 +1188,96 @@ func SubJSONOf(expectedJSON any, params ...any) TestDeep {
 //   - the optional 3rd parameter of [Between] has to be specified as a string
 //     and can be: "[]" or "BoundsInIn" (default), "[[" or "BoundsInOut",
 //     "]]" or "BoundsOutIn", "][" or "BoundsOutOut";
-//   - not all operators are embeddable only the following are:
-//     [All], [Any], [ArrayEach], [Bag], [Between], [Contains],
-//     [ContainsKey], [Empty], [Gt], [Gte], [HasPrefix], [HasSuffix],
-//     [Ignore], [JSONPointer], [Keys], [Len], [Lt], [Lte], [MapEach],
-//     [N], [NaN], [Nil], [None], [Not], [NotAny], [NotEmpty], [NotNaN],
-//     [NotNil], [NotZero], [Re], [ReAll], [Set], [SubBagOf],
-//     [SubMapOf], [SubSetOf], [SuperBagOf], [SuperMapOf], [SuperSetOf],
-//     [Values] and [Zero].
+//   - not all operators are embeddable only the following are: [All],
+//     [Any], [ArrayEach], [Bag], [Between], [Contains],
+//     [ContainsKey], [Empty], [First], [Grep], [Gt], [Gte],
+//     [HasPrefix], [HasSuffix], [Ignore], [JSONPointer], [Keys],
+//     [Last], [Len], [Lt], [Lte], [MapEach], [N], [NaN], [Nil],
+//     [None], [Not], [NotAny], [NotEmpty], [NotNaN], [NotNil],
+//     [NotZero], [Re], [ReAll], [Set], [SubBagOf], [SubMapOf],
+//     [SubSetOf], [SuperBagOf], [SuperMapOf], [SuperSetOf], [Values]
+//     and [Zero].
 //
-// Operators taking no parameters can also be directly embedded in
-// JSON data using $^OperatorName or "$^OperatorName" notation. They
-// are named shortcut operators (they predate the above operators embedding
-// but they subsist for compatibility):
+// It is also possible to embed operators in JSON strings. This way,
+// the JSON specification can be fulfilled. To avoid collision with
+// possible strings, just prefix the first operator name with
+// "$^". The previous example becomes:
+//
+//	td.Cmp(t, gotValue,
+//	  td.SuperJSONOf(`
+//	{
+//	  "fullname": "$^HasPrefix(\"Foo\")",
+//	  "age":      "$^Between(41, 43)",
+//	  "details":  "$^SuperMapOf({
+//	    \"address\": NotEmpty, // () are optional when no parameters
+//	    \"car\":     Any(\"Peugeot\", \"Tesla\", \"Jeep\") // any of these
+//	  })"
+//	}`))
+//
+// As you can see, in this case, strings in strings have to be
+// escaped. Fortunately, newlines are accepted, but unfortunately they
+// are forbidden by JSON specification. To avoid too much escaping,
+// raw strings are accepted. A raw string is a "r" followed by a
+// delimiter, the corresponding delimiter closes the string. The
+// following raw strings are all the same as "foo\\bar(\"zip\")!":
+//   - r'foo\bar"zip"!'
+//   - r,foo\bar"zip"!,
+//   - r%foo\bar"zip"!%
+//   - r(foo\bar("zip")!)
+//   - r{foo\bar("zip")!}
+//   - r[foo\bar("zip")!]
+//   - r<foo\bar("zip")!>
+//
+// So non-bracketing delimiters use the same character before and
+// after, but the 4 sorts of ASCII brackets (round, angle, square,
+// curly) all nest: r[x[y]z] equals "x[y]z". The end delimiter cannot
+// be escaped.
+//
+// With raw strings, the previous example becomes:
+//
+//	td.Cmp(t, gotValue,
+//	  td.SuperJSONOf(`
+//	{
+//	  "fullname": "$^HasPrefix(r<Foo>)",
+//	  "age":      "$^Between(41, 43)",
+//	  "details":  "$^SuperMapOf({
+//	    r<address>: NotEmpty, // () are optional when no parameters
+//	    r<car>:     Any(r<Peugeot>, r<Tesla>, r<Jeep>) // any of these
+//	  })"
+//	}`))
+//
+// Note that raw strings are accepted anywhere, not only in original
+// JSON strings.
+//
+// To be complete, $^ can prefix an operator even outside a
+// string. This is accepted for compatibility purpose as the first
+// operator embedding feature used this way to embed some operators.
+//
+// So the following calls are all equivalent:
 //
 //	td.Cmp(t, gotValue, td.SuperJSONOf(`{"id": $1}`, td.NotZero()))
-//
-// can be written as:
-//
+//	td.Cmp(t, gotValue, td.SuperJSONOf(`{"id": NotZero}`))
+//	td.Cmp(t, gotValue, td.SuperJSONOf(`{"id": NotZero()}`))
 //	td.Cmp(t, gotValue, td.SuperJSONOf(`{"id": $^NotZero}`))
-//
-// or
-//
+//	td.Cmp(t, gotValue, td.SuperJSONOf(`{"id": $^NotZero()}`))
 //	td.Cmp(t, gotValue, td.SuperJSONOf(`{"id": "$^NotZero"}`))
+//	td.Cmp(t, gotValue, td.SuperJSONOf(`{"id": "$^NotZero()"}`))
 //
 // As for placeholders, there is no differences between $^NotZero and
 // "$^NotZero".
 //
-// The allowed shortcut operators follow:
-//   - [Empty]    → $^Empty
-//   - [Ignore]   → $^Ignore
-//   - [NaN]      → $^NaN
-//   - [Nil]      → $^Nil
-//   - [NotEmpty] → $^NotEmpty
-//   - [NotNaN]   → $^NotNaN
-//   - [NotNil]   → $^NotNil
-//   - [NotZero]  → $^NotZero
-//   - [Zero]     → $^Zero
+// Tip: when an [io.Reader] is expected to contain JSON data, it
+// cannot be tested directly, but using the [Smuggle] operator simply
+// solves the problem:
+//
+//	var body io.Reader
+//	// …
+//	td.Cmp(t, body, td.Smuggle(json.RawMessage{}, td.SuperJSONOf(`{"foo":1}`)))
+//	// or equally
+//	td.Cmp(t, body, td.Smuggle(json.RawMessage(nil), td.SuperJSONOf(`{"foo":1}`)))
+//
+// [Smuggle] reads from body into an [encoding/json.RawMessage] then
+// this buffer is unmarshaled by SuperJSONOf operator before the comparison.
 //
 // TypeBehind method returns the map[string]any type.
 //

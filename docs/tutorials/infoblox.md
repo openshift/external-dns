@@ -69,7 +69,7 @@ spec:
     spec:
       containers:
       - name: external-dns
-        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
+        image: registry.k8s.io/external-dns/external-dns:v0.14.1
         args:
         - --source=service
         - --domain-filter=example.com       # (optional) limit to only example.com domains.
@@ -79,6 +79,7 @@ spec:
         - --infoblox-wapi-version=2.3.1     # (optional) Infoblox WAPI version. The default is "2.3.1"
         - --infoblox-ssl-verify             # (optional) Use --no-infoblox-ssl-verify to skip server certificate verification.
         - --infoblox-create-ptr             # (optional) Use --infoblox-create-ptr to create a ptr entry in addition to an entry.
+        - --infoblox-view=""                # (optional) DNS view (default: "")
         env:
         - name: EXTERNAL_DNS_INFOBLOX_HTTP_POOL_CONNECTIONS
           value: "10" # (optional) Infoblox WAPI request connection pool size. The default is "10".
@@ -150,7 +151,7 @@ spec:
       serviceAccountName: external-dns
       containers:
       - name: external-dns
-        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
+        image: registry.k8s.io/external-dns/external-dns:v0.14.1
         args:
         - --source=service
         - --domain-filter=example.com       # (optional) limit to only example.com domains.
@@ -160,6 +161,7 @@ spec:
         - --infoblox-wapi-version=2.3.1     # (optional) Infoblox WAPI version. The default is "2.3.1"
         - --infoblox-ssl-verify             # (optional) Use --no-infoblox-ssl-verify to skip server certificate verification.
         - --infoblox-create-ptr             # (optional) Use --infoblox-create-ptr to create a ptr entry in addition to an entry.
+        - --infoblox-view=""                # (optional) DNS view (default: "")        
         env:
         - name: EXTERNAL_DNS_INFOBLOX_HTTP_POOL_CONNECTIONS
           value: "10" # (optional) Infoblox WAPI request connection pool size. The default is "10".
@@ -269,6 +271,14 @@ There is also the ability to filter results from the Infoblox zone_auth service 
 
 ```
 --infoblox-fqdn-regex=^staging.*test.com$
+```
+
+## Ability to filter A, Host, CNAME and TXT records from the by name using a regular expression
+
+Infoblox supports filtering records by name using a regular expression.  See the [Infoblox API document](https://www.infoblox.com/wp-content/uploads/infoblox-deployment-infoblox-rest-api.pdf) for examples.  To use this feature, set the parameter infoblox-name-regex for external-dns to a regular expression that makes sense for you.  For instance, if all your dns records end with `cluster1.example.com`, you can fetch records matching this style by setting the following:
+
+```
+--infoblox-name-regex=cluster1.example.com
 ```
 
 ## Infoblox PTR record support

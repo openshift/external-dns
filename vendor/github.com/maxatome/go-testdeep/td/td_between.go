@@ -40,14 +40,11 @@ var _ TestDeep = &tdBetween{}
 type BoundsKind uint8
 
 const (
-	// BoundsInIn allows to match between "from" and "to" both included.
-	BoundsInIn BoundsKind = iota
-	// BoundsInOut allows to match between "from" included and "to" excluded.
-	BoundsInOut
-	// BoundsOutIn allows to match between "from" excluded and "to" included.
-	BoundsOutIn
-	// BoundsOutOut allows to match between "from" and "to" both excluded.
-	BoundsOutOut
+	_            BoundsKind = (iota - 1) & 3
+	BoundsInIn              // allows to match between "from" and "to" both included.
+	BoundsInOut             // allows to match between "from" included and "to" excluded.
+	BoundsOutIn             // allows to match between "from" excluded and "to" included.
+	BoundsOutOut            // allows to match between "from" and "to" both excluded.
 )
 
 type tdBetweenTime struct {
@@ -215,20 +212,14 @@ func (b *tdBetween) initBetween(usage string) TestDeep {
 			break
 		}
 
-		var bt tdBetweenTime
+		bt := tdBetweenTime{
+			tdBetween:    *b,
+			expectedType: b.expectedMin.Type(),
+			mustConvert:  convertible,
+		}
 		if convertible {
-			bt = tdBetweenTime{
-				tdBetween:    *b,
-				expectedType: b.expectedMin.Type(),
-				mustConvert:  true,
-			}
 			bt.expectedMin = b.expectedMin.Convert(types.Time)
 			bt.expectedMax = b.expectedMax.Convert(types.Time)
-		} else {
-			bt = tdBetweenTime{
-				tdBetween:    *b,
-				expectedType: types.Time,
-			}
 		}
 
 		if bt.expectedMin.Interface().(time.Time).
@@ -573,17 +564,16 @@ func (b *tdBetween) Match(ctx ctxerr.Context, got reflect.Value) *ctxerr.Error {
 	}
 
 	if got.Type() != b.expectedMin.Type() {
-		if ctx.BeLax && types.IsConvertible(b.expectedMin, got.Type()) {
-			nb := *b
-			nb.expectedMin = b.expectedMin.Convert(got.Type())
-			nb.expectedMax = b.expectedMax.Convert(got.Type())
-			b = &nb
-		} else {
+		if !ctx.BeLax || !types.IsConvertible(b.expectedMin, got.Type()) {
 			if ctx.BooleanError {
 				return ctxerr.BooleanError
 			}
 			return ctx.CollectError(ctxerr.TypeMismatch(got.Type(), b.expectedMin.Type()))
 		}
+		nb := *b
+		nb.expectedMin = b.expectedMin.Convert(got.Type())
+		nb.expectedMax = b.expectedMax.Convert(got.Type())
+		b = &nb
 	}
 
 	var ok bool
@@ -667,14 +657,13 @@ func (b *tdBetweenTime) Match(ctx ctxerr.Context, got reflect.Value) *ctxerr.Err
 	// built, there is never an error
 
 	if got.Type() != b.expectedType {
-		if ctx.BeLax && types.IsConvertible(got, b.expectedType) {
-			got = got.Convert(b.expectedType)
-		} else {
+		if !ctx.BeLax || !types.IsConvertible(got, b.expectedType) {
 			if ctx.BooleanError {
 				return ctxerr.BooleanError
 			}
 			return ctx.CollectError(ctxerr.TypeMismatch(got.Type(), b.expectedType))
 		}
+		got = got.Convert(b.expectedType)
 	}
 
 	cmpGot, err := getTime(ctx, got, b.mustConvert)

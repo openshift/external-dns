@@ -18,7 +18,11 @@ package rfc2136
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"os"
+	"regexp"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -46,9 +50,24 @@ func newStub() *rfc2136Stub {
 	}
 }
 
+func getSortedChanges(msgs []*dns.Msg) []string {
+	r := []string{}
+	for _, d := range msgs {
+		// only care about section after the ZONE SECTION: as the id: needs stripped out in order to sort and grantee the order when sorting
+		r = append(r, strings.Split(d.String(), "ZONE SECTION:")[1])
+	}
+	sort.Strings(r)
+	return r
+}
+
 func (r *rfc2136Stub) SendMessage(msg *dns.Msg) error {
-	log.Info(msg.String())
-	lines := extractAuthoritySectionFromMessage(msg)
+	zone := extractZoneFromMessage(msg.String())
+	// Make sure the zone starts with . to make sure HasSuffix does not match forbar.com for zone bar.com
+	if !strings.HasPrefix(zone, ".") {
+		zone = "." + zone
+	}
+	log.Infof("zone=%s", zone)
+	lines := extractUpdateSectionFromMessage(msg)
 	for _, line := range lines {
 		// break at first empty line
 		if len(strings.TrimSpace(line)) == 0 {
@@ -57,6 +76,12 @@ func (r *rfc2136Stub) SendMessage(msg *dns.Msg) error {
 
 		line = strings.Replace(line, "\t", " ", -1)
 		log.Info(line)
+		record := strings.Split(line, " ")[0]
+		if !strings.HasSuffix(record, zone) {
+			err := fmt.Errorf("Message contains updates outside of it's zone.  zone=%v record=%v", zone, record)
+			log.Error(err)
+			return err
+		}
 
 		if strings.Contains(line, " NONE ") {
 			r.updateMsgs = append(r.updateMsgs, msg)
@@ -95,13 +120,54 @@ func (r *rfc2136Stub) IncomeTransfer(m *dns.Msg, a string) (env chan *dns.Envelo
 }
 
 func createRfc2136StubProvider(stub *rfc2136Stub) (provider.Provider, error) {
-	return NewRfc2136Provider("", 0, "", false, "key", "secret", "hmac-sha512", true, endpoint.DomainFilter{}, false, 300*time.Second, false, "", "", "", 50, stub)
+	tlsConfig := TLSConfig{
+		UseTLS:                false,
+		SkipTLSVerify:         false,
+		CAFilePath:            "",
+		ClientCertFilePath:    "",
+		ClientCertKeyFilePath: "",
+	}
+	return NewRfc2136Provider("", 0, nil, false, "key", "secret", "hmac-sha512", true, endpoint.DomainFilter{}, false, 300*time.Second, false, "", "", "", 50, tlsConfig, stub)
 }
 
-func extractAuthoritySectionFromMessage(msg fmt.Stringer) []string {
-	const searchPattern = "AUTHORITY SECTION:"
-	authoritySectionOffset := strings.Index(msg.String(), searchPattern)
-	return strings.Split(strings.TrimSpace(msg.String()[authoritySectionOffset+len(searchPattern):]), "\n")
+func createRfc2136TLSStubProvider(stub *rfc2136Stub, tlsConfig TLSConfig) (provider.Provider, error) {
+	return NewRfc2136Provider("rfc2136-host", 0, nil, false, "key", "secret", "hmac-sha512", true, endpoint.DomainFilter{}, false, 300*time.Second, false, "", "", "", 50, tlsConfig, stub)
+}
+
+func createRfc2136StubProviderWithZones(stub *rfc2136Stub) (provider.Provider, error) {
+	tlsConfig := TLSConfig{
+		UseTLS:                false,
+		SkipTLSVerify:         false,
+		CAFilePath:            "",
+		ClientCertFilePath:    "",
+		ClientCertKeyFilePath: "",
+	}
+	zones := []string{"foo.com", "foobar.com"}
+	return NewRfc2136Provider("", 0, zones, false, "key", "secret", "hmac-sha512", true, endpoint.DomainFilter{}, false, 300*time.Second, false, "", "", "", 50, tlsConfig, stub)
+}
+
+func createRfc2136StubProviderWithZonesFilters(stub *rfc2136Stub) (provider.Provider, error) {
+	tlsConfig := TLSConfig{
+		UseTLS:                false,
+		SkipTLSVerify:         false,
+		CAFilePath:            "",
+		ClientCertFilePath:    "",
+		ClientCertKeyFilePath: "",
+	}
+	zones := []string{"foo.com", "foobar.com"}
+	return NewRfc2136Provider("", 0, zones, false, "key", "secret", "hmac-sha512", true, endpoint.DomainFilter{Filters: zones}, false, 300*time.Second, false, "", "", "", 50, tlsConfig, stub)
+}
+
+func extractUpdateSectionFromMessage(msg fmt.Stringer) []string {
+	const searchPattern = "UPDATE SECTION:"
+	updateSectionOffset := strings.Index(msg.String(), searchPattern)
+	return strings.Split(strings.TrimSpace(msg.String()[updateSectionOffset+len(searchPattern):]), "\n")
+}
+
+func extractZoneFromMessage(msg string) string {
+	re := regexp.MustCompile(`ZONE SECTION:\n;(?P<ZONE>[\.,\-,\w,\d]+)\t`)
+	matches := re.FindStringSubmatch(msg)
+	return matches[re.SubexpIndex("ZONE")]
 }
 
 // TestRfc2136GetRecordsMultipleTargets simulates a single record with multiple targets.
@@ -130,6 +196,157 @@ func TestRfc2136GetRecordsMultipleTargets(t *testing.T) {
 	assert.Equal(t, 0, len(recs[0].ProviderSpecific), "expected no provider specific config")
 }
 
+func TestRfc2136TLSConfig(t *testing.T) {
+	stub := newStub()
+
+	caFile, err := os.CreateTemp("", "rfc2136-test-XXXXXXXX.crt")
+	assert.NoError(t, err)
+	defer os.Remove(caFile.Name())
+	_, err = caFile.Write([]byte(
+		`-----BEGIN CERTIFICATE-----
+MIH+MIGxAhR2n1aQk0ONrQ8QQfa6GCzFWLmTXTAFBgMrZXAwITELMAkGA1UEBhMC
+REUxEjAQBgNVBAMMCWxvY2FsaG9zdDAgFw0yMzEwMjQwNzI5NDNaGA8yMTIzMDkz
+MDA3Mjk0M1owITELMAkGA1UEBhMCREUxEjAQBgNVBAMMCWxvY2FsaG9zdDAqMAUG
+AytlcAMhAA1FzGJXuQdOpKv02SEl7SIA8SP8RVRI0QTi1bUFiFBLMAUGAytlcANB
+ADiCKRUGDMyafSSYhl0KXoiXrFOxvhrGM5l15L4q82JM5Qb8wv0gNrnbGTZlInuv
+ouB5ZN+05DzKCQhBekMnygQ=
+-----END CERTIFICATE-----
+`))
+
+	tlsConfig := TLSConfig{
+		UseTLS:                true,
+		SkipTLSVerify:         false,
+		CAFilePath:            caFile.Name(),
+		ClientCertFilePath:    "",
+		ClientCertKeyFilePath: "",
+	}
+
+	provider, err := createRfc2136TLSStubProvider(stub, tlsConfig)
+	assert.NoError(t, err)
+
+	rawProvider := provider.(*rfc2136Provider)
+
+	client, err := makeClient(*rawProvider)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "tcp-tls", client.Net)
+	assert.Equal(t, false, client.TLSConfig.InsecureSkipVerify)
+	assert.Equal(t, "rfc2136-host", client.TLSConfig.ServerName)
+	assert.Equal(t, uint16(tls.VersionTLS13), client.TLSConfig.MinVersion)
+	assert.Equal(t, []string{"dot"}, client.TLSConfig.NextProtos)
+}
+
+func TestRfc2136TLSConfigNoVerify(t *testing.T) {
+	stub := newStub()
+
+	caFile, err := os.CreateTemp("", "rfc2136-test-XXXXXXXX.crt")
+	assert.NoError(t, err)
+	defer os.Remove(caFile.Name())
+	_, err = caFile.Write([]byte(
+		`-----BEGIN CERTIFICATE-----
+MIH+MIGxAhR2n1aQk0ONrQ8QQfa6GCzFWLmTXTAFBgMrZXAwITELMAkGA1UEBhMC
+REUxEjAQBgNVBAMMCWxvY2FsaG9zdDAgFw0yMzEwMjQwNzI5NDNaGA8yMTIzMDkz
+MDA3Mjk0M1owITELMAkGA1UEBhMCREUxEjAQBgNVBAMMCWxvY2FsaG9zdDAqMAUG
+AytlcAMhAA1FzGJXuQdOpKv02SEl7SIA8SP8RVRI0QTi1bUFiFBLMAUGAytlcANB
+ADiCKRUGDMyafSSYhl0KXoiXrFOxvhrGM5l15L4q82JM5Qb8wv0gNrnbGTZlInuv
+ouB5ZN+05DzKCQhBekMnygQ=
+-----END CERTIFICATE-----
+`))
+
+	tlsConfig := TLSConfig{
+		UseTLS:                true,
+		SkipTLSVerify:         true,
+		CAFilePath:            caFile.Name(),
+		ClientCertFilePath:    "",
+		ClientCertKeyFilePath: "",
+	}
+
+	provider, err := createRfc2136TLSStubProvider(stub, tlsConfig)
+	assert.NoError(t, err)
+
+	rawProvider := provider.(*rfc2136Provider)
+
+	client, err := makeClient(*rawProvider)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "tcp-tls", client.Net)
+	assert.Equal(t, true, client.TLSConfig.InsecureSkipVerify)
+	assert.Equal(t, "rfc2136-host", client.TLSConfig.ServerName)
+	assert.Equal(t, uint16(tls.VersionTLS13), client.TLSConfig.MinVersion)
+	assert.Equal(t, []string{"dot"}, client.TLSConfig.NextProtos)
+}
+
+func TestRfc2136TLSConfigClientAuth(t *testing.T) {
+	stub := newStub()
+
+	caFile, err := os.CreateTemp("", "rfc2136-test-XXXXXXXX.crt")
+	assert.NoError(t, err)
+	defer os.Remove(caFile.Name())
+	_, err = caFile.Write([]byte(
+		`-----BEGIN CERTIFICATE-----
+MIH+MIGxAhR2n1aQk0ONrQ8QQfa6GCzFWLmTXTAFBgMrZXAwITELMAkGA1UEBhMC
+REUxEjAQBgNVBAMMCWxvY2FsaG9zdDAgFw0yMzEwMjQwNzI5NDNaGA8yMTIzMDkz
+MDA3Mjk0M1owITELMAkGA1UEBhMCREUxEjAQBgNVBAMMCWxvY2FsaG9zdDAqMAUG
+AytlcAMhAA1FzGJXuQdOpKv02SEl7SIA8SP8RVRI0QTi1bUFiFBLMAUGAytlcANB
+ADiCKRUGDMyafSSYhl0KXoiXrFOxvhrGM5l15L4q82JM5Qb8wv0gNrnbGTZlInuv
+ouB5ZN+05DzKCQhBekMnygQ=
+-----END CERTIFICATE-----
+`))
+
+	certFile, err := os.CreateTemp("", "rfc2136-test-XXXXXXXX-client.crt")
+	assert.NoError(t, err)
+	defer os.Remove(certFile.Name())
+	_, err = certFile.Write([]byte(
+		`-----BEGIN CERTIFICATE-----
+MIIBfDCCAQICFANNDjPVDMTPm63C0jZ9M3H5I7GJMAoGCCqGSM49BAMCMCExCzAJ
+BgNVBAYTAkRFMRIwEAYDVQQDDAlsb2NhbGhvc3QwIBcNMjMxMDI0MDcyMTU1WhgP
+MjEyMzA5MzAwNzIxNTVaMCExCzAJBgNVBAYTAkRFMRIwEAYDVQQDDAlsb2NhbGhv
+c3QwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAAQj7rjkeUEvjBT++IBMnIWgmI9VIjFx
+4VUGFmzPEawOckdnKW4fBdePiItsgePDVK4Oys5bzfSDhl6aAPCe16pwvljB7yIm
+xLJ+ytWk7OV/s10cmlaczrEtNeUjV1X9MTMwCgYIKoZIzj0EAwIDaAAwZQIwcZl8
+TrwwsyX3A0enXB1ih+nruF8Q9f9Rmm2pNcbEv24QIW/P2HGQm9qfx4lrYa7hAjEA
+goRP/fRfTTTLwLg8UBpUAmALX8A8HBSBaUlTTQcaImbcwU4DRSbv5JEA8tM1mWrA
+-----END CERTIFICATE-----
+`))
+
+	keyFile, err := os.CreateTemp("", "rfc2136-test-XXXXXXXX-client.key")
+	assert.NoError(t, err)
+	defer os.Remove(keyFile.Name())
+	_, err = keyFile.Write([]byte(
+		`-----BEGIN PRIVATE KEY-----
+MIG2AgEAMBAGByqGSM49AgEGBSuBBAAiBIGeMIGbAgEBBDD5B+aPE+TuHCvW1f7L
+U8jEPVXHv1fvCR8uBSsf1qdPo929XGpt5y5QfIGdW3NUeHWhZANiAAQj7rjkeUEv
+jBT++IBMnIWgmI9VIjFx4VUGFmzPEawOckdnKW4fBdePiItsgePDVK4Oys5bzfSD
+hl6aAPCe16pwvljB7yImxLJ+ytWk7OV/s10cmlaczrEtNeUjV1X9MTM=
+-----END PRIVATE KEY-----
+`))
+
+	tlsConfig := TLSConfig{
+		UseTLS:                true,
+		SkipTLSVerify:         false,
+		CAFilePath:            caFile.Name(),
+		ClientCertFilePath:    certFile.Name(),
+		ClientCertKeyFilePath: keyFile.Name(),
+	}
+
+	provider, err := createRfc2136TLSStubProvider(stub, tlsConfig)
+	log.Infof("provider, err is: %s", err)
+	assert.NoError(t, err)
+
+	rawProvider := provider.(*rfc2136Provider)
+
+	client, err := makeClient(*rawProvider)
+	log.Infof("client, err is: %v", client)
+	log.Infof("client, err is: %s", err)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "tcp-tls", client.Net)
+	assert.Equal(t, false, client.TLSConfig.InsecureSkipVerify)
+	assert.Equal(t, "rfc2136-host", client.TLSConfig.ServerName)
+	assert.Equal(t, uint16(tls.VersionTLS13), client.TLSConfig.MinVersion)
+	assert.Equal(t, []string{"dot"}, client.TLSConfig.NextProtos)
+}
+
 func TestRfc2136GetRecords(t *testing.T) {
 	stub := newStub()
 	err := stub.setOutput([]string{
@@ -154,6 +371,32 @@ func TestRfc2136GetRecords(t *testing.T) {
 	assert.True(t, contains(recs, "v2.foo.com"))
 }
 
+// Make sure the test version of SendMessage raises an error
+// if a zone update ever contains records outside of it's zone
+// as the TestRfc2136ApplyChanges tests all assume this
+func TestRfc2136SendMessage(t *testing.T) {
+	stub := newStub()
+
+	m := new(dns.Msg)
+	m.SetUpdate("foo.com.")
+	rr, err := dns.NewRR(fmt.Sprintf("%s %d %s %s", "v1.foo.com.", 0, "A", "1.2.3.4"))
+	m.Insert([]dns.RR{rr})
+
+	err = stub.SendMessage(m)
+	assert.NoError(t, err)
+
+	rr, err = dns.NewRR(fmt.Sprintf("%s %d %s %s", "v1.bar.com.", 0, "A", "1.2.3.4"))
+	m.Insert([]dns.RR{rr})
+
+	err = stub.SendMessage(m)
+	assert.Error(t, err)
+
+	m.SetUpdate(".")
+	err = stub.SendMessage(m)
+	assert.NoError(t, err)
+}
+
+// These tests are use the . root zone with no filters
 func TestRfc2136ApplyChanges(t *testing.T) {
 	stub := newStub()
 	provider, err := createRfc2136StubProvider(stub)
@@ -210,6 +453,145 @@ func TestRfc2136ApplyChanges(t *testing.T) {
 	assert.True(t, strings.Contains(stub.updateMsgs[1].String(), "v2.foobar.com"))
 }
 
+// These tests all use the foo.com and foobar.com zones with no filters
+// createMsgs and updateMsgs need sorted when are are used
+func TestRfc2136ApplyChangesWithZones(t *testing.T) {
+	stub := newStub()
+	provider, err := createRfc2136StubProviderWithZones(stub)
+	assert.NoError(t, err)
+
+	p := &plan.Changes{
+		Create: []*endpoint.Endpoint{
+			{
+				DNSName:    "v1.foo.com",
+				RecordType: "A",
+				Targets:    []string{"1.2.3.4"},
+				RecordTTL:  endpoint.TTL(400),
+			},
+			{
+				DNSName:    "v1.foobar.com",
+				RecordType: "TXT",
+				Targets:    []string{"boom"},
+			},
+			{
+				DNSName:    "ns.foobar.com",
+				RecordType: "NS",
+				Targets:    []string{"boom"},
+			},
+		},
+		Delete: []*endpoint.Endpoint{
+			{
+				DNSName:    "v2.foo.com",
+				RecordType: "A",
+				Targets:    []string{"1.2.3.4"},
+			},
+			{
+				DNSName:    "v2.foobar.com",
+				RecordType: "TXT",
+				Targets:    []string{"boom2"},
+			},
+		},
+	}
+
+	err = provider.ApplyChanges(context.Background(), p)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 3, len(stub.createMsgs))
+	createMsgs := getSortedChanges(stub.createMsgs)
+	assert.Equal(t, 3, len(createMsgs))
+
+	assert.True(t, strings.Contains(createMsgs[0], "v1.foo.com"))
+	assert.True(t, strings.Contains(createMsgs[0], "1.2.3.4"))
+
+	assert.True(t, strings.Contains(createMsgs[1], "v1.foobar.com"))
+	assert.True(t, strings.Contains(createMsgs[1], "boom"))
+
+	assert.True(t, strings.Contains(createMsgs[2], "ns.foobar.com"))
+	assert.True(t, strings.Contains(createMsgs[2], "boom"))
+
+	assert.Equal(t, 2, len(stub.updateMsgs))
+	updateMsgs := getSortedChanges(stub.updateMsgs)
+	assert.Equal(t, 2, len(updateMsgs))
+
+	assert.True(t, strings.Contains(updateMsgs[0], "v2.foo.com"))
+	assert.True(t, strings.Contains(updateMsgs[1], "v2.foobar.com"))
+}
+
+// These tests use the foo.com and foobar.com zones and with filters set to both zones
+// createMsgs and updateMsgs need sorted when are are used
+func TestRfc2136ApplyChangesWithZonesFilters(t *testing.T) {
+	stub := newStub()
+	provider, err := createRfc2136StubProviderWithZonesFilters(stub)
+	assert.NoError(t, err)
+
+	p := &plan.Changes{
+		Create: []*endpoint.Endpoint{
+			{
+				DNSName:    "v1.foo.com",
+				RecordType: "A",
+				Targets:    []string{"1.2.3.4"},
+				RecordTTL:  endpoint.TTL(400),
+			},
+			{
+				DNSName:    "v1.foobar.com",
+				RecordType: "TXT",
+				Targets:    []string{"boom"},
+			},
+			{
+				DNSName:    "ns.foobar.com",
+				RecordType: "NS",
+				Targets:    []string{"boom"},
+			},
+			{
+				DNSName:    "filtered-out.foo.bar",
+				RecordType: "A",
+				Targets:    []string{"1.2.3.4"},
+				RecordTTL:  endpoint.TTL(400),
+			},
+		},
+		Delete: []*endpoint.Endpoint{
+			{
+				DNSName:    "v2.foo.com",
+				RecordType: "A",
+				Targets:    []string{"1.2.3.4"},
+			},
+			{
+				DNSName:    "v2.foobar.com",
+				RecordType: "TXT",
+				Targets:    []string{"boom2"},
+			},
+		},
+	}
+
+	err = provider.ApplyChanges(context.Background(), p)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 3, len(stub.createMsgs))
+	createMsgs := getSortedChanges(stub.createMsgs)
+	assert.Equal(t, 3, len(createMsgs))
+
+	assert.True(t, strings.Contains(createMsgs[0], "v1.foo.com"))
+	assert.True(t, strings.Contains(createMsgs[0], "1.2.3.4"))
+
+	assert.True(t, strings.Contains(createMsgs[1], "v1.foobar.com"))
+	assert.True(t, strings.Contains(createMsgs[1], "boom"))
+
+	assert.True(t, strings.Contains(createMsgs[2], "ns.foobar.com"))
+	assert.True(t, strings.Contains(createMsgs[2], "boom"))
+
+	for _, s := range createMsgs {
+		assert.False(t, strings.Contains(s, "filtered-out.foo.bar"))
+	}
+
+	assert.Equal(t, 2, len(stub.updateMsgs))
+	updateMsgs := getSortedChanges(stub.updateMsgs)
+	assert.Equal(t, 2, len(updateMsgs))
+
+	assert.True(t, strings.Contains(updateMsgs[0], "v2.foo.com"))
+	assert.True(t, strings.Contains(updateMsgs[1], "v2.foobar.com"))
+
+}
+
 func TestRfc2136ApplyChangesWithDifferentTTLs(t *testing.T) {
 	stub := newStub()
 
@@ -241,7 +623,7 @@ func TestRfc2136ApplyChangesWithDifferentTTLs(t *testing.T) {
 	err = provider.ApplyChanges(context.Background(), p)
 	assert.NoError(t, err)
 
-	createRecords := extractAuthoritySectionFromMessage(stub.createMsgs[0])
+	createRecords := extractUpdateSectionFromMessage(stub.createMsgs[0])
 	assert.Equal(t, 3, len(createRecords))
 	assert.True(t, strings.Contains(createRecords[0], "v1.foo.com"))
 	assert.True(t, strings.Contains(createRecords[0], "2.1.1.1"))

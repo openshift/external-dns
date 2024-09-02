@@ -33,8 +33,8 @@ func ToString(val any) string {
 		}
 
 	case []reflect.Value:
-		var buf bytes.Buffer
-		SliceToBuffer(&buf, tval)
+		var buf strings.Builder
+		SliceToString(&buf, tval)
 		return buf.String()
 
 		// no "(string) " prefix for printable strings
@@ -67,23 +67,38 @@ func ToString(val any) string {
 // IndentString indents str lines (from 2nd one = 1st line is not
 // indented) by indent.
 func IndentString(str, indent string) string {
-	return strings.Replace(str, "\n", "\n"+indent, -1) //nolint: gocritic
+	return strings.ReplaceAll(str, "\n", "\n"+indent)
 }
 
 // IndentStringIn indents str lines (from 2nd one = 1st line is not
-// indented) by indent and write it to w. Before each end of line,
-// colOff is inserted, and after each indent on new line, colOn is
-// inserted.
-func IndentStringIn(w io.Writer, str, indent, colOn, colOff string) {
-	repl := strings.NewReplacer("\n", colOff+"\n"+indent+colOn)
+// indented) by indent and write it to w.
+func IndentStringIn(w io.Writer, str, indent string) {
+	repl := strings.NewReplacer("\n", "\n"+indent)
 	repl.WriteString(w, str) //nolint: errcheck
 }
 
-// SliceToBuffer stringifies items slice into buf then returns buf.
-func SliceToBuffer(buf *bytes.Buffer, items []reflect.Value) *bytes.Buffer {
+// IndentColorizeStringIn indents str lines (from 2nd one = 1st line
+// is not indented) by indent and write it to w. Before each end of
+// line, colOff is inserted, and after each indent on new line, colOn
+// is inserted.
+func IndentColorizeStringIn(w io.Writer, str, indent, colOn, colOff string) {
+	if str != "" {
+		if colOn == "" && colOff == "" {
+			IndentStringIn(w, str, indent)
+			return
+		}
+		repl := strings.NewReplacer("\n", colOff+"\n"+indent+colOn)
+		io.WriteString(w, colOn)  //nolint: errcheck
+		repl.WriteString(w, str)  //nolint: errcheck
+		io.WriteString(w, colOff) //nolint: errcheck
+	}
+}
+
+// SliceToString stringifies items slice into buf then returns buf.
+func SliceToString(buf *strings.Builder, items []reflect.Value) *strings.Builder {
 	buf.WriteByte('(')
 
-	begLine := bytes.LastIndexByte(buf.Bytes(), '\n') + 1
+	begLine := strings.LastIndexByte(buf.String(), '\n') + 1
 	prefix := strings.Repeat(" ", buf.Len()-begLine)
 
 	if len(items) < 2 {
@@ -91,14 +106,12 @@ func SliceToBuffer(buf *bytes.Buffer, items []reflect.Value) *bytes.Buffer {
 			buf.WriteString(IndentString(ToString(items[0]), prefix))
 		}
 	} else {
-		for idx, item := range items {
-			if idx != 0 {
-				buf.WriteString(prefix)
-			}
-			buf.WriteString(IndentString(ToString(item), prefix))
+		buf.WriteString(IndentString(ToString(items[0]), prefix))
+		for _, item := range items[1:] {
 			buf.WriteString(",\n")
+			buf.WriteString(prefix)
+			buf.WriteString(IndentString(ToString(item), prefix))
 		}
-		buf.Truncate(buf.Len() - 2)
 	}
 	buf.WriteByte(')')
 

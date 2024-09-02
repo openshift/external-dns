@@ -19,10 +19,12 @@ package oci
 import (
 	"context"
 	"sort"
+	"strings"
 	"testing"
+	"time"
 
-	"github.com/oracle/oci-go-sdk/common"
-	"github.com/oracle/oci-go-sdk/dns"
+	"github.com/oracle/oci-go-sdk/v65/common"
+	"github.com/oracle/oci-go-sdk/v65/dns"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
@@ -31,27 +33,52 @@ import (
 	"sigs.k8s.io/external-dns/provider"
 )
 
-type mockOCIDNSClient struct{}
+type mockOCIDNSClient struct {
+}
 
-func (c *mockOCIDNSClient) ListZones(ctx context.Context, request dns.ListZonesRequest) (response dns.ListZonesResponse, err error) {
+var (
+	zoneIdQux                 = "ocid1.dns-zone.oc1..123456ef0bfbb5c251b9713fd7bf8959"
+	zoneNameQux               = "qux.com"
+	testPrivateZoneSummaryQux = dns.ZoneSummary{
+		Id:   &zoneIdQux,
+		Name: &zoneNameQux,
+	}
+	zoneIdBaz                 = "ocid1.dns-zone.oc1..789012ef0bfbb5c251b9713fd7bf8959"
+	zoneNameBaz               = "baz.com"
+	testPrivateZoneSummaryBaz = dns.ZoneSummary{
+		Id:   &zoneIdBaz,
+		Name: &zoneNameBaz,
+	}
+	testGlobalZoneSummaryFoo = dns.ZoneSummary{
+		Id:   common.String("ocid1.dns-zone.oc1..e1e042ef0bfbb5c251b9713fd7bf8959"),
+		Name: common.String("foo.com"),
+	}
+	testGlobalZoneSummaryBar = dns.ZoneSummary{
+		Id:   common.String("ocid1.dns-zone.oc1..502aeddba262b92fd13ed7874f6f1404"),
+		Name: common.String("bar.com"),
+	}
+)
+
+func buildZoneResponseItems(scope dns.ListZonesScopeEnum, privateZones, globalZones []dns.ZoneSummary) []dns.ZoneSummary {
+	switch string(scope) {
+	case "PRIVATE":
+		return privateZones
+	case "GLOBAL":
+		return globalZones
+	default:
+		return append(privateZones, globalZones...)
+	}
+}
+
+func (c *mockOCIDNSClient) ListZones(_ context.Context, request dns.ListZonesRequest) (response dns.ListZonesResponse, err error) {
 	if request.Page == nil || *request.Page == "0" {
 		return dns.ListZonesResponse{
-			Items: []dns.ZoneSummary{
-				{
-					Id:   common.String("ocid1.dns-zone.oc1..e1e042ef0bfbb5c251b9713fd7bf8959"),
-					Name: common.String("foo.com"),
-				},
-			},
+			Items:       buildZoneResponseItems(request.Scope, []dns.ZoneSummary{testPrivateZoneSummaryBaz}, []dns.ZoneSummary{testGlobalZoneSummaryFoo}),
 			OpcNextPage: common.String("1"),
 		}, nil
 	}
 	return dns.ListZonesResponse{
-		Items: []dns.ZoneSummary{
-			{
-				Id:   common.String("ocid1.dns-zone.oc1..502aeddba262b92fd13ed7874f6f1404"),
-				Name: common.String("bar.com"),
-			},
-		},
+		Items: buildZoneResponseItems(request.Scope, []dns.ZoneSummary{testPrivateZoneSummaryQux}, []dns.ZoneSummary{testGlobalZoneSummaryBar}),
 	}, nil
 }
 
@@ -102,7 +129,7 @@ func (c *mockOCIDNSClient) PatchZoneRecords(ctx context.Context, request dns.Pat
 }
 
 // newOCIProvider creates an OCI provider with API calls mocked out.
-func newOCIProvider(client ociDNSClient, domainFilter endpoint.DomainFilter, zoneIDFilter provider.ZoneIDFilter, dryRun bool) *OCIProvider {
+func newOCIProvider(client ociDNSClient, domainFilter endpoint.DomainFilter, zoneIDFilter provider.ZoneIDFilter, zoneScope string, dryRun bool) *OCIProvider {
 	return &OCIProvider{
 		client: client,
 		cfg: OCIConfig{
@@ -110,7 +137,11 @@ func newOCIProvider(client ociDNSClient, domainFilter endpoint.DomainFilter, zon
 		},
 		domainFilter: domainFilter,
 		zoneIDFilter: zoneIDFilter,
-		dryRun:       dryRun,
+		zoneScope:    zoneScope,
+		zoneCache: &zoneCache{
+			duration: 0 * time.Second,
+		},
+		dryRun: dryRun,
 	}
 }
 
@@ -167,6 +198,17 @@ hKRtDhmSdWBo3tJK12RrAe4t7CUe8gMgTvU7ExlcA3xQkseFPx9K
 				},
 			},
 		},
+		"instance-principal": {
+			// testing the InstancePrincipalConfigurationProvider is tricky outside of an OCI context, because it tries
+			// to request a token from the internal OCI systems; this test-case just confirms that the expected error is
+			// observed, confirming that the instance-principal provider was instantiated.
+			config: OCIConfig{
+				Auth: OCIAuthConfig{
+					UseInstancePrincipal: true,
+				},
+			},
+			err: errors.New("error creating OCI instance principal config provider: failed to create a new key provider for instance principal"),
+		},
 		"invalid": {
 			config: OCIConfig{
 				Auth: OCIAuthConfig{
@@ -180,6 +222,16 @@ hKRtDhmSdWBo3tJK12RrAe4t7CUe8gMgTvU7ExlcA3xQkseFPx9K
 			},
 			err: errors.New("initializing OCI DNS API client: can not create client, bad configuration: PEM data was not found in buffer"),
 		},
+		"invalid-auth-methods": {
+			config: OCIConfig{
+				Auth: OCIAuthConfig{
+					Region:               "us-ashburn-1",
+					UseInstancePrincipal: true,
+					UseWorkloadIdentity:  true,
+				},
+			},
+			err: errors.New("only one of 'useInstancePrincipal' and 'useWorkloadIdentity' may be enabled for Oracle authentication"),
+		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
@@ -187,45 +239,68 @@ hKRtDhmSdWBo3tJK12RrAe4t7CUe8gMgTvU7ExlcA3xQkseFPx9K
 				tc.config,
 				endpoint.NewDomainFilter([]string{"com"}),
 				provider.NewZoneIDFilter([]string{""}),
+				string(dns.GetZoneScopeGlobal),
 				false,
 			)
 			if err == nil {
 				require.NoError(t, err)
 			} else {
-				require.Equal(t, tc.err.Error(), err.Error())
+				// have to use prefix testing because the expected instance-principal error strings vary after a known prefix
+				require.Truef(t, strings.HasPrefix(err.Error(), tc.err.Error()), "observed: %s", err.Error())
 			}
 		})
 	}
 }
 
 func TestOCIZones(t *testing.T) {
+	fooZoneId := "ocid1.dns-zone.oc1..e1e042ef0bfbb5c251b9713fd7bf8959"
+	barZoneId := "ocid1.dns-zone.oc1..502aeddba262b92fd13ed7874f6f1404"
 	testCases := []struct {
 		name         string
 		domainFilter endpoint.DomainFilter
 		zoneIDFilter provider.ZoneIDFilter
+		zoneScope    string
 		expected     map[string]dns.ZoneSummary
 	}{
+		{
+			name:         "AllZones",
+			domainFilter: endpoint.NewDomainFilter([]string{"com"}),
+			zoneIDFilter: provider.NewZoneIDFilter([]string{""}),
+			zoneScope:    "",
+			expected: map[string]dns.ZoneSummary{
+				fooZoneId: testGlobalZoneSummaryFoo,
+				barZoneId: testGlobalZoneSummaryBar,
+				zoneIdBaz: testPrivateZoneSummaryBaz,
+				zoneIdQux: testPrivateZoneSummaryQux,
+			},
+		},
+		{
+			name:         "Privatezones",
+			domainFilter: endpoint.NewDomainFilter([]string{"com"}),
+			zoneIDFilter: provider.NewZoneIDFilter([]string{""}),
+			zoneScope:    "PRIVATE",
+			expected: map[string]dns.ZoneSummary{
+				zoneIdBaz: testPrivateZoneSummaryBaz,
+				zoneIdQux: testPrivateZoneSummaryQux,
+			},
+		},
 		{
 			name:         "DomainFilter_com",
 			domainFilter: endpoint.NewDomainFilter([]string{"com"}),
 			zoneIDFilter: provider.NewZoneIDFilter([]string{""}),
+			zoneScope:    "GLOBAL",
 			expected: map[string]dns.ZoneSummary{
-				"foo.com": {
-					Id:   common.String("ocid1.dns-zone.oc1..e1e042ef0bfbb5c251b9713fd7bf8959"),
-					Name: common.String("foo.com"),
-				},
-				"bar.com": {
-					Id:   common.String("ocid1.dns-zone.oc1..502aeddba262b92fd13ed7874f6f1404"),
-					Name: common.String("bar.com"),
-				},
+				fooZoneId: testGlobalZoneSummaryFoo,
+				barZoneId: testGlobalZoneSummaryBar,
 			},
 		}, {
 			name:         "DomainFilter_foo.com",
 			domainFilter: endpoint.NewDomainFilter([]string{"foo.com"}),
 			zoneIDFilter: provider.NewZoneIDFilter([]string{""}),
+			zoneScope:    "GLOBAL",
 			expected: map[string]dns.ZoneSummary{
-				"foo.com": {
-					Id:   common.String("ocid1.dns-zone.oc1..e1e042ef0bfbb5c251b9713fd7bf8959"),
+				fooZoneId: {
+					Id:   common.String(fooZoneId),
 					Name: common.String("foo.com"),
 				},
 			},
@@ -233,9 +308,10 @@ func TestOCIZones(t *testing.T) {
 			name:         "ZoneIDFilter_ocid1.dns-zone.oc1..e1e042ef0bfbb5c251b9713fd7bf8959",
 			domainFilter: endpoint.NewDomainFilter([]string{""}),
 			zoneIDFilter: provider.NewZoneIDFilter([]string{"ocid1.dns-zone.oc1..e1e042ef0bfbb5c251b9713fd7bf8959"}),
+			zoneScope:    "GLOBAL",
 			expected: map[string]dns.ZoneSummary{
-				"foo.com": {
-					Id:   common.String("ocid1.dns-zone.oc1..e1e042ef0bfbb5c251b9713fd7bf8959"),
+				fooZoneId: {
+					Id:   common.String(fooZoneId),
 					Name: common.String("foo.com"),
 				},
 			},
@@ -243,7 +319,7 @@ func TestOCIZones(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			provider := newOCIProvider(&mockOCIDNSClient{}, tc.domainFilter, tc.zoneIDFilter, false)
+			provider := newOCIProvider(&mockOCIDNSClient{}, tc.domainFilter, tc.zoneIDFilter, tc.zoneScope, false)
 			zones, err := provider.zones(context.Background())
 			require.NoError(t, err)
 			validateOCIZones(t, zones, tc.expected)
@@ -288,7 +364,7 @@ func TestOCIRecords(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			provider := newOCIProvider(&mockOCIDNSClient{}, tc.domainFilter, tc.zoneIDFilter, false)
+			provider := newOCIProvider(&mockOCIDNSClient{}, tc.domainFilter, tc.zoneIDFilter, "", false)
 			endpoints, err := provider.Records(context.Background())
 			require.NoError(t, err)
 			require.ElementsMatch(t, tc.expected, endpoints)
@@ -829,6 +905,7 @@ func TestOCIApplyChanges(t *testing.T) {
 				client,
 				endpoint.NewDomainFilter([]string{""}),
 				provider.NewZoneIDFilter([]string{""}),
+				"",
 				tc.dryRun,
 			)
 

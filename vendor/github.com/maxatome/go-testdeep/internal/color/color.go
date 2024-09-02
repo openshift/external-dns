@@ -7,7 +7,6 @@
 package color
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"reflect"
@@ -101,6 +100,16 @@ func SaveState(on ...bool) func() {
 	}
 }
 
+// On returns true if coloring feature is enabled.
+func On() bool {
+	switch os.Getenv(EnvColor) {
+	case "on", "":
+		return true
+	default: // "off" or any other value
+		return false
+	}
+}
+
 var colors = map[string]byte{
 	"black":   '0',
 	"red":     '1',
@@ -120,15 +129,12 @@ var colors = map[string]byte{
 // If coloring is disabled, returns "", "", "".
 func FromEnv(env, defaultColor string) (string, string, string) {
 	var color string
-	switch os.Getenv(EnvColor) {
-	case "on", "":
+	if On() {
 		if curColor := os.Getenv(env); curColor != "" {
 			color = curColor
 		} else {
 			color = defaultColor
 		}
-	default: // "off" or any other value
-		color = ""
 	}
 
 	if color == "" {
@@ -182,13 +188,13 @@ func FromEnv(env, defaultColor string) (string, string, string) {
 }
 
 // AppendTestNameOn enables test name color in b.
-func AppendTestNameOn(b *bytes.Buffer) {
+func AppendTestNameOn(b *strings.Builder) {
 	Init()
 	b.WriteString(TestNameOn)
 }
 
 // AppendTestNameOff disables test name color in b.
-func AppendTestNameOff(b *bytes.Buffer) {
+func AppendTestNameOff(b *strings.Builder) {
 	Init()
 	b.WriteString(TestNameOff)
 }
@@ -211,7 +217,7 @@ func Bad(s string, args ...any) string {
 func BadUsage(usage string, param any, pos int, kind bool) string {
 	Init()
 
-	var b bytes.Buffer
+	var b strings.Builder
 	fmt.Fprintf(&b, "%susage: %s, but received ", BadOnBold, usage)
 
 	if param == nil {

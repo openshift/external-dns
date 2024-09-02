@@ -31,7 +31,7 @@ import (
 	"sigs.k8s.io/external-dns/endpoint"
 )
 
-// This is a compile-time validation that glooSource is a Source.
+// This is a compile-time validation that kongTCPIngressSource is a Source.
 var _ Source = &kongTCPIngressSource{}
 
 const defaultKongNamespace = "kong"
@@ -40,9 +40,10 @@ func TestKongTCPIngressEndpoints(t *testing.T) {
 	t.Parallel()
 
 	for _, ti := range []struct {
-		title    string
-		tcpProxy TCPIngress
-		expected []*endpoint.Endpoint
+		title                    string
+		tcpProxy                 TCPIngress
+		ignoreHostnameAnnotation bool
+		expected                 []*endpoint.Endpoint
 	}{
 		{
 			title: "TCPIngress with hostname annotation",
@@ -220,6 +221,126 @@ func TestKongTCPIngressEndpoints(t *testing.T) {
 				},
 			},
 		},
+		{
+			title: "TCPIngress ignoring hostname annotation",
+			tcpProxy: TCPIngress{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: kongGroupdVersionResource.GroupVersion().String(),
+					Kind:       "TCPIngress",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "tcp-ingress-both",
+					Namespace: defaultKongNamespace,
+					Annotations: map[string]string{
+						"external-dns.alpha.kubernetes.io/hostname": "d.example.com",
+						"kubernetes.io/ingress.class":               "kong",
+					},
+				},
+				Spec: tcpIngressSpec{
+					Rules: []tcpIngressRule{
+						{
+							Port: 30004,
+							Host: "e.example.com",
+						},
+						{
+							Port: 30005,
+							Host: "f.example.com",
+						},
+					},
+				},
+				Status: tcpIngressStatus{
+					LoadBalancer: corev1.LoadBalancerStatus{
+						Ingress: []corev1.LoadBalancerIngress{
+							{
+								Hostname: "a12e71861a4303f063456769a314a3bd-1291189659.us-east-1.elb.amazonaws.com",
+							},
+						},
+					},
+				},
+			},
+			ignoreHostnameAnnotation: true,
+			expected: []*endpoint.Endpoint{
+				{
+					DNSName:    "e.example.com",
+					Targets:    []string{"a12e71861a4303f063456769a314a3bd-1291189659.us-east-1.elb.amazonaws.com"},
+					RecordType: endpoint.RecordTypeCNAME,
+					RecordTTL:  0,
+					Labels: endpoint.Labels{
+						"resource": "tcpingress/kong/tcp-ingress-both",
+					},
+					ProviderSpecific: endpoint.ProviderSpecific{},
+				},
+				{
+					DNSName:    "f.example.com",
+					Targets:    []string{"a12e71861a4303f063456769a314a3bd-1291189659.us-east-1.elb.amazonaws.com"},
+					RecordType: endpoint.RecordTypeCNAME,
+					RecordTTL:  0,
+					Labels: endpoint.Labels{
+						"resource": "tcpingress/kong/tcp-ingress-both",
+					},
+					ProviderSpecific: endpoint.ProviderSpecific{},
+				},
+			},
+		},
+		{
+			title: "TCPIngress with target annotation",
+			tcpProxy: TCPIngress{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: kongGroupdVersionResource.GroupVersion().String(),
+					Kind:       "TCPIngress",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "tcp-ingress-sni",
+					Namespace: defaultKongNamespace,
+					Annotations: map[string]string{
+						"kubernetes.io/ingress.class":             "kong",
+						"external-dns.alpha.kubernetes.io/target": "203.2.45.7",
+					},
+				},
+				Spec: tcpIngressSpec{
+					Rules: []tcpIngressRule{
+						{
+							Port: 30002,
+							Host: "b.example.com",
+						},
+						{
+							Port: 30003,
+							Host: "c.example.com",
+						},
+					},
+				},
+				Status: tcpIngressStatus{
+					LoadBalancer: corev1.LoadBalancerStatus{
+						Ingress: []corev1.LoadBalancerIngress{
+							{
+								Hostname: "a123456769a314e71861a4303f06a3bd-1291189659.us-east-1.elb.amazonaws.com",
+							},
+						},
+					},
+				},
+			},
+			expected: []*endpoint.Endpoint{
+				{
+					DNSName:    "b.example.com",
+					Targets:    []string{"203.2.45.7"},
+					RecordType: endpoint.RecordTypeA,
+					RecordTTL:  0,
+					Labels: endpoint.Labels{
+						"resource": "tcpingress/kong/tcp-ingress-sni",
+					},
+					ProviderSpecific: endpoint.ProviderSpecific{},
+				},
+				{
+					DNSName:    "c.example.com",
+					Targets:    []string{"203.2.45.7"},
+					RecordType: endpoint.RecordTypeA,
+					Labels: endpoint.Labels{
+						"resource": "tcpingress/kong/tcp-ingress-sni",
+					},
+					ProviderSpecific: endpoint.ProviderSpecific{},
+				},
+			},
+		},
 	} {
 		ti := ti
 		t.Run(ti.title, func(t *testing.T) {
@@ -241,7 +362,7 @@ func TestKongTCPIngressEndpoints(t *testing.T) {
 			_, err = fakeDynamicClient.Resource(kongGroupdVersionResource).Namespace(defaultKongNamespace).Create(context.Background(), &tcpi, metav1.CreateOptions{})
 			assert.NoError(t, err)
 
-			source, err := NewKongTCPIngressSource(context.TODO(), fakeDynamicClient, fakeKubernetesClient, defaultKongNamespace, "kubernetes.io/ingress.class=kong")
+			source, err := NewKongTCPIngressSource(context.TODO(), fakeDynamicClient, fakeKubernetesClient, defaultKongNamespace, "kubernetes.io/ingress.class=kong", ti.ignoreHostnameAnnotation)
 			assert.NoError(t, err)
 			assert.NotNil(t, source)
 
@@ -253,7 +374,7 @@ func TestKongTCPIngressEndpoints(t *testing.T) {
 			endpoints, err := source.Endpoints(context.Background())
 			assert.NoError(t, err)
 			assert.Len(t, endpoints, len(ti.expected))
-			assert.Equal(t, endpoints, ti.expected)
+			assert.Equal(t, ti.expected, endpoints)
 		})
 	}
 }
