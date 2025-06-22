@@ -92,7 +92,7 @@ require (
 	github.com/alexbrainman/sspi v0.0.0-20180613141037-e580b900e9f5 // indirect
 	github.com/ans-group/go-durationstring v1.2.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-	github.com/benbjohnson/clock v1.3.0 // indirect
+	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
