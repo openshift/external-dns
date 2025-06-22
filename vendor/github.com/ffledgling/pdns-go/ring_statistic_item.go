@@ -11,15 +11,15 @@ package pdnsapi
 
 type RingStatisticItem struct {
 
-	// The name of this item (e.g. ‘uptime’)
+	// Item name
 	Name string `json:"name,omitempty"`
 
-	// set to \"RingStatisticItem\"
+	// Set to \"RingStatisticItem\"
 	Type_ string `json:"type,omitempty"`
 
-	// for RingStatisticItem objects, the size of the ring
+	// Ring size
 	Size int32 `json:"size,omitempty"`
 
-	// named ring statistic values
-	Value []MapStatisticItemValue `json:"value,omitempty"`
+	// Named values
+	Value []SimpleStatisticItem `json:"value,omitempty"`
 }

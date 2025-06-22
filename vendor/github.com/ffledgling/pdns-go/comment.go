@@ -19,5 +19,5 @@ type Comment struct {
 	Account string `json:"account,omitempty"`
 
 	// Timestamp of the last change to the comment
-	ModifidedAt int32 `json:"modifided_at,omitempty"`
+	ModifiedAt int32 `json:"modified_at,omitempty"`
 }

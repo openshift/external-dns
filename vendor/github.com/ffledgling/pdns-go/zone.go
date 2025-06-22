@@ -36,6 +36,9 @@ type Zone struct {
 	// The SOA serial notifications have been sent out for
 	NotifiedSerial int32 `json:"notified_serial,omitempty"`
 
+	// The SOA serial as seen in query responses. Calculated using the SOA-EDIT metadata, default-soa-edit and default-soa-edit-signed settings
+	EditedSerial int32 `json:"edited_serial,omitempty"`
+
 	//  List of IP addresses configured as a master for this zone (“Slave” type zones only)
 	Masters []string `json:"masters,omitempty"`
 
@@ -68,4 +71,10 @@ type Zone struct {
 
 	// MAY be sent in client bodies during creation, and MUST NOT be sent by the server. Simple list of strings of nameserver names, including the trailing dot. Not required for slave zones.
 	Nameservers []string `json:"nameservers,omitempty"`
+
+	// The id of the TSIG keys used for master operation in this zone
+	MasterTsigKeyIds []string `json:"master_tsig_key_ids,omitempty"`
+
+	// The id of the TSIG keys used for slave operation in this zone
+	SlaveTsigKeyIds []string `json:"slave_tsig_key_ids,omitempty"`
 }

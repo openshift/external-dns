@@ -9,14 +9,12 @@
 
 package pdnsapi
 
-type MapStatisticItem struct {
+// The result of a cache-flush
+type CacheFlushResult struct {
 
-	// Item name
-	Name string `json:"name,omitempty"`
+	// Amount of entries flushed
+	Count float32 `json:"count,omitempty"`
 
-	// Set to \"MapStatisticItem\"
-	Type_ string `json:"type,omitempty"`
-
-	// Named values
-	Value []SimpleStatisticItem `json:"value,omitempty"`
+	// A message about the result like \"Flushed cache\"
+	Result string `json:"result,omitempty"`
 }

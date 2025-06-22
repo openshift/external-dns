@@ -16,7 +16,7 @@ type Cryptokey struct {
 	Type_ string `json:"type,omitempty"`
 
 	// The internal identifier, read only
-	Id string `json:"id,omitempty"`
+	Id int32 `json:"id,omitempty"`
 
 	Keytype string `json:"keytype,omitempty"`
 
