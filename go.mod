@@ -14,7 +14,7 @@ require (
 	github.com/IBM/networking-go-sdk v0.46.1
 	github.com/akamai/AkamaiOPEN-edgegrid-golang v1.2.2
 	github.com/alecthomas/kingpin/v2 v2.4.0
-	github.com/aliyun/alibaba-cloud-sdk-go v1.62.736
+	github.com/aliyun/alibaba-cloud-sdk-go v1.63.107
 	github.com/ans-group/sdk-go v1.17.0
 	github.com/aws/aws-sdk-go v1.53.3
 	github.com/bodgit/tsig v1.2.2
