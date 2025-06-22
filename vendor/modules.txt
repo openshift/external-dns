@@ -575,7 +575,7 @@ github.com/linki/instrumented_http
 github.com/linode/linodego
 github.com/linode/linodego/internal/duration
 github.com/linode/linodego/internal/parseabletime
-# github.com/magiconair/properties v1.8.7
+# github.com/magiconair/properties v1.8.10
 ## explicit; go 1.19
 github.com/magiconair/properties
 # github.com/mailru/easyjson v0.7.7
