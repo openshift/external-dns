@@ -174,7 +174,7 @@ func NewCreatePrivateDNSAccountResponse() (response *CreatePrivateDNSAccountResp
 }
 
 // CreatePrivateDNSAccount
-// 创建私有域解析账号
+// 跨账号关联VPC时绑定其他账号
 //
 // 可能返回的错误码:
 //  AUTHFAILURE = "AuthFailure"
@@ -205,7 +205,7 @@ func (c *Client) CreatePrivateDNSAccount(request *CreatePrivateDNSAccountRequest
 }
 
 // CreatePrivateDNSAccount
-// 创建私有域解析账号
+// 跨账号关联VPC时绑定其他账号
 //
 // 可能返回的错误码:
 //  AUTHFAILURE = "AuthFailure"
@@ -413,7 +413,7 @@ func NewCreatePrivateZoneRecordResponse() (response *CreatePrivateZoneRecordResp
 //  INVALIDPARAMETER_RECORDCOUNTEXCEED = "InvalidParameter.RecordCountExceed"
 //  INVALIDPARAMETER_RECORDEXIST = "InvalidParameter.RecordExist"
 //  INVALIDPARAMETER_RECORDMXCOUNTEXCEED = "InvalidParameter.RecordMXCountExceed"
-//  INVALIDPARAMETER_RECORDROLLLIMITCOUNTEXCEED = "InvalidParameter.RecordRolllimitCountExceed"
+//  INVALIDPARAMETER_RECORDROLLLIMITCOUNTEXCEED = "InvalidParameter.RecordRollLimitCountExceed"
 //  INVALIDPARAMETER_RECORDTXTCOUNTEXCEED = "InvalidParameter.RecordTXTCountExceed"
 //  INVALIDPARAMETER_RECORDUNSUPPORTWEIGHT = "InvalidParameter.RecordUnsupportWeight"
 //  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
@@ -464,7 +464,7 @@ func (c *Client) CreatePrivateZoneRecord(request *CreatePrivateZoneRecordRequest
 //  INVALIDPARAMETER_RECORDCOUNTEXCEED = "InvalidParameter.RecordCountExceed"
 //  INVALIDPARAMETER_RECORDEXIST = "InvalidParameter.RecordExist"
 //  INVALIDPARAMETER_RECORDMXCOUNTEXCEED = "InvalidParameter.RecordMXCountExceed"
-//  INVALIDPARAMETER_RECORDROLLLIMITCOUNTEXCEED = "InvalidParameter.RecordRolllimitCountExceed"
+//  INVALIDPARAMETER_RECORDROLLLIMITCOUNTEXCEED = "InvalidParameter.RecordRollLimitCountExceed"
 //  INVALIDPARAMETER_RECORDTXTCOUNTEXCEED = "InvalidParameter.RecordTXTCountExceed"
 //  INVALIDPARAMETER_RECORDUNSUPPORTWEIGHT = "InvalidParameter.RecordUnsupportWeight"
 //  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
@@ -499,81 +499,6 @@ func (c *Client) CreatePrivateZoneRecordWithContext(ctx context.Context, request
     request.SetContext(ctx)
     
     response = NewCreatePrivateZoneRecordResponse()
-    err = c.Send(request, response)
-    return
-}
-
-func NewDeleteEndPointRequest() (request *DeleteEndPointRequest) {
-    request = &DeleteEndPointRequest{
-        BaseRequest: &tchttp.BaseRequest{},
-    }
-    
-    request.Init().WithApiInfo("privatedns", APIVersion, "DeleteEndPoint")
-    
-    
-    return
-}
-
-func NewDeleteEndPointResponse() (response *DeleteEndPointResponse) {
-    response = &DeleteEndPointResponse{
-        BaseResponse: &tchttp.BaseResponse{},
-    } 
-    return
-
-}
-
-// DeleteEndPoint
-// 删除终端节点
-//
-// 可能返回的错误码:
-//  AUTHFAILURE = "AuthFailure"
-//  FAILEDOPERATION = "FailedOperation"
-//  FAILEDOPERATION_DELETEVPCENDPOINTFAILED = "FailedOperation.DeleteVpcEndPointFailed"
-//  INTERNALERROR = "InternalError"
-//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
-//  INVALIDPARAMETER = "InvalidParameter"
-//  INVALIDPARAMETER_ENDPOINTBINDFORWARDRULE = "InvalidParameter.EndPointBindForwardRule"
-//  INVALIDPARAMETER_ENDPOINTNOTEXISTS = "InvalidParameter.EndPointNotExists"
-//  INVALIDPARAMETERVALUE = "InvalidParameterValue"
-//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
-//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
-//  UNKNOWNPARAMETER = "UnknownParameter"
-//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
-//  UNSUPPORTEDOPERATION_FREQUENCYLIMIT = "UnsupportedOperation.FrequencyLimit"
-func (c *Client) DeleteEndPoint(request *DeleteEndPointRequest) (response *DeleteEndPointResponse, err error) {
-    return c.DeleteEndPointWithContext(context.Background(), request)
-}
-
-// DeleteEndPoint
-// 删除终端节点
-//
-// 可能返回的错误码:
-//  AUTHFAILURE = "AuthFailure"
-//  FAILEDOPERATION = "FailedOperation"
-//  FAILEDOPERATION_DELETEVPCENDPOINTFAILED = "FailedOperation.DeleteVpcEndPointFailed"
-//  INTERNALERROR = "InternalError"
-//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
-//  INVALIDPARAMETER = "InvalidParameter"
-//  INVALIDPARAMETER_ENDPOINTBINDFORWARDRULE = "InvalidParameter.EndPointBindForwardRule"
-//  INVALIDPARAMETER_ENDPOINTNOTEXISTS = "InvalidParameter.EndPointNotExists"
-//  INVALIDPARAMETERVALUE = "InvalidParameterValue"
-//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
-//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
-//  UNKNOWNPARAMETER = "UnknownParameter"
-//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
-//  UNSUPPORTEDOPERATION_FREQUENCYLIMIT = "UnsupportedOperation.FrequencyLimit"
-func (c *Client) DeleteEndPointWithContext(ctx context.Context, request *DeleteEndPointRequest) (response *DeleteEndPointResponse, err error) {
-    if request == nil {
-        request = NewDeleteEndPointRequest()
-    }
-    
-    if c.GetCredential() == nil {
-        return nil, errors.New("DeleteEndPoint require credential")
-    }
-
-    request.SetContext(ctx)
-    
-    response = NewDeleteEndPointResponse()
     err = c.Send(request, response)
     return
 }
@@ -1719,6 +1644,79 @@ func (c *Client) DescribeQuotaUsageWithContext(ctx context.Context, request *Des
     return
 }
 
+func NewDescribeRecordRequest() (request *DescribeRecordRequest) {
+    request = &DescribeRecordRequest{
+        BaseRequest: &tchttp.BaseRequest{},
+    }
+    
+    request.Init().WithApiInfo("privatedns", APIVersion, "DescribeRecord")
+    
+    
+    return
+}
+
+func NewDescribeRecordResponse() (response *DescribeRecordResponse) {
+    response = &DescribeRecordResponse{
+        BaseResponse: &tchttp.BaseResponse{},
+    } 
+    return
+
+}
+
+// DescribeRecord
+// 获取私有域记录
+//
+// 可能返回的错误码:
+//  AUTHFAILURE = "AuthFailure"
+//  FAILEDOPERATION = "FailedOperation"
+//  INTERNALERROR = "InternalError"
+//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
+//  INVALIDPARAMETER = "InvalidParameter"
+//  INVALIDPARAMETER_RECORDNOTEXIST = "InvalidParameter.RecordNotExist"
+//  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
+//  MISSINGPARAMETER = "MissingParameter"
+//  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
+//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
+//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
+//  UNKNOWNPARAMETER = "UnknownParameter"
+//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+func (c *Client) DescribeRecord(request *DescribeRecordRequest) (response *DescribeRecordResponse, err error) {
+    return c.DescribeRecordWithContext(context.Background(), request)
+}
+
+// DescribeRecord
+// 获取私有域记录
+//
+// 可能返回的错误码:
+//  AUTHFAILURE = "AuthFailure"
+//  FAILEDOPERATION = "FailedOperation"
+//  INTERNALERROR = "InternalError"
+//  INTERNALERROR_UNDEFIENDERROR = "InternalError.UndefiendError"
+//  INVALIDPARAMETER = "InvalidParameter"
+//  INVALIDPARAMETER_RECORDNOTEXIST = "InvalidParameter.RecordNotExist"
+//  INVALIDPARAMETER_ZONENOTEXISTS = "InvalidParameter.ZoneNotExists"
+//  MISSINGPARAMETER = "MissingParameter"
+//  RESOURCENOTFOUND_SERVICENOTSUBSCRIBED = "ResourceNotFound.ServiceNotSubscribed"
+//  UNAUTHORIZEDOPERATION = "UnauthorizedOperation"
+//  UNAUTHORIZEDOPERATION_UNAUTHORIZEDACCOUNT = "UnauthorizedOperation.UnauthorizedAccount"
+//  UNKNOWNPARAMETER = "UnknownParameter"
+//  UNSUPPORTEDOPERATION = "UnsupportedOperation"
+func (c *Client) DescribeRecordWithContext(ctx context.Context, request *DescribeRecordRequest) (response *DescribeRecordResponse, err error) {
+    if request == nil {
+        request = NewDescribeRecordRequest()
+    }
+    
+    if c.GetCredential() == nil {
+        return nil, errors.New("DescribeRecord require credential")
+    }
+
+    request.SetContext(ctx)
+    
+    response = NewDescribeRecordResponse()
+    err = c.Send(request, response)
+    return
+}
+
 func NewDescribeRequestDataRequest() (request *DescribeRequestDataRequest) {
     request = &DescribeRequestDataRequest{
         BaseRequest: &tchttp.BaseRequest{},
@@ -1918,7 +1916,7 @@ func NewModifyPrivateZoneRecordResponse() (response *ModifyPrivateZoneRecordResp
 //  INVALIDPARAMETER_RECORDLEVELEXCEED = "InvalidParameter.RecordLevelExceed"
 //  INVALIDPARAMETER_RECORDMXCOUNTEXCEED = "InvalidParameter.RecordMXCountExceed"
 //  INVALIDPARAMETER_RECORDNOTEXIST = "InvalidParameter.RecordNotExist"
-//  INVALIDPARAMETER_RECORDROLLLIMITCOUNTEXCEED = "InvalidParameter.RecordRolllimitCountExceed"
+//  INVALIDPARAMETER_RECORDROLLLIMITCOUNTEXCEED = "InvalidParameter.RecordRollLimitCountExceed"
 //  INVALIDPARAMETER_RECORDTXTCOUNTEXCEED = "InvalidParameter.RecordTXTCountExceed"
 //  INVALIDPARAMETER_RECORDUNSUPPORTWEIGHT = "InvalidParameter.RecordUnsupportWeight"
 //  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"
@@ -1972,7 +1970,7 @@ func (c *Client) ModifyPrivateZoneRecord(request *ModifyPrivateZoneRecordRequest
 //  INVALIDPARAMETER_RECORDLEVELEXCEED = "InvalidParameter.RecordLevelExceed"
 //  INVALIDPARAMETER_RECORDMXCOUNTEXCEED = "InvalidParameter.RecordMXCountExceed"
 //  INVALIDPARAMETER_RECORDNOTEXIST = "InvalidParameter.RecordNotExist"
-//  INVALIDPARAMETER_RECORDROLLLIMITCOUNTEXCEED = "InvalidParameter.RecordRolllimitCountExceed"
+//  INVALIDPARAMETER_RECORDROLLLIMITCOUNTEXCEED = "InvalidParameter.RecordRollLimitCountExceed"
 //  INVALIDPARAMETER_RECORDTXTCOUNTEXCEED = "InvalidParameter.RecordTXTCountExceed"
 //  INVALIDPARAMETER_RECORDUNSUPPORTWEIGHT = "InvalidParameter.RecordUnsupportWeight"
 //  INVALIDPARAMETER_VPCBINDEDMAINDOMAIN = "InvalidParameter.VpcBindedMainDomain"

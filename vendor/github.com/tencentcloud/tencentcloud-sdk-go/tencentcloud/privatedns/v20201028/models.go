@@ -21,24 +21,21 @@ import (
 )
 
 type AccountVpcInfo struct {
-	// VpcId： vpc-xadsafsdasd
+	// VpcId
 	UniqVpcId *string `json:"UniqVpcId,omitnil,omitempty" name:"UniqVpcId"`
 
-	// Vpc所属地区: ap-guangzhou, ap-shanghai
-	// 注意：此字段可能返回 null，表示取不到有效值。
+	// Vpc所属地区
 	Region *string `json:"Region,omitnil,omitempty" name:"Region"`
 
-	// Vpc所属账号: 123456789
-	// 注意：此字段可能返回 null，表示取不到有效值。
+	// Vpc所属账号
 	Uin *string `json:"Uin,omitnil,omitempty" name:"Uin"`
 
-	// vpc资源名称：testname
-	// 注意：此字段可能返回 null，表示取不到有效值。
+	// vpc资源名称
 	VpcName *string `json:"VpcName,omitnil,omitempty" name:"VpcName"`
 }
 
 type AccountVpcInfoOut struct {
-	// VpcId： vpc-xadsafsdasd
+	// VpcId
 	VpcId *string `json:"VpcId,omitnil,omitempty" name:"VpcId"`
 
 	// Vpc所属地区: ap-guangzhou, ap-shanghai
@@ -127,7 +124,6 @@ type AddSpecifyPrivateZoneVpcResponseParams struct {
 	AccountVpcSet []*AccountVpcInfo `json:"AccountVpcSet,omitnil,omitempty" name:"AccountVpcSet"`
 
 	// 唯一id
-	// 注意：此字段可能返回 null，表示取不到有效值。
 	UniqId *string `json:"UniqId,omitnil,omitempty" name:"UniqId"`
 
 	// 唯一请求 ID，由服务端生成，每次请求都会返回（若请求因其他原因未能抵达服务端，则该次请求不会获得 RequestId）。定位问题时需要提供该次请求的 RequestId。
@@ -251,6 +247,9 @@ type CreatePrivateZoneRecordRequestParams struct {
 
 	// 记录缓存时间，数值越小生效越快，取值1-86400s, 默认 600
 	TTL *int64 `json:"TTL,omitnil,omitempty" name:"TTL"`
+
+	// 备注
+	Remark *string `json:"Remark,omitnil,omitempty" name:"Remark"`
 }
 
 type CreatePrivateZoneRecordRequest struct {
@@ -276,6 +275,9 @@ type CreatePrivateZoneRecordRequest struct {
 
 	// 记录缓存时间，数值越小生效越快，取值1-86400s, 默认 600
 	TTL *int64 `json:"TTL,omitnil,omitempty" name:"TTL"`
+
+	// 备注
+	Remark *string `json:"Remark,omitnil,omitempty" name:"Remark"`
 }
 
 func (r *CreatePrivateZoneRecordRequest) ToJsonString() string {
@@ -297,6 +299,7 @@ func (r *CreatePrivateZoneRecordRequest) FromJsonString(s string) error {
 	delete(f, "Weight")
 	delete(f, "MX")
 	delete(f, "TTL")
+	delete(f, "Remark")
 	if len(f) > 0 {
 		return tcerr.NewTencentCloudSDKError("ClientError.BuildRequestError", "CreatePrivateZoneRecordRequest has unknown keys!", "")
 	}
@@ -346,6 +349,8 @@ type CreatePrivateZoneRequestParams struct {
 	DnsForwardStatus *string `json:"DnsForwardStatus,omitnil,omitempty" name:"DnsForwardStatus"`
 
 	// 创建私有域的同时，将其关联至VPC
+	//
+	// Deprecated: Vpcs is deprecated.
 	Vpcs []*VpcInfo `json:"Vpcs,omitnil,omitempty" name:"Vpcs"`
 
 	// 创建私有域同时绑定关联账号的VPC
@@ -411,7 +416,7 @@ func (r *CreatePrivateZoneRequest) FromJsonString(s string) error {
 
 // Predefined struct for user
 type CreatePrivateZoneResponseParams struct {
-	// 私有域ID, zone-xxxxxx
+	// 私有域ID, zone-12345678
 	ZoneId *string `json:"ZoneId,omitnil,omitempty" name:"ZoneId"`
 
 	// 私有域名
@@ -443,60 +448,6 @@ type DatePoint struct {
 
 	// 值
 	Value *int64 `json:"Value,omitnil,omitempty" name:"Value"`
-}
-
-// Predefined struct for user
-type DeleteEndPointRequestParams struct {
-	// 终端节点ID
-	EndPointId *string `json:"EndPointId,omitnil,omitempty" name:"EndPointId"`
-}
-
-type DeleteEndPointRequest struct {
-	*tchttp.BaseRequest
-	
-	// 终端节点ID
-	EndPointId *string `json:"EndPointId,omitnil,omitempty" name:"EndPointId"`
-}
-
-func (r *DeleteEndPointRequest) ToJsonString() string {
-    b, _ := json.Marshal(r)
-    return string(b)
-}
-
-// FromJsonString It is highly **NOT** recommended to use this function
-// because it has no param check, nor strict type check
-func (r *DeleteEndPointRequest) FromJsonString(s string) error {
-	f := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(s), &f); err != nil {
-		return err
-	}
-	delete(f, "EndPointId")
-	if len(f) > 0 {
-		return tcerr.NewTencentCloudSDKError("ClientError.BuildRequestError", "DeleteEndPointRequest has unknown keys!", "")
-	}
-	return json.Unmarshal([]byte(s), &r)
-}
-
-// Predefined struct for user
-type DeleteEndPointResponseParams struct {
-	// 唯一请求 ID，由服务端生成，每次请求都会返回（若请求因其他原因未能抵达服务端，则该次请求不会获得 RequestId）。定位问题时需要提供该次请求的 RequestId。
-	RequestId *string `json:"RequestId,omitnil,omitempty" name:"RequestId"`
-}
-
-type DeleteEndPointResponse struct {
-	*tchttp.BaseResponse
-	Response *DeleteEndPointResponseParams `json:"Response"`
-}
-
-func (r *DeleteEndPointResponse) ToJsonString() string {
-    b, _ := json.Marshal(r)
-    return string(b)
-}
-
-// FromJsonString It is highly **NOT** recommended to use this function
-// because it has no param check, nor strict type check
-func (r *DeleteEndPointResponse) FromJsonString(s string) error {
-	return json.Unmarshal([]byte(s), &r)
 }
 
 // Predefined struct for user
@@ -747,7 +698,6 @@ type DeleteSpecifyPrivateZoneVpcResponseParams struct {
 	AccountVpcSet []*AccountVpcInfo `json:"AccountVpcSet,omitnil,omitempty" name:"AccountVpcSet"`
 
 	// 唯一id
-	// 注意：此字段可能返回 null，表示取不到有效值。
 	UniqId *string `json:"UniqId,omitnil,omitempty" name:"UniqId"`
 
 	// 唯一请求 ID，由服务端生成，每次请求都会返回（若请求因其他原因未能抵达服务端，则该次请求不会获得 RequestId）。定位问题时需要提供该次请求的 RequestId。
@@ -1230,14 +1180,14 @@ func (r *DescribePrivateZoneRecordListResponse) FromJsonString(s string) error {
 
 // Predefined struct for user
 type DescribePrivateZoneRequestParams struct {
-	// 域名，格式必须是标准的TLD
+	// 私有域id
 	ZoneId *string `json:"ZoneId,omitnil,omitempty" name:"ZoneId"`
 }
 
 type DescribePrivateZoneRequest struct {
 	*tchttp.BaseRequest
 	
-	// 域名，格式必须是标准的TLD
+	// 私有域id
 	ZoneId *string `json:"ZoneId,omitnil,omitempty" name:"ZoneId"`
 }
 
@@ -1394,6 +1344,70 @@ func (r *DescribeQuotaUsageResponse) FromJsonString(s string) error {
 }
 
 // Predefined struct for user
+type DescribeRecordRequestParams struct {
+	// 私有域ID
+	ZoneId *string `json:"ZoneId,omitnil,omitempty" name:"ZoneId"`
+
+	// 记录ID
+	RecordId *string `json:"RecordId,omitnil,omitempty" name:"RecordId"`
+}
+
+type DescribeRecordRequest struct {
+	*tchttp.BaseRequest
+	
+	// 私有域ID
+	ZoneId *string `json:"ZoneId,omitnil,omitempty" name:"ZoneId"`
+
+	// 记录ID
+	RecordId *string `json:"RecordId,omitnil,omitempty" name:"RecordId"`
+}
+
+func (r *DescribeRecordRequest) ToJsonString() string {
+    b, _ := json.Marshal(r)
+    return string(b)
+}
+
+// FromJsonString It is highly **NOT** recommended to use this function
+// because it has no param check, nor strict type check
+func (r *DescribeRecordRequest) FromJsonString(s string) error {
+	f := make(map[string]interface{})
+	if err := json.Unmarshal([]byte(s), &f); err != nil {
+		return err
+	}
+	delete(f, "ZoneId")
+	delete(f, "RecordId")
+	if len(f) > 0 {
+		return tcerr.NewTencentCloudSDKError("ClientError.BuildRequestError", "DescribeRecordRequest has unknown keys!", "")
+	}
+	return json.Unmarshal([]byte(s), &r)
+}
+
+// Predefined struct for user
+type DescribeRecordResponseParams struct {
+	// 记录信息
+	RecordInfo *RecordInfo `json:"RecordInfo,omitnil,omitempty" name:"RecordInfo"`
+
+	// 唯一请求 ID，由服务端生成，每次请求都会返回（若请求因其他原因未能抵达服务端，则该次请求不会获得 RequestId）。定位问题时需要提供该次请求的 RequestId。
+	RequestId *string `json:"RequestId,omitnil,omitempty" name:"RequestId"`
+}
+
+type DescribeRecordResponse struct {
+	*tchttp.BaseResponse
+	Response *DescribeRecordResponseParams `json:"Response"`
+}
+
+func (r *DescribeRecordResponse) ToJsonString() string {
+    b, _ := json.Marshal(r)
+    return string(b)
+}
+
+// FromJsonString It is highly **NOT** recommended to use this function
+// because it has no param check, nor strict type check
+func (r *DescribeRecordResponse) FromJsonString(s string) error {
+	return json.Unmarshal([]byte(s), &r)
+}
+
+// Predefined struct for user
 type DescribeRequestDataRequestParams struct {
 	// 请求量统计起始时间，格式：2020-11-22 00:00:00
 	TimeRangeBegin *string `json:"TimeRangeBegin,omitnil,omitempty" name:"TimeRangeBegin"`
@@ -1403,6 +1417,9 @@ type DescribeRequestDataRequestParams struct {
 
 	// 请求量统计结束时间，格式：2020-11-22 23:59:59
 	TimeRangeEnd *string `json:"TimeRangeEnd,omitnil,omitempty" name:"TimeRangeEnd"`
+
+	// 是否导出：true导出，false不导出
+	Export *bool `json:"Export,omitnil,omitempty" name:"Export"`
 }
 
 type DescribeRequestDataRequest struct {
@@ -1416,6 +1433,9 @@ type DescribeRequestDataRequest struct {
 
 	// 请求量统计结束时间，格式：2020-11-22 23:59:59
 	TimeRangeEnd *string `json:"TimeRangeEnd,omitnil,omitempty" name:"TimeRangeEnd"`
+
+	// 是否导出：true导出，false不导出
+	Export *bool `json:"Export,omitnil,omitempty" name:"Export"`
 }
 
 func (r *DescribeRequestDataRequest) ToJsonString() string {
@@ -1433,6 +1453,7 @@ func (r *DescribeRequestDataRequest) FromJsonString(s string) error {
 	delete(f, "TimeRangeBegin")
 	delete(f, "Filters")
 	delete(f, "TimeRangeEnd")
+	delete(f, "Export")
 	if len(f) > 0 {
 		return tcerr.NewTencentCloudSDKError("ClientError.BuildRequestError", "DescribeRequestDataRequest has unknown keys!", "")
 	}
@@ -1446,6 +1467,9 @@ type DescribeRequestDataResponseParams struct {
 
 	// 请求量单位时间: Day：天，Hour：小时
 	Interval *string `json:"Interval,omitnil,omitempty" name:"Interval"`
+
+	// 导出数据下载地址
+	Url *string `json:"Url,omitnil,omitempty" name:"Url"`
 
 	// 唯一请求 ID，由服务端生成，每次请求都会返回（若请求因其他原因未能抵达服务端，则该次请求不会获得 RequestId）。定位问题时需要提供该次请求的 RequestId。
 	RequestId *string `json:"RequestId,omitnil,omitempty" name:"RequestId"`
@@ -1497,7 +1521,6 @@ type MetricData struct {
 	DataSet []*DatePoint `json:"DataSet,omitnil,omitempty" name:"DataSet"`
 
 	// 查询范围内的请求总量
-	// 注意：此字段可能返回 null，表示取不到有效值。
 	MetricCount *int64 `json:"MetricCount,omitnil,omitempty" name:"MetricCount"`
 }
 
@@ -1526,6 +1549,9 @@ type ModifyPrivateZoneRecordRequestParams struct {
 
 	// 记录缓存时间，数值越小生效越快，取值1-86400s, 默认 600
 	TTL *int64 `json:"TTL,omitnil,omitempty" name:"TTL"`
+
+	// 备注
+	Remark *string `json:"Remark,omitnil,omitempty" name:"Remark"`
 }
 
 type ModifyPrivateZoneRecordRequest struct {
@@ -1554,6 +1580,9 @@ type ModifyPrivateZoneRecordRequest struct {
 
 	// 记录缓存时间，数值越小生效越快，取值1-86400s, 默认 600
 	TTL *int64 `json:"TTL,omitnil,omitempty" name:"TTL"`
+
+	// 备注
+	Remark *string `json:"Remark,omitnil,omitempty" name:"Remark"`
 }
 
 func (r *ModifyPrivateZoneRecordRequest) ToJsonString() string {
@@ -1576,6 +1605,7 @@ func (r *ModifyPrivateZoneRecordRequest) FromJsonString(s string) error {
 	delete(f, "Weight")
 	delete(f, "MX")
 	delete(f, "TTL")
+	delete(f, "Remark")
 	if len(f) > 0 {
 		return tcerr.NewTencentCloudSDKError("ClientError.BuildRequestError", "ModifyPrivateZoneRecordRequest has unknown keys!", "")
 	}
@@ -1727,7 +1757,7 @@ func (r *ModifyPrivateZoneVpcRequest) FromJsonString(s string) error {
 
 // Predefined struct for user
 type ModifyPrivateZoneVpcResponseParams struct {
-	// 私有域ID, zone-xxxxxx
+	// 私有域ID, zone-12345ds6
 	ZoneId *string `json:"ZoneId,omitnil,omitempty" name:"ZoneId"`
 
 	// 解析域关联的VPC列表
@@ -1864,7 +1894,6 @@ type PrivateZone struct {
 	RecordCount *int64 `json:"RecordCount,omitnil,omitempty" name:"RecordCount"`
 
 	// 备注
-	// 注意：此字段可能返回 null，表示取不到有效值。
 	Remark *string `json:"Remark,omitnil,omitempty" name:"Remark"`
 
 	// 绑定的Vpc列表
@@ -1881,26 +1910,21 @@ type PrivateZone struct {
 	Tags []*TagInfo `json:"Tags,omitnil,omitempty" name:"Tags"`
 
 	// 绑定的关联账号的vpc列表
-	// 注意：此字段可能返回 null，表示取不到有效值。
 	AccountVpcSet []*AccountVpcInfoOutput `json:"AccountVpcSet,omitnil,omitempty" name:"AccountVpcSet"`
 
 	// 是否自定义TLD
-	// 注意：此字段可能返回 null，表示取不到有效值。
 	IsCustomTld *bool `json:"IsCustomTld,omitnil,omitempty" name:"IsCustomTld"`
 
 	// CNAME加速状态：开通：ENABLED, 关闭，DISABLED
 	CnameSpeedupStatus *string `json:"CnameSpeedupStatus,omitnil,omitempty" name:"CnameSpeedupStatus"`
 
 	// 转发规则名称
-	// 注意：此字段可能返回 null，表示取不到有效值。
 	ForwardRuleName *string `json:"ForwardRuleName,omitnil,omitempty" name:"ForwardRuleName"`
 
 	// 转发规则类型：云上到云下，DOWN；云下到云上，UP，目前只支持DOWN
-	// 注意：此字段可能返回 null，表示取不到有效值。
 	ForwardRuleType *string `json:"ForwardRuleType,omitnil,omitempty" name:"ForwardRuleType"`
 
 	// 转发的地址
-	// 注意：此字段可能返回 null，表示取不到有效值。
 	ForwardAddress *string `json:"ForwardAddress,omitnil,omitempty" name:"ForwardAddress"`
 
 	// 终端节点名称
@@ -1908,7 +1932,6 @@ type PrivateZone struct {
 	EndPointName *string `json:"EndPointName,omitnil,omitempty" name:"EndPointName"`
 
 	// 已删除的vpc
-	// 注意：此字段可能返回 null，表示取不到有效值。
 	DeletedVpcSet []*VpcInfo `json:"DeletedVpcSet,omitnil,omitempty" name:"DeletedVpcSet"`
 }
 
@@ -1932,7 +1955,6 @@ type PrivateZoneRecord struct {
 	TTL *int64 `json:"TTL,omitnil,omitempty" name:"TTL"`
 
 	// MX优先级：记录类型为MX时必填。取值范围：5,10,15,20,30,40,50
-	// 注意：此字段可能返回 null，表示取不到有效值。
 	MX *int64 `json:"MX,omitnil,omitempty" name:"MX"`
 
 	// 记录状态：ENABLED
@@ -1953,8 +1975,10 @@ type PrivateZoneRecord struct {
 	Extra *string `json:"Extra,omitnil,omitempty" name:"Extra"`
 
 	// 0暂停，1启用
-	// 注意：此字段可能返回 null，表示取不到有效值。
 	Enabled *uint64 `json:"Enabled,omitnil,omitempty" name:"Enabled"`
+
+	// 备注
+	Remark *string `json:"Remark,omitnil,omitempty" name:"Remark"`
 }
 
 // Predefined struct for user
@@ -2017,6 +2041,44 @@ func (r *QueryAsyncBindVpcStatusResponse) ToJsonString() string {
 // because it has no param check, nor strict type check
 func (r *QueryAsyncBindVpcStatusResponse) FromJsonString(s string) error {
 	return json.Unmarshal([]byte(s), &r)
+}
+
+type RecordInfo struct {
+	// 记录id
+	RecordId *string `json:"RecordId,omitnil,omitempty" name:"RecordId"`
+
+	// 私有域id: zone-xxxxxxxx
+	ZoneId *string `json:"ZoneId,omitnil,omitempty" name:"ZoneId"`
+
+	// 子域名
+	SubDomain *string `json:"SubDomain,omitnil,omitempty" name:"SubDomain"`
+
+	// 记录类型，可选的记录类型为："A", "AAAA", "CNAME", "MX", "TXT", "PTR"
+	RecordType *string `json:"RecordType,omitnil,omitempty" name:"RecordType"`
+
+	// 记录值
+	RecordValue *string `json:"RecordValue,omitnil,omitempty" name:"RecordValue"`
+
+	// 记录缓存时间，数值越小生效越快，取值1-86400s, 默认 600
+	TTL *int64 `json:"TTL,omitnil,omitempty" name:"TTL"`
+
+	// MX优先级：记录类型为MX时必填。取值范围：5,10,15,20,30,40,50
+	MX *int64 `json:"MX,omitnil,omitempty" name:"MX"`
+
+	// 记录权重，值为1-100
+	Weight *int64 `json:"Weight,omitnil,omitempty" name:"Weight"`
+
+	// 记录创建时间
+	CreatedOn *string `json:"CreatedOn,omitnil,omitempty" name:"CreatedOn"`
+
+	// 记录更新时间
+	UpdatedOn *string `json:"UpdatedOn,omitnil,omitempty" name:"UpdatedOn"`
+
+	// 0暂停，1启用
+	Enabled *uint64 `json:"Enabled,omitnil,omitempty" name:"Enabled"`
+
+	// 备注
+	Remark *string `json:"Remark,omitnil,omitempty" name:"Remark"`
 }
 
 // Predefined struct for user
@@ -2096,7 +2158,7 @@ type TldQuota struct {
 }
 
 type VpcInfo struct {
-	// VpcId： vpc-xadsafsdasd
+	// VpcId
 	UniqVpcId *string `json:"UniqVpcId,omitnil,omitempty" name:"UniqVpcId"`
 
 	// Vpc所属地区: ap-guangzhou, ap-shanghai
