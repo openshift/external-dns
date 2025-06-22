@@ -19,9 +19,6 @@ cloud.google.com/go/auth/oauth2adapt
 # cloud.google.com/go/compute/metadata v0.3.0
 ## explicit; go 1.19
 cloud.google.com/go/compute/metadata
-# code.cloudfoundry.org/gofileutils v0.0.0-20170111115228-4d0c80011a0f
-## explicit
-code.cloudfoundry.org/gofileutils/fileutils
 # github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1
 ## explicit; go 1.18
 github.com/Azure/azure-sdk-for-go/sdk/azcore
@@ -239,8 +236,8 @@ github.com/civo/civogo/utils
 # github.com/cloudflare/cloudflare-go v0.95.0
 ## explicit; go 1.19
 github.com/cloudflare/cloudflare-go
-# github.com/cloudfoundry-community/go-cfclient v0.0.0-20190201205600-f136f9222381
-## explicit
+# github.com/cloudfoundry-community/go-cfclient v0.0.0-20220930021109-9c4e6c59ccf1
+## explicit; go 1.15
 github.com/cloudfoundry-community/go-cfclient
 # github.com/coreos/go-semver v0.3.1
 ## explicit; go 1.8
