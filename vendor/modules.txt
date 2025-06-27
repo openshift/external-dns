@@ -118,7 +118,7 @@ github.com/akamai/AkamaiOPEN-edgegrid-golang/jsonhooks-v1
 # github.com/alecthomas/kingpin/v2 v2.4.0
 ## explicit; go 1.17
 github.com/alecthomas/kingpin/v2
-# github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
+# github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b
 ## explicit; go 1.15
 github.com/alecthomas/units
 # github.com/alexbrainman/sspi v0.0.0-20180613141037-e580b900e9f5
