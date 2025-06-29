@@ -3,16 +3,14 @@ package linodego
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net"
 	"time"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/linode/linodego/internal/parseabletime"
 )
 
 /*
- * https://developers.linode.com/v4/reference/endpoints/linode/instances
+ * https://techdocs.akamai.com/linode-api/reference/post-linode-instance
  */
 
 // InstanceStatus constants start with Instance and include Linode API Instance Status values
@@ -62,15 +60,24 @@ type Instance struct {
 	Specs           *InstanceSpec   `json:"specs"`
 	WatchdogEnabled bool            `json:"watchdog_enabled"`
 	Tags            []string        `json:"tags"`
+
+	PlacementGroup *InstancePlacementGroup `json:"placement_group"`
+
+	// NOTE: Disk encryption may not currently be available to all users.
+	DiskEncryption InstanceDiskEncryption `json:"disk_encryption"`
+
+	LKEClusterID int      `json:"lke_cluster_id"`
+	Capabilities []string `json:"capabilities"`
 }
 
 // InstanceSpec represents a linode spec
 type InstanceSpec struct {
-	Disk     int `json:"disk"`
-	Memory   int `json:"memory"`
-	VCPUs    int `json:"vcpus"`
-	Transfer int `json:"transfer"`
-	GPUs     int `json:"gpus"`
+	Disk               int `json:"disk"`
+	Memory             int `json:"memory"`
+	VCPUs              int `json:"vcpus"`
+	Transfer           int `json:"transfer"`
+	GPUs               int `json:"gpus"`
+	AcceleratedDevices int `json:"accelerated_devices"`
 }
 
 // InstanceAlert represents a metric alert
@@ -84,13 +91,21 @@ type InstanceAlert struct {
 
 // InstanceBackup represents backup settings for an instance
 type InstanceBackup struct {
-	Available bool `json:"available,omitempty"` // read-only
-	Enabled   bool `json:"enabled,omitempty"`   // read-only
-	Schedule  struct {
+	Available      bool       `json:"available,omitempty"` // read-only
+	Enabled        bool       `json:"enabled,omitempty"`   // read-only
+	LastSuccessful *time.Time `json:"-"`                   // read-only
+	Schedule       struct {
 		Day    string `json:"day,omitempty"`
 		Window string `json:"window,omitempty"`
 	} `json:"schedule,omitempty"`
 }
+
+type InstanceDiskEncryption string
+
+const (
+	InstanceDiskEncryptionEnabled  InstanceDiskEncryption = "enabled"
+	InstanceDiskEncryptionDisabled InstanceDiskEncryption = "disabled"
+)
 
 // InstanceTransfer pool stats for a Linode Instance during the current billing month
 type InstanceTransfer struct {
@@ -104,11 +119,51 @@ type InstanceTransfer struct {
 	Quota int `json:"quota"`
 }
 
+// MonthlyInstanceTransferStats pool stats for a Linode Instance network transfer statistics for a specific month
+// Deprecated: use MonthlyInstanceTransferStatsV2 for new implementations
+type MonthlyInstanceTransferStats struct {
+	// The amount of inbound public network traffic received by this Linode, in bytes, for a specific year/month.
+	BytesIn int `json:"bytes_in"`
+
+	// The amount of outbound public network traffic sent by this Linode, in bytes, for a specific year/month.
+	BytesOut int `json:"bytes_out"`
+
+	// The total amount of public network traffic sent and received by this Linode, in bytes, for a specific year/month.
+	BytesTotal int `json:"bytes_total"`
+}
+
+// MonthlyInstanceTransferStatsV2 pool stats for a Linode Instance network transfer statistics for a specific month
+type MonthlyInstanceTransferStatsV2 struct {
+	// The amount of inbound public network traffic received by this Linode, in bytes, for a specific year/month.
+	BytesIn uint64 `json:"bytes_in"`
+
+	// The amount of outbound public network traffic sent by this Linode, in bytes, for a specific year/month.
+	BytesOut uint64 `json:"bytes_out"`
+
+	// The total amount of public network traffic sent and received by this Linode, in bytes, for a specific year/month.
+	BytesTotal uint64 `json:"bytes_total"`
+}
+
+// InstancePlacementGroup represents information about the placement group
+// this Linode is a part of.
+type InstancePlacementGroup struct {
+	ID                   int                  `json:"id"`
+	Label                string               `json:"label"`
+	PlacementGroupType   PlacementGroupType   `json:"placement_group_type"`
+	PlacementGroupPolicy PlacementGroupPolicy `json:"placement_group_policy"`
+	MigratingTo          *int                 `json:"migrating_to"` // read-only
+}
+
 // InstanceMetadataOptions specifies various Instance creation fields
 // that relate to the Linode Metadata service.
 type InstanceMetadataOptions struct {
 	// UserData expects a Base64-encoded string
 	UserData string `json:"user_data,omitempty"`
+}
+
+// InstancePasswordResetOptions specifies the new password for the Linode
+type InstancePasswordResetOptions struct {
+	RootPass string `json:"root_pass"`
 }
 
 // InstanceCreateOptions require only Region and Type
@@ -130,12 +185,26 @@ type InstanceCreateOptions struct {
 	Metadata        *InstanceMetadataOptions               `json:"metadata,omitempty"`
 	FirewallID      int                                    `json:"firewall_id,omitempty"`
 
+	// NOTE: Disk encryption may not currently be available to all users.
+	DiskEncryption InstanceDiskEncryption `json:"disk_encryption,omitempty"`
+
+	PlacementGroup *InstanceCreatePlacementGroupOptions `json:"placement_group,omitempty"`
+
 	// Creation fields that need to be set explicitly false, "", or 0 use pointers
 	SwapSize *int  `json:"swap_size,omitempty"`
 	Booted   *bool `json:"booted,omitempty"`
 
 	// Deprecated: group is a deprecated property denoting a group label for the Linode.
 	Group string `json:"group,omitempty"`
+
+	IPv4 []string `json:"ipv4,omitempty"`
+}
+
+// InstanceCreatePlacementGroupOptions represents the placement group
+// to create this Linode under.
+type InstanceCreatePlacementGroupOptions struct {
+	ID            int   `json:"id"`
+	CompliantOnly *bool `json:"compliant_only,omitempty"`
 }
 
 // InstanceUpdateOptions is an options struct used when Updating an Instance
@@ -172,6 +241,26 @@ func (i *Instance) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface
+func (backup *InstanceBackup) UnmarshalJSON(b []byte) error {
+	type Mask InstanceBackup
+
+	p := struct {
+		*Mask
+		LastSuccessful *parseabletime.ParseableTime `json:"last_successful"`
+	}{
+		Mask: (*Mask)(backup),
+	}
+
+	if err := json.Unmarshal(b, &p); err != nil {
+		return err
+	}
+
+	backup.LastSuccessful = (*time.Time)(p.LastSuccessful)
+
+	return nil
+}
+
 // GetUpdateOptions converts an Instance to InstanceUpdateOptions for use in UpdateInstance
 func (i *Instance) GetUpdateOptions() InstanceUpdateOptions {
 	return InstanceUpdateOptions{
@@ -190,13 +279,14 @@ type InstanceCloneOptions struct {
 	Type   string `json:"type,omitempty"`
 
 	// LinodeID is an optional existing instance to use as the target of the clone
-	LinodeID       int                      `json:"linode_id,omitempty"`
-	Label          string                   `json:"label,omitempty"`
-	BackupsEnabled bool                     `json:"backups_enabled"`
-	Disks          []int                    `json:"disks,omitempty"`
-	Configs        []int                    `json:"configs,omitempty"`
-	PrivateIP      bool                     `json:"private_ip,omitempty"`
-	Metadata       *InstanceMetadataOptions `json:"metadata,omitempty"`
+	LinodeID       int                                  `json:"linode_id,omitempty"`
+	Label          string                               `json:"label,omitempty"`
+	BackupsEnabled bool                                 `json:"backups_enabled"`
+	Disks          []int                                `json:"disks,omitempty"`
+	Configs        []int                                `json:"configs,omitempty"`
+	PrivateIP      bool                                 `json:"private_ip,omitempty"`
+	Metadata       *InstanceMetadataOptions             `json:"metadata,omitempty"`
+	PlacementGroup *InstanceCreatePlacementGroupOptions `json:"placement_group,omitempty"`
 
 	// Deprecated: group is a deprecated property denoting a group label for the Linode.
 	Group string `json:"group,omitempty"`
@@ -211,95 +301,53 @@ type InstanceResizeOptions struct {
 	AllowAutoDiskResize *bool `json:"allow_auto_disk_resize,omitempty"`
 }
 
-// InstanceResizeOptions is an options struct used when resizing an instance
+// InstanceMigrateOptions is an options struct used when migrating an instance
 type InstanceMigrateOptions struct {
-	Type   InstanceMigrationType `json:"type,omitempty"`
-	Region string                `json:"region,omitempty"`
-}
+	Type    InstanceMigrationType `json:"type,omitempty"`
+	Region  string                `json:"region,omitempty"`
+	Upgrade *bool                 `json:"upgrade,omitempty"`
 
-// InstancesPagedResponse represents a linode API response for listing
-type InstancesPagedResponse struct {
-	*PageOptions
-	Data []Instance `json:"data"`
-}
-
-// endpoint gets the endpoint URL for Instance
-func (InstancesPagedResponse) endpoint(_ ...any) string {
-	return "linode/instances"
-}
-
-func (resp *InstancesPagedResponse) castResult(r *resty.Request, e string) (int, int, error) {
-	res, err := coupleAPIErrors(r.SetResult(InstancesPagedResponse{}).Get(e))
-	if err != nil {
-		return 0, 0, err
-	}
-	castedRes := res.Result().(*InstancesPagedResponse)
-	resp.Data = append(resp.Data, castedRes.Data...)
-	return castedRes.Pages, castedRes.Results, nil
+	PlacementGroup *InstanceCreatePlacementGroupOptions `json:"placement_group,omitempty"`
 }
 
 // ListInstances lists linode instances
 func (c *Client) ListInstances(ctx context.Context, opts *ListOptions) ([]Instance, error) {
-	response := InstancesPagedResponse{}
-	err := c.listHelper(ctx, &response, opts)
-	if err != nil {
-		return nil, err
-	}
-	return response.Data, nil
+	return getPaginatedResults[Instance](ctx, c, "linode/instances", opts)
 }
 
 // GetInstance gets the instance with the provided ID
 func (c *Client) GetInstance(ctx context.Context, linodeID int) (*Instance, error) {
-	e := fmt.Sprintf("linode/instances/%d", linodeID)
-	req := c.R(ctx).SetResult(Instance{})
-	r, err := coupleAPIErrors(req.Get(e))
-	if err != nil {
-		return nil, err
-	}
-	return r.Result().(*Instance), nil
+	e := formatAPIPath("linode/instances/%d", linodeID)
+	return doGETRequest[Instance](ctx, c, e)
 }
 
-// GetInstanceTransfer gets the instance with the provided ID
+// GetInstanceTransfer gets the instance's network transfer pool statistics for the current month.
 func (c *Client) GetInstanceTransfer(ctx context.Context, linodeID int) (*InstanceTransfer, error) {
-	e := fmt.Sprintf("linode/instances/%d/transfer", linodeID)
-	req := c.R(ctx).SetResult(InstanceTransfer{})
-	r, err := coupleAPIErrors(req.Get(e))
-	if err != nil {
-		return nil, err
-	}
-	return r.Result().(*InstanceTransfer), nil
+	e := formatAPIPath("linode/instances/%d/transfer", linodeID)
+	return doGETRequest[InstanceTransfer](ctx, c, e)
+}
+
+// GetInstanceTransferMonthly gets the instance's network transfer pool statistics for a specific month.
+func (c *Client) GetInstanceTransferMonthly(ctx context.Context, linodeID, year, month int) (*MonthlyInstanceTransferStats, error) {
+	e := formatAPIPath("linode/instances/%d/transfer/%d/%d", linodeID, year, month)
+	return doGETRequest[MonthlyInstanceTransferStats](ctx, c, e)
+}
+
+// GetInstanceTransferMonthlyV2 gets the instance's network transfer pool statistics for a specific month.
+func (c *Client) GetInstanceTransferMonthlyV2(ctx context.Context, linodeID, year, month int) (*MonthlyInstanceTransferStatsV2, error) {
+	e := formatAPIPath("linode/instances/%d/transfer/%d/%d", linodeID, year, month)
+	return doGETRequest[MonthlyInstanceTransferStatsV2](ctx, c, e)
 }
 
 // CreateInstance creates a Linode instance
 func (c *Client) CreateInstance(ctx context.Context, opts InstanceCreateOptions) (*Instance, error) {
-	body, err := json.Marshal(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	e := "linode/instances"
-	req := c.R(ctx).SetResult(&Instance{}).SetBody(string(body))
-	r, err := coupleAPIErrors(req.Post(e))
-	if err != nil {
-		return nil, err
-	}
-	return r.Result().(*Instance), nil
+	return doPOSTRequest[Instance](ctx, c, "linode/instances", opts)
 }
 
 // UpdateInstance creates a Linode instance
 func (c *Client) UpdateInstance(ctx context.Context, linodeID int, opts InstanceUpdateOptions) (*Instance, error) {
-	body, err := json.Marshal(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	e := fmt.Sprintf("linode/instances/%d", linodeID)
-	req := c.R(ctx).SetResult(&Instance{}).SetBody(string(body))
-	r, err := coupleAPIErrors(req.Put(e))
-	if err != nil {
-		return nil, err
-	}
-	return r.Result().(*Instance), nil
+	e := formatAPIPath("linode/instances/%d", linodeID)
+	return doPUTRequest[Instance](ctx, c, e, opts)
 }
 
 // RenameInstance renames an Instance
@@ -309,61 +357,46 @@ func (c *Client) RenameInstance(ctx context.Context, linodeID int, label string)
 
 // DeleteInstance deletes a Linode instance
 func (c *Client) DeleteInstance(ctx context.Context, linodeID int) error {
-	e := fmt.Sprintf("linode/instances/%d", linodeID)
-	_, err := coupleAPIErrors(c.R(ctx).Delete(e))
-	return err
+	e := formatAPIPath("linode/instances/%d", linodeID)
+	return doDELETERequest(ctx, c, e)
 }
 
 // BootInstance will boot a Linode instance
 // A configID of 0 will cause Linode to choose the last/best config
 func (c *Client) BootInstance(ctx context.Context, linodeID int, configID int) error {
-	var body string
+	opts := make(map[string]int)
+
 	if configID != 0 {
-		bodyMap := map[string]int{"config_id": configID}
-		bodyJSON, err := json.Marshal(bodyMap)
-		if err != nil {
-			return err
-		}
-		body = string(bodyJSON)
+		opts = map[string]int{"config_id": configID}
 	}
-	e := fmt.Sprintf("linode/instances/%d/boot", linodeID)
-	_, err := coupleAPIErrors(c.R(ctx).SetBody(body).Post(e))
-	return err
+
+	e := formatAPIPath("linode/instances/%d/boot", linodeID)
+	return doPOSTRequestNoResponseBody(ctx, c, e, opts)
 }
 
 // CloneInstance clone an existing Instances Disks and Configuration profiles to another Linode Instance
 func (c *Client) CloneInstance(ctx context.Context, linodeID int, opts InstanceCloneOptions) (*Instance, error) {
-	body, err := json.Marshal(opts)
-	if err != nil {
-		return nil, err
-	}
+	e := formatAPIPath("linode/instances/%d/clone", linodeID)
+	return doPOSTRequest[Instance](ctx, c, e, opts)
+}
 
-	req := c.R(ctx).SetResult(&Instance{}).SetBody(string(body))
-	e := fmt.Sprintf("linode/instances/%d/clone", linodeID)
-	r, err := coupleAPIErrors(req.Post(e))
-	if err != nil {
-		return nil, err
-	}
-
-	return r.Result().(*Instance), nil
+// ResetInstancePassword resets a Linode instance's root password
+func (c *Client) ResetInstancePassword(ctx context.Context, linodeID int, opts InstancePasswordResetOptions) error {
+	e := formatAPIPath("linode/instances/%d/password", linodeID)
+	return doPOSTRequestNoResponseBody(ctx, c, e, opts)
 }
 
 // RebootInstance reboots a Linode instance
 // A configID of 0 will cause Linode to choose the last/best config
 func (c *Client) RebootInstance(ctx context.Context, linodeID int, configID int) error {
-	body := "{}"
+	opts := make(map[string]int)
 
 	if configID != 0 {
-		bodyMap := map[string]int{"config_id": configID}
-		bodyJSON, err := json.Marshal(bodyMap)
-		if err != nil {
-			return err
-		}
-		body = string(bodyJSON)
+		opts = map[string]int{"config_id": configID}
 	}
-	e := fmt.Sprintf("linode/instances/%d/reboot", linodeID)
-	_, err := coupleAPIErrors(c.R(ctx).SetBody(body).Post(e))
-	return err
+
+	e := formatAPIPath("linode/instances/%d/reboot", linodeID)
+	return doPOSTRequestNoResponseBody(ctx, c, e, opts)
 }
 
 // InstanceRebuildOptions is a struct representing the options to send to the rebuild linode endpoint
@@ -377,22 +410,16 @@ type InstanceRebuildOptions struct {
 	Booted          *bool                    `json:"booted,omitempty"`
 	Metadata        *InstanceMetadataOptions `json:"metadata,omitempty"`
 	Type            string                   `json:"type,omitempty"`
+
+	// NOTE: Disk encryption may not currently be available to all users.
+	DiskEncryption InstanceDiskEncryption `json:"disk_encryption,omitempty"`
 }
 
 // RebuildInstance Deletes all Disks and Configs on this Linode,
 // then deploys a new Image to this Linode with the given attributes.
 func (c *Client) RebuildInstance(ctx context.Context, linodeID int, opts InstanceRebuildOptions) (*Instance, error) {
-	body, err := json.Marshal(opts)
-	if err != nil {
-		return nil, err
-	}
-	e := fmt.Sprintf("linode/instances/%d/rebuild", linodeID)
-	req := c.R(ctx).SetBody(string(body)).SetResult(&Instance{})
-	r, err := coupleAPIErrors(req.Post(e))
-	if err != nil {
-		return nil, err
-	}
-	return r.Result().(*Instance), nil
+	e := formatAPIPath("linode/instances/%d/rebuild", linodeID)
+	return doPOSTRequest[Instance](ctx, c, e, opts)
 }
 
 // InstanceRescueOptions fields are those accepted by RescueInstance
@@ -405,24 +432,14 @@ type InstanceRescueOptions struct {
 // You can also use Rescue Mode for tasks other than disaster recovery, such as formatting disks to use different filesystems,
 // copying data between disks, and downloading files from a disk via SSH and SFTP.
 func (c *Client) RescueInstance(ctx context.Context, linodeID int, opts InstanceRescueOptions) error {
-	body, err := json.Marshal(opts)
-	if err != nil {
-		return err
-	}
-	e := fmt.Sprintf("linode/instances/%d/rescue", linodeID)
-	_, err = coupleAPIErrors(c.R(ctx).SetBody(string(body)).Post(e))
-	return err
+	e := formatAPIPath("linode/instances/%d/rescue", linodeID)
+	return doPOSTRequestNoResponseBody(ctx, c, e, opts)
 }
 
 // ResizeInstance resizes an instance to new Linode type
 func (c *Client) ResizeInstance(ctx context.Context, linodeID int, opts InstanceResizeOptions) error {
-	body, err := json.Marshal(opts)
-	if err != nil {
-		return err
-	}
-	e := fmt.Sprintf("linode/instances/%d/resize", linodeID)
-	_, err = coupleAPIErrors(c.R(ctx).SetBody(string(body)).Post(e))
-	return err
+	e := formatAPIPath("linode/instances/%d/resize", linodeID)
+	return doPOSTRequestNoResponseBody(ctx, c, e, opts)
 }
 
 // ShutdownInstance - Shutdown an instance
@@ -430,29 +447,34 @@ func (c *Client) ShutdownInstance(ctx context.Context, id int) error {
 	return c.simpleInstanceAction(ctx, "shutdown", id)
 }
 
+// Deprecated: Please use UpgradeInstance instead.
 // MutateInstance Upgrades a Linode to its next generation.
 func (c *Client) MutateInstance(ctx context.Context, id int) error {
 	return c.simpleInstanceAction(ctx, "mutate", id)
 }
 
+// InstanceUpgradeOptions is a struct representing the options for upgrading a Linode
+type InstanceUpgradeOptions struct {
+	// Automatically resize disks when resizing a Linode.
+	// When resizing down to a smaller plan your Linode's data must fit within the smaller disk size.
+	AllowAutoDiskResize bool `json:"allow_auto_disk_resize"`
+}
+
+// UpgradeInstance upgrades a Linode to its next generation.
+func (c *Client) UpgradeInstance(ctx context.Context, linodeID int, opts InstanceUpgradeOptions) error {
+	e := formatAPIPath("linode/instances/%d/mutate", linodeID)
+	return doPOSTRequestNoResponseBody(ctx, c, e, opts)
+}
+
 // MigrateInstance - Migrate an instance
 func (c *Client) MigrateInstance(ctx context.Context, linodeID int, opts InstanceMigrateOptions) error {
-	body, err := json.Marshal(opts)
-	if err != nil {
-		return err
-	}
-	e := fmt.Sprintf("linode/instances/%d/migrate", linodeID)
-	_, err = coupleAPIErrors(c.R(ctx).SetBody(string(body)).Post(e))
-	return err
+	e := formatAPIPath("linode/instances/%d/migrate", linodeID)
+	return doPOSTRequestNoResponseBody(ctx, c, e, opts)
 }
 
 // simpleInstanceAction is a helper for Instance actions that take no parameters
 // and return empty responses `{}` unless they return a standard error
 func (c *Client) simpleInstanceAction(ctx context.Context, action string, linodeID int) error {
-	_, err := doPOSTRequest[any, any](
-		ctx,
-		c,
-		fmt.Sprintf("linode/instances/%d/%s", linodeID, action),
-	)
-	return err
+	e := formatAPIPath("linode/instances/%d/%s", linodeID, action)
+	return doPOSTRequestNoRequestResponseBody(ctx, c, e)
 }
