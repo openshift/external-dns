@@ -10,24 +10,24 @@ import (
 
 type Account struct {
 	ID                 string                   `json:"id"`
-	Name               *string                  `json:"name"`
-	BillingCustomerID  *string                  `json:"billingCustomerId"`
-	WorkosConnectionID *string                  `json:"workosConnectionId"`
-	ClusterCount       *string                  `json:"clusterCount"`
-	UserCount          *string                  `json:"userCount"`
-	DelinquentAt       *string                  `json:"delinquentAt"`
-	GrandfatheredUntil *string                  `json:"grandfatheredUntil"`
-	BillingAddress     *Address                 `json:"billingAddress"`
-	Trialed            *bool                    `json:"trialed"`
-	Icon               *string                  `json:"icon"`
-	PaymentMethods     *PaymentMethodConnection `json:"paymentMethods"`
-	RootUser           *User                    `json:"rootUser"`
-	DomainMappings     []*DomainMapping         `json:"domainMappings"`
-	Subscription       *PlatformSubscription    `json:"subscription"`
-	BackgroundColor    *string                  `json:"backgroundColor"`
-	AvailableFeatures  *PlanFeatures            `json:"availableFeatures"`
-	InsertedAt         *string                  `json:"insertedAt"`
-	UpdatedAt          *string                  `json:"updatedAt"`
+	Name               *string                  `json:"name,omitempty"`
+	BillingCustomerID  *string                  `json:"billingCustomerId,omitempty"`
+	WorkosConnectionID *string                  `json:"workosConnectionId,omitempty"`
+	ClusterCount       *string                  `json:"clusterCount,omitempty"`
+	UserCount          *string                  `json:"userCount,omitempty"`
+	DelinquentAt       *string                  `json:"delinquentAt,omitempty"`
+	GrandfatheredUntil *string                  `json:"grandfatheredUntil,omitempty"`
+	BillingAddress     *Address                 `json:"billingAddress,omitempty"`
+	Trialed            *bool                    `json:"trialed,omitempty"`
+	Icon               *string                  `json:"icon,omitempty"`
+	PaymentMethods     *PaymentMethodConnection `json:"paymentMethods,omitempty"`
+	RootUser           *User                    `json:"rootUser,omitempty"`
+	DomainMappings     []*DomainMapping         `json:"domainMappings,omitempty"`
+	Subscription       *PlatformSubscription    `json:"subscription,omitempty"`
+	BackgroundColor    *string                  `json:"backgroundColor,omitempty"`
+	AvailableFeatures  *PlanFeatures            `json:"availableFeatures,omitempty"`
+	InsertedAt         *string                  `json:"insertedAt,omitempty"`
+	UpdatedAt          *string                  `json:"updatedAt,omitempty"`
 }
 
 type AccountAttributes struct {
@@ -48,13 +48,13 @@ type ActionItemAttributes struct {
 }
 
 type Address struct {
-	Name    *string `json:"name"`
-	Line1   *string `json:"line1"`
-	Line2   *string `json:"line2"`
-	City    *string `json:"city"`
-	State   *string `json:"state"`
-	Country *string `json:"country"`
-	Zip     *string `json:"zip"`
+	Name    *string `json:"name,omitempty"`
+	Line1   *string `json:"line1,omitempty"`
+	Line2   *string `json:"line2,omitempty"`
+	City    *string `json:"city,omitempty"`
+	State   *string `json:"state,omitempty"`
+	Country *string `json:"country,omitempty"`
+	Zip     *string `json:"zip,omitempty"`
 }
 
 type AddressAttributes struct {
@@ -68,52 +68,52 @@ type AddressAttributes struct {
 }
 
 type AppLink struct {
-	URL         *string `json:"url"`
-	Description *string `json:"description"`
+	URL         *string `json:"url,omitempty"`
+	Description *string `json:"description,omitempty"`
 }
 
 type ApplicationComponent struct {
-	Group  *string `json:"group"`
-	Name   *string `json:"name"`
-	Kind   *string `json:"kind"`
-	Status *string `json:"status"`
+	Group  *string `json:"group,omitempty"`
+	Name   *string `json:"name,omitempty"`
+	Kind   *string `json:"kind,omitempty"`
+	Status *string `json:"status,omitempty"`
 }
 
 type ApplicationInformation struct {
 	Name            string                  `json:"name"`
-	Ready           *bool                   `json:"ready"`
-	ComponentsReady *string                 `json:"componentsReady"`
-	Components      []*ApplicationComponent `json:"components"`
-	Spec            *ApplicationSpec        `json:"spec"`
+	Ready           *bool                   `json:"ready,omitempty"`
+	ComponentsReady *string                 `json:"componentsReady,omitempty"`
+	Components      []*ApplicationComponent `json:"components,omitempty"`
+	Spec            *ApplicationSpec        `json:"spec,omitempty"`
 }
 
 type ApplicationSpec struct {
-	Description *string    `json:"description"`
-	Version     *string    `json:"version"`
-	Links       []*AppLink `json:"links"`
+	Description *string    `json:"description,omitempty"`
+	Version     *string    `json:"version,omitempty"`
+	Links       []*AppLink `json:"links,omitempty"`
 }
 
 type ApplyLock struct {
 	ID         string      `json:"id"`
-	Lock       *string     `json:"lock"`
-	Repository *Repository `json:"repository"`
-	Owner      *User       `json:"owner"`
-	InsertedAt *string     `json:"insertedAt"`
-	UpdatedAt  *string     `json:"updatedAt"`
+	Lock       *string     `json:"lock,omitempty"`
+	Repository *Repository `json:"repository,omitempty"`
+	Owner      *User       `json:"owner,omitempty"`
+	InsertedAt *string     `json:"insertedAt,omitempty"`
+	UpdatedAt  *string     `json:"updatedAt,omitempty"`
 }
 
 type Artifact struct {
-	ID         *string           `json:"id"`
-	Name       *string           `json:"name"`
-	Readme     *string           `json:"readme"`
-	Type       *ArtifactType     `json:"type"`
-	Platform   *ArtifactPlatform `json:"platform"`
-	Filesize   *int64            `json:"filesize"`
-	Sha        *string           `json:"sha"`
-	Arch       *string           `json:"arch"`
-	Blob       *string           `json:"blob"`
-	InsertedAt *string           `json:"insertedAt"`
-	UpdatedAt  *string           `json:"updatedAt"`
+	ID         *string           `json:"id,omitempty"`
+	Name       *string           `json:"name,omitempty"`
+	Readme     *string           `json:"readme,omitempty"`
+	Type       *ArtifactType     `json:"type,omitempty"`
+	Platform   *ArtifactPlatform `json:"platform,omitempty"`
+	Filesize   *int64            `json:"filesize,omitempty"`
+	Sha        *string           `json:"sha,omitempty"`
+	Arch       *string           `json:"arch,omitempty"`
+	Blob       *string           `json:"blob,omitempty"`
+	InsertedAt *string           `json:"insertedAt,omitempty"`
+	UpdatedAt  *string           `json:"updatedAt,omitempty"`
 }
 
 type ArtifactAttributes struct {
@@ -128,31 +128,31 @@ type ArtifactAttributes struct {
 type Audit struct {
 	ID                 string              `json:"id"`
 	Action             string              `json:"action"`
-	IP                 *string             `json:"ip"`
-	City               *string             `json:"city"`
-	Country            *string             `json:"country"`
-	Latitude           *string             `json:"latitude"`
-	Longitude          *string             `json:"longitude"`
-	Actor              *User               `json:"actor"`
-	Group              *Group              `json:"group"`
-	Role               *Role               `json:"role"`
-	User               *User               `json:"user"`
-	IntegrationWebhook *IntegrationWebhook `json:"integrationWebhook"`
-	Repository         *Repository         `json:"repository"`
-	Version            *Version            `json:"version"`
-	Image              *DockerImage        `json:"image"`
-	InsertedAt         *string             `json:"insertedAt"`
-	UpdatedAt          *string             `json:"updatedAt"`
+	IP                 *string             `json:"ip,omitempty"`
+	City               *string             `json:"city,omitempty"`
+	Country            *string             `json:"country,omitempty"`
+	Latitude           *string             `json:"latitude,omitempty"`
+	Longitude          *string             `json:"longitude,omitempty"`
+	Actor              *User               `json:"actor,omitempty"`
+	Group              *Group              `json:"group,omitempty"`
+	Role               *Role               `json:"role,omitempty"`
+	User               *User               `json:"user,omitempty"`
+	IntegrationWebhook *IntegrationWebhook `json:"integrationWebhook,omitempty"`
+	Repository         *Repository         `json:"repository,omitempty"`
+	Version            *Version            `json:"version,omitempty"`
+	Image              *DockerImage        `json:"image,omitempty"`
+	InsertedAt         *string             `json:"insertedAt,omitempty"`
+	UpdatedAt          *string             `json:"updatedAt,omitempty"`
 }
 
 type AuditConnection struct {
-	PageInfo PageInfo     `json:"pageInfo"`
-	Edges    []*AuditEdge `json:"edges"`
+	PageInfo *PageInfo    `json:"pageInfo"`
+	Edges    []*AuditEdge `json:"edges,omitempty"`
 }
 
 type AuditEdge struct {
-	Node   *Audit  `json:"node"`
-	Cursor *string `json:"cursor"`
+	Node   *Audit  `json:"node,omitempty"`
+	Cursor *string `json:"cursor,omitempty"`
 }
 
 type AuthorizationURL struct {
@@ -185,41 +185,41 @@ type Card struct {
 	ExpMonth int64   `json:"expMonth"`
 	ExpYear  int64   `json:"expYear"`
 	Brand    string  `json:"brand"`
-	Name     *string `json:"name"`
+	Name     *string `json:"name,omitempty"`
 }
 
 type CardConnection struct {
-	PageInfo PageInfo    `json:"pageInfo"`
-	Edges    []*CardEdge `json:"edges"`
+	PageInfo *PageInfo   `json:"pageInfo"`
+	Edges    []*CardEdge `json:"edges,omitempty"`
 }
 
 type CardEdge struct {
-	Node   *Card   `json:"node"`
-	Cursor *string `json:"cursor"`
+	Node   *Card   `json:"node,omitempty"`
+	Cursor *string `json:"cursor,omitempty"`
 }
 
 type CategoryInfo struct {
-	Category *Category             `json:"category"`
-	Count    *int64                `json:"count"`
-	Tags     *GroupedTagConnection `json:"tags"`
+	Category *Category             `json:"category,omitempty"`
+	Count    *int64                `json:"count,omitempty"`
+	Tags     *GroupedTagConnection `json:"tags,omitempty"`
 }
 
 type ChangeInstructions struct {
-	Script       *string `json:"script"`
-	Instructions *string `json:"instructions"`
+	Script       *string `json:"script,omitempty"`
+	Instructions *string `json:"instructions,omitempty"`
 }
 
 type Chart struct {
-	ID            *string            `json:"id"`
+	ID            *string            `json:"id,omitempty"`
 	Name          string             `json:"name"`
-	Description   *string            `json:"description"`
-	LatestVersion *string            `json:"latestVersion"`
-	Repository    *Repository        `json:"repository"`
-	Dependencies  *Dependencies      `json:"dependencies"`
-	Tags          []*VersionTag      `json:"tags"`
-	Installation  *ChartInstallation `json:"installation"`
-	InsertedAt    *string            `json:"insertedAt"`
-	UpdatedAt     *string            `json:"updatedAt"`
+	Description   *string            `json:"description,omitempty"`
+	LatestVersion *string            `json:"latestVersion,omitempty"`
+	Repository    *Repository        `json:"repository,omitempty"`
+	Dependencies  *Dependencies      `json:"dependencies,omitempty"`
+	Tags          []*VersionTag      `json:"tags,omitempty"`
+	Installation  *ChartInstallation `json:"installation,omitempty"`
+	InsertedAt    *string            `json:"insertedAt,omitempty"`
+	UpdatedAt     *string            `json:"updatedAt,omitempty"`
 }
 
 type ChartAttributes struct {
@@ -227,22 +227,22 @@ type ChartAttributes struct {
 }
 
 type ChartConnection struct {
-	PageInfo PageInfo     `json:"pageInfo"`
-	Edges    []*ChartEdge `json:"edges"`
+	PageInfo *PageInfo    `json:"pageInfo"`
+	Edges    []*ChartEdge `json:"edges,omitempty"`
 }
 
 type ChartEdge struct {
-	Node   *Chart  `json:"node"`
-	Cursor *string `json:"cursor"`
+	Node   *Chart  `json:"node,omitempty"`
+	Cursor *string `json:"cursor,omitempty"`
 }
 
 type ChartInstallation struct {
-	ID           *string       `json:"id"`
-	Chart        *Chart        `json:"chart"`
-	Version      *Version      `json:"version"`
-	Installation *Installation `json:"installation"`
-	InsertedAt   *string       `json:"insertedAt"`
-	UpdatedAt    *string       `json:"updatedAt"`
+	ID           *string       `json:"id,omitempty"`
+	Chart        *Chart        `json:"chart,omitempty"`
+	Version      *Version      `json:"version,omitempty"`
+	Installation *Installation `json:"installation,omitempty"`
+	InsertedAt   *string       `json:"insertedAt,omitempty"`
+	UpdatedAt    *string       `json:"updatedAt,omitempty"`
 }
 
 type ChartInstallationAttributes struct {
@@ -251,13 +251,13 @@ type ChartInstallationAttributes struct {
 }
 
 type ChartInstallationConnection struct {
-	PageInfo PageInfo                 `json:"pageInfo"`
-	Edges    []*ChartInstallationEdge `json:"edges"`
+	PageInfo *PageInfo                `json:"pageInfo"`
+	Edges    []*ChartInstallationEdge `json:"edges,omitempty"`
 }
 
 type ChartInstallationEdge struct {
-	Node   *ChartInstallation `json:"node"`
-	Cursor *string            `json:"cursor"`
+	Node   *ChartInstallation `json:"node,omitempty"`
+	Cursor *string            `json:"cursor,omitempty"`
 }
 
 type ChartName struct {
@@ -268,7 +268,7 @@ type ChartName struct {
 type ChatMessage struct {
 	Role    string  `json:"role"`
 	Content string  `json:"content"`
-	Name    *string `json:"name"`
+	Name    *string `json:"name,omitempty"`
 }
 
 type ChatMessageAttributes struct {
@@ -278,9 +278,9 @@ type ChatMessageAttributes struct {
 }
 
 type ClosureItem struct {
-	Helm      *Chart      `json:"helm"`
-	Terraform *Terraform  `json:"terraform"`
-	Dep       *Dependency `json:"dep"`
+	Helm      *Chart      `json:"helm,omitempty"`
+	Terraform *Terraform  `json:"terraform,omitempty"`
+	Dep       *Dependency `json:"dep,omitempty"`
 }
 
 type CloudShell struct {
@@ -288,22 +288,22 @@ type CloudShell struct {
 	Provider   Provider     `json:"provider"`
 	GitURL     string       `json:"gitUrl"`
 	AesKey     string       `json:"aesKey"`
-	Missing    []*string    `json:"missing"`
+	Missing    []*string    `json:"missing,omitempty"`
 	Cluster    string       `json:"cluster"`
 	Subdomain  string       `json:"subdomain"`
 	Alive      bool         `json:"alive"`
-	Status     *ShellStatus `json:"status"`
+	Status     *ShellStatus `json:"status,omitempty"`
 	Region     string       `json:"region"`
-	InsertedAt *string      `json:"insertedAt"`
-	UpdatedAt  *string      `json:"updatedAt"`
+	InsertedAt *string      `json:"insertedAt,omitempty"`
+	UpdatedAt  *string      `json:"updatedAt,omitempty"`
 }
 
 type CloudShellAttributes struct {
-	Provider    *Provider                  `json:"provider,omitempty"`
-	Workspace   WorkspaceAttributes        `json:"workspace"`
-	Credentials ShellCredentialsAttributes `json:"credentials"`
-	Scm         *ScmAttributes             `json:"scm,omitempty"`
-	DemoID      *string                    `json:"demoId,omitempty"`
+	Provider    *Provider                   `json:"provider,omitempty"`
+	Workspace   *WorkspaceAttributes        `json:"workspace"`
+	Credentials *ShellCredentialsAttributes `json:"credentials"`
+	Scm         *ScmAttributes              `json:"scm,omitempty"`
+	DemoID      *string                     `json:"demoId,omitempty"`
 }
 
 // A Kubernetes cluster that can be used to deploy applications on with Plural.
@@ -315,33 +315,35 @@ type Cluster struct {
 	// The cluster's cloud provider.
 	Provider Provider `json:"provider"`
 	// The source of the cluster.
-	Source *Source `json:"source"`
+	Source *Source `json:"source,omitempty"`
 	// The git repository URL for the cluster.
-	GitURL *string `json:"gitUrl"`
+	GitURL *string `json:"gitUrl,omitempty"`
 	// The URL of the console running on the cluster.
-	ConsoleURL *string `json:"consoleUrl"`
+	ConsoleURL *string `json:"consoleUrl,omitempty"`
 	// The domain name used for applications deployed on the cluster.
-	Domain *string `json:"domain"`
+	Domain *string `json:"domain,omitempty"`
 	// The last time the cluster was pinged.
-	PingedAt *string `json:"pingedAt"`
+	PingedAt *string `json:"pingedAt,omitempty"`
+	// the services deployed from this cluster
+	ServiceCount *int64 `json:"serviceCount,omitempty"`
 	// pending upgrades for each installed app
-	UpgradeInfo []*UpgradeInfo `json:"upgradeInfo"`
+	UpgradeInfo []*UpgradeInfo `json:"upgradeInfo,omitempty"`
 	// whether all installations in the cluster have been synced
-	Synced *bool `json:"synced"`
+	Synced *bool `json:"synced,omitempty"`
 	// whether any installation in the cluster has been locked
-	Locked *bool `json:"locked"`
+	Locked *bool `json:"locked,omitempty"`
 	// CPU/Memory history for this cluster
-	UsageHistory []*ClusterUsageHistory `json:"usageHistory"`
+	UsageHistory []*ClusterUsageHistory `json:"usageHistory,omitempty"`
 	// the dependencies a cluster has
-	Dependency *ClusterDependency `json:"dependency"`
+	Dependency *ClusterDependency `json:"dependency,omitempty"`
 	// The user that owns the cluster.
-	Owner *User `json:"owner"`
+	Owner *User `json:"owner,omitempty"`
 	// The account that the cluster belongs to.
-	Account *Account `json:"account"`
+	Account *Account `json:"account,omitempty"`
 	// The upgrade queue for applications running on the cluster.
-	Queue      *UpgradeQueue `json:"queue"`
-	InsertedAt *string       `json:"insertedAt"`
-	UpdatedAt  *string       `json:"updatedAt"`
+	Queue      *UpgradeQueue `json:"queue,omitempty"`
+	InsertedAt *string       `json:"insertedAt,omitempty"`
+	UpdatedAt  *string       `json:"updatedAt,omitempty"`
 }
 
 // Input for creating or updating a cluster.
@@ -361,33 +363,33 @@ type ClusterAttributes struct {
 }
 
 type ClusterConnection struct {
-	PageInfo PageInfo       `json:"pageInfo"`
-	Edges    []*ClusterEdge `json:"edges"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+	Edges    []*ClusterEdge `json:"edges,omitempty"`
 }
 
 // A dependncy reference between clusters
 type ClusterDependency struct {
 	ID string `json:"id"`
 	// the cluster holding this dependency
-	Cluster *Cluster `json:"cluster"`
+	Cluster *Cluster `json:"cluster,omitempty"`
 	// the source cluster of this dependency
-	Dependency *Cluster `json:"dependency"`
-	InsertedAt *string  `json:"insertedAt"`
-	UpdatedAt  *string  `json:"updatedAt"`
+	Dependency *Cluster `json:"dependency,omitempty"`
+	InsertedAt *string  `json:"insertedAt,omitempty"`
+	UpdatedAt  *string  `json:"updatedAt,omitempty"`
 }
 
 type ClusterEdge struct {
-	Node   *Cluster `json:"node"`
-	Cursor *string  `json:"cursor"`
+	Node   *Cluster `json:"node,omitempty"`
+	Cursor *string  `json:"cursor,omitempty"`
 }
 
 type ClusterInformation struct {
 	ID         string  `json:"id"`
-	Version    *string `json:"version"`
-	GitCommit  *string `json:"gitCommit"`
-	Platform   *string `json:"platform"`
-	InsertedAt *string `json:"insertedAt"`
-	UpdatedAt  *string `json:"updatedAt"`
+	Version    *string `json:"version,omitempty"`
+	GitCommit  *string `json:"gitCommit,omitempty"`
+	Platform   *string `json:"platform,omitempty"`
+	InsertedAt *string `json:"insertedAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
 }
 
 type ClusterInformationAttributes struct {
@@ -398,21 +400,22 @@ type ClusterInformationAttributes struct {
 
 // A record of the utilization in a given cluster
 type ClusterUsageHistory struct {
-	CPU        *int64   `json:"cpu"`
-	Memory     *int64   `json:"memory"`
-	Cluster    *Cluster `json:"cluster"`
-	Account    *Account `json:"account"`
-	InsertedAt *string  `json:"insertedAt"`
-	UpdatedAt  *string  `json:"updatedAt"`
+	CPU        *int64   `json:"cpu,omitempty"`
+	Memory     *int64   `json:"memory,omitempty"`
+	Services   *int64   `json:"services,omitempty"`
+	Cluster    *Cluster `json:"cluster,omitempty"`
+	Account    *Account `json:"account,omitempty"`
+	InsertedAt *string  `json:"insertedAt,omitempty"`
+	UpdatedAt  *string  `json:"updatedAt,omitempty"`
 }
 
 type Community struct {
-	Discord  *string   `json:"discord"`
-	Slack    *string   `json:"slack"`
-	Twitter  *string   `json:"twitter"`
-	Homepage *string   `json:"homepage"`
-	GitURL   *string   `json:"gitUrl"`
-	Videos   []*string `json:"videos"`
+	Discord  *string   `json:"discord,omitempty"`
+	Slack    *string   `json:"slack,omitempty"`
+	Twitter  *string   `json:"twitter,omitempty"`
+	Homepage *string   `json:"homepage,omitempty"`
+	GitURL   *string   `json:"gitUrl,omitempty"`
+	Videos   []*string `json:"videos,omitempty"`
 }
 
 // Input for creating or updating the community links of an application.
@@ -432,8 +435,62 @@ type CommunityAttributes struct {
 }
 
 type ConsentRequest struct {
-	RequestedScope []*string `json:"requestedScope"`
-	Skip           *bool     `json:"skip"`
+	RequestedScope []*string `json:"requestedScope,omitempty"`
+	Skip           *bool     `json:"skip,omitempty"`
+}
+
+type ConsoleConfigurationUpdateAttributes struct {
+	EncryptionKey *string `json:"encryptionKey,omitempty"`
+}
+
+type ConsoleInstance struct {
+	ID string `json:"id"`
+	// the name of this instance (globally unique)
+	Name string `json:"name"`
+	// the subdomain this instance lives under
+	Subdomain string `json:"subdomain"`
+	// full console url of this instance
+	URL string `json:"url"`
+	// the cloud provider hosting this instance
+	Cloud CloudProvider `json:"cloud"`
+	// the heuristic size of this instance
+	Size ConsoleSize `json:"size"`
+	// the region this instance is hosted in
+	Region string `json:"region"`
+	// the provisioning status of this instance, liveness is fetched through the console field
+	Status ConsoleInstanceStatus `json:"status"`
+	// the time this instance was deleted on
+	DeletedAt  *string  `json:"deletedAt,omitempty"`
+	Console    *Cluster `json:"console,omitempty"`
+	Owner      *User    `json:"owner,omitempty"`
+	InsertedAt *string  `json:"insertedAt,omitempty"`
+	UpdatedAt  *string  `json:"updatedAt,omitempty"`
+}
+
+type ConsoleInstanceAttributes struct {
+	// the name of this instance (globally unique)
+	Name string `json:"name"`
+	// a heuristic size of this instance
+	Size ConsoleSize `json:"size"`
+	// the cloud provider to deploy to
+	Cloud CloudProvider `json:"cloud"`
+	// the region to deploy to (provider specific)
+	Region string `json:"region"`
+}
+
+type ConsoleInstanceConnection struct {
+	PageInfo *PageInfo              `json:"pageInfo"`
+	Edges    []*ConsoleInstanceEdge `json:"edges,omitempty"`
+}
+
+type ConsoleInstanceEdge struct {
+	Node   *ConsoleInstance `json:"node,omitempty"`
+	Cursor *string          `json:"cursor,omitempty"`
+}
+
+type ConsoleInstanceUpdateAttributes struct {
+	Size          *ConsoleSize                          `json:"size,omitempty"`
+	Configuration *ConsoleConfigurationUpdateAttributes `json:"configuration,omitempty"`
 }
 
 type ContextAttributes struct {
@@ -445,17 +502,17 @@ type ContextAttributes struct {
 // An external repository contributor
 type Contributor struct {
 	ID         string  `json:"id"`
-	User       *User   `json:"user"`
-	InsertedAt *string `json:"insertedAt"`
-	UpdatedAt  *string `json:"updatedAt"`
+	User       *User   `json:"user,omitempty"`
+	InsertedAt *string `json:"insertedAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
 }
 
 type Crd struct {
 	ID         string  `json:"id"`
 	Name       string  `json:"name"`
-	Blob       *string `json:"blob"`
-	InsertedAt *string `json:"insertedAt"`
-	UpdatedAt  *string `json:"updatedAt"`
+	Blob       *string `json:"blob,omitempty"`
+	InsertedAt *string `json:"insertedAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
 }
 
 type CrdAttributes struct {
@@ -464,75 +521,75 @@ type CrdAttributes struct {
 }
 
 type Cvss struct {
-	AttackVector       *VulnVector      `json:"attackVector"`
-	AttackComplexity   *VulnGrade       `json:"attackComplexity"`
-	PrivilegesRequired *VulnGrade       `json:"privilegesRequired"`
-	UserInteraction    *VulnRequirement `json:"userInteraction"`
-	Confidentiality    *VulnGrade       `json:"confidentiality"`
-	Integrity          *VulnGrade       `json:"integrity"`
-	Availability       *VulnGrade       `json:"availability"`
+	AttackVector       *VulnVector      `json:"attackVector,omitempty"`
+	AttackComplexity   *VulnGrade       `json:"attackComplexity,omitempty"`
+	PrivilegesRequired *VulnGrade       `json:"privilegesRequired,omitempty"`
+	UserInteraction    *VulnRequirement `json:"userInteraction,omitempty"`
+	Confidentiality    *VulnGrade       `json:"confidentiality,omitempty"`
+	Integrity          *VulnGrade       `json:"integrity,omitempty"`
+	Availability       *VulnGrade       `json:"availability,omitempty"`
 }
 
 type DeferredReason struct {
-	Message    *string `json:"message"`
-	Package    *string `json:"package"`
-	Repository *string `json:"repository"`
+	Message    *string `json:"message,omitempty"`
+	Package    *string `json:"package,omitempty"`
+	Repository *string `json:"repository,omitempty"`
 }
 
 type DeferredUpdate struct {
 	ID                    string                 `json:"id"`
-	DequeueAt             *string                `json:"dequeueAt"`
-	Attempts              *int64                 `json:"attempts"`
-	Pending               *bool                  `json:"pending"`
-	Messages              []*DeferredReason      `json:"messages"`
-	ChartInstallation     *ChartInstallation     `json:"chartInstallation"`
-	TerraformInstallation *TerraformInstallation `json:"terraformInstallation"`
-	Version               *Version               `json:"version"`
-	InsertedAt            *string                `json:"insertedAt"`
-	UpdatedAt             *string                `json:"updatedAt"`
+	DequeueAt             *string                `json:"dequeueAt,omitempty"`
+	Attempts              *int64                 `json:"attempts,omitempty"`
+	Pending               *bool                  `json:"pending,omitempty"`
+	Messages              []*DeferredReason      `json:"messages,omitempty"`
+	ChartInstallation     *ChartInstallation     `json:"chartInstallation,omitempty"`
+	TerraformInstallation *TerraformInstallation `json:"terraformInstallation,omitempty"`
+	Version               *Version               `json:"version,omitempty"`
+	InsertedAt            *string                `json:"insertedAt,omitempty"`
+	UpdatedAt             *string                `json:"updatedAt,omitempty"`
 }
 
 type DeferredUpdateConnection struct {
-	PageInfo PageInfo              `json:"pageInfo"`
-	Edges    []*DeferredUpdateEdge `json:"edges"`
+	PageInfo *PageInfo             `json:"pageInfo"`
+	Edges    []*DeferredUpdateEdge `json:"edges,omitempty"`
 }
 
 type DeferredUpdateEdge struct {
-	Node   *DeferredUpdate `json:"node"`
-	Cursor *string         `json:"cursor"`
+	Node   *DeferredUpdate `json:"node,omitempty"`
+	Cursor *string         `json:"cursor,omitempty"`
 }
 
 type DemoProject struct {
 	ID          string            `json:"id"`
 	ProjectID   string            `json:"projectId"`
-	Credentials *string           `json:"credentials"`
-	Ready       *bool             `json:"ready"`
-	State       *DemoProjectState `json:"state"`
-	InsertedAt  *string           `json:"insertedAt"`
-	UpdatedAt   *string           `json:"updatedAt"`
+	Credentials *string           `json:"credentials,omitempty"`
+	Ready       *bool             `json:"ready,omitempty"`
+	State       *DemoProjectState `json:"state,omitempty"`
+	InsertedAt  *string           `json:"insertedAt,omitempty"`
+	UpdatedAt   *string           `json:"updatedAt,omitempty"`
 }
 
 type Dependencies struct {
-	Dependencies    []*Dependency          `json:"dependencies"`
-	Providers       []*Provider            `json:"providers"`
-	Secrets         []*string              `json:"secrets"`
-	ProviderVsn     *string                `json:"providerVsn"`
-	CliVsn          *string                `json:"cliVsn"`
-	Application     *bool                  `json:"application"`
-	ProviderWirings map[string]interface{} `json:"providerWirings"`
-	Outputs         map[string]interface{} `json:"outputs"`
-	Wirings         *Wirings               `json:"wirings"`
-	Breaking        *bool                  `json:"breaking"`
-	Wait            *bool                  `json:"wait"`
-	Instructions    *ChangeInstructions    `json:"instructions"`
+	Dependencies    []*Dependency          `json:"dependencies,omitempty"`
+	Providers       []*Provider            `json:"providers,omitempty"`
+	Secrets         []*string              `json:"secrets,omitempty"`
+	ProviderVsn     *string                `json:"providerVsn,omitempty"`
+	CliVsn          *string                `json:"cliVsn,omitempty"`
+	Application     *bool                  `json:"application,omitempty"`
+	ProviderWirings map[string]interface{} `json:"providerWirings,omitempty"`
+	Outputs         map[string]interface{} `json:"outputs,omitempty"`
+	Wirings         *Wirings               `json:"wirings,omitempty"`
+	Breaking        *bool                  `json:"breaking,omitempty"`
+	Wait            *bool                  `json:"wait,omitempty"`
+	Instructions    *ChangeInstructions    `json:"instructions,omitempty"`
 }
 
 type Dependency struct {
-	Type     *DependencyType `json:"type"`
-	Name     *string         `json:"name"`
-	Repo     *string         `json:"repo"`
-	Version  *string         `json:"version"`
-	Optional *bool           `json:"optional"`
+	Type     *DependencyType `json:"type,omitempty"`
+	Name     *string         `json:"name,omitempty"`
+	Repo     *string         `json:"repo,omitempty"`
+	Version  *string         `json:"version,omitempty"`
+	Optional *bool           `json:"optional,omitempty"`
 }
 
 type DeviceLogin struct {
@@ -542,9 +599,9 @@ type DeviceLogin struct {
 
 type DNSAccessPolicy struct {
 	ID         string           `json:"id"`
-	Bindings   []*PolicyBinding `json:"bindings"`
-	InsertedAt *string          `json:"insertedAt"`
-	UpdatedAt  *string          `json:"updatedAt"`
+	Bindings   []*PolicyBinding `json:"bindings,omitempty"`
+	InsertedAt *string          `json:"insertedAt,omitempty"`
+	UpdatedAt  *string          `json:"updatedAt,omitempty"`
 }
 
 type DNSAccessPolicyAttributes struct {
@@ -555,12 +612,12 @@ type DNSAccessPolicyAttributes struct {
 type DNSDomain struct {
 	ID           string               `json:"id"`
 	Name         string               `json:"name"`
-	AccessPolicy *DNSAccessPolicy     `json:"accessPolicy"`
-	Creator      *User                `json:"creator"`
-	Account      *Account             `json:"account"`
-	DNSRecords   *DNSRecordConnection `json:"dnsRecords"`
-	InsertedAt   *string              `json:"insertedAt"`
-	UpdatedAt    *string              `json:"updatedAt"`
+	AccessPolicy *DNSAccessPolicy     `json:"accessPolicy,omitempty"`
+	Creator      *User                `json:"creator,omitempty"`
+	Account      *Account             `json:"account,omitempty"`
+	DNSRecords   *DNSRecordConnection `json:"dnsRecords,omitempty"`
+	InsertedAt   *string              `json:"insertedAt,omitempty"`
+	UpdatedAt    *string              `json:"updatedAt,omitempty"`
 }
 
 type DNSDomainAttributes struct {
@@ -569,13 +626,13 @@ type DNSDomainAttributes struct {
 }
 
 type DNSDomainConnection struct {
-	PageInfo PageInfo         `json:"pageInfo"`
-	Edges    []*DNSDomainEdge `json:"edges"`
+	PageInfo *PageInfo        `json:"pageInfo"`
+	Edges    []*DNSDomainEdge `json:"edges,omitempty"`
 }
 
 type DNSDomainEdge struct {
-	Node   *DNSDomain `json:"node"`
-	Cursor *string    `json:"cursor"`
+	Node   *DNSDomain `json:"node,omitempty"`
+	Cursor *string    `json:"cursor,omitempty"`
 }
 
 type DNSRecord struct {
@@ -584,11 +641,11 @@ type DNSRecord struct {
 	Name       string        `json:"name"`
 	Cluster    string        `json:"cluster"`
 	Provider   Provider      `json:"provider"`
-	Records    []*string     `json:"records"`
-	Creator    *User         `json:"creator"`
-	Domain     *DNSDomain    `json:"domain"`
-	InsertedAt *string       `json:"insertedAt"`
-	UpdatedAt  *string       `json:"updatedAt"`
+	Records    []*string     `json:"records,omitempty"`
+	Creator    *User         `json:"creator,omitempty"`
+	Domain     *DNSDomain    `json:"domain,omitempty"`
+	InsertedAt *string       `json:"insertedAt,omitempty"`
+	UpdatedAt  *string       `json:"updatedAt,omitempty"`
 }
 
 type DNSRecordAttributes struct {
@@ -598,46 +655,46 @@ type DNSRecordAttributes struct {
 }
 
 type DNSRecordConnection struct {
-	PageInfo PageInfo         `json:"pageInfo"`
-	Edges    []*DNSRecordEdge `json:"edges"`
+	PageInfo *PageInfo        `json:"pageInfo"`
+	Edges    []*DNSRecordEdge `json:"edges,omitempty"`
 }
 
 type DNSRecordEdge struct {
-	Node   *DNSRecord `json:"node"`
-	Cursor *string    `json:"cursor"`
+	Node   *DNSRecord `json:"node,omitempty"`
+	Cursor *string    `json:"cursor,omitempty"`
 }
 
 type DockerImage struct {
 	ID               string            `json:"id"`
-	Tag              *string           `json:"tag"`
+	Tag              *string           `json:"tag,omitempty"`
 	Digest           string            `json:"digest"`
-	ScannedAt        *string           `json:"scannedAt"`
-	ScanCompletedAt  *string           `json:"scanCompletedAt"`
-	Grade            *ImageGrade       `json:"grade"`
-	DockerRepository *DockerRepository `json:"dockerRepository"`
-	Vulnerabilities  []*Vulnerability  `json:"vulnerabilities"`
-	InsertedAt       *string           `json:"insertedAt"`
-	UpdatedAt        *string           `json:"updatedAt"`
+	ScannedAt        *string           `json:"scannedAt,omitempty"`
+	ScanCompletedAt  *string           `json:"scanCompletedAt,omitempty"`
+	Grade            *ImageGrade       `json:"grade,omitempty"`
+	DockerRepository *DockerRepository `json:"dockerRepository,omitempty"`
+	Vulnerabilities  []*Vulnerability  `json:"vulnerabilities,omitempty"`
+	InsertedAt       *string           `json:"insertedAt,omitempty"`
+	UpdatedAt        *string           `json:"updatedAt,omitempty"`
 }
 
 type DockerImageConnection struct {
-	PageInfo PageInfo           `json:"pageInfo"`
-	Edges    []*DockerImageEdge `json:"edges"`
+	PageInfo *PageInfo          `json:"pageInfo"`
+	Edges    []*DockerImageEdge `json:"edges,omitempty"`
 }
 
 type DockerImageEdge struct {
-	Node   *DockerImage `json:"node"`
-	Cursor *string      `json:"cursor"`
+	Node   *DockerImage `json:"node,omitempty"`
+	Cursor *string      `json:"cursor,omitempty"`
 }
 
 type DockerRepository struct {
 	ID         string      `json:"id"`
 	Name       string      `json:"name"`
-	Public     *bool       `json:"public"`
-	Repository *Repository `json:"repository"`
-	Metrics    []*Metric   `json:"metrics"`
-	InsertedAt *string     `json:"insertedAt"`
-	UpdatedAt  *string     `json:"updatedAt"`
+	Public     *bool       `json:"public,omitempty"`
+	Repository *Repository `json:"repository,omitempty"`
+	Metrics    []*Metric   `json:"metrics,omitempty"`
+	InsertedAt *string     `json:"insertedAt,omitempty"`
+	UpdatedAt  *string     `json:"updatedAt,omitempty"`
 }
 
 type DockerRepositoryAttributes struct {
@@ -645,22 +702,22 @@ type DockerRepositoryAttributes struct {
 }
 
 type DockerRepositoryConnection struct {
-	PageInfo PageInfo                `json:"pageInfo"`
-	Edges    []*DockerRepositoryEdge `json:"edges"`
+	PageInfo *PageInfo               `json:"pageInfo"`
+	Edges    []*DockerRepositoryEdge `json:"edges,omitempty"`
 }
 
 type DockerRepositoryEdge struct {
-	Node   *DockerRepository `json:"node"`
-	Cursor *string           `json:"cursor"`
+	Node   *DockerRepository `json:"node,omitempty"`
+	Cursor *string           `json:"cursor,omitempty"`
 }
 
 type DomainMapping struct {
 	ID         string   `json:"id"`
 	Domain     string   `json:"domain"`
-	EnableSso  *bool    `json:"enableSso"`
-	Account    *Account `json:"account"`
-	InsertedAt *string  `json:"insertedAt"`
-	UpdatedAt  *string  `json:"updatedAt"`
+	EnableSso  *bool    `json:"enableSso,omitempty"`
+	Account    *Account `json:"account,omitempty"`
+	InsertedAt *string  `json:"insertedAt,omitempty"`
+	UpdatedAt  *string  `json:"updatedAt,omitempty"`
 }
 
 type DomainMappingInput struct {
@@ -675,8 +732,8 @@ type EabCredential struct {
 	Provider   Provider `json:"provider"`
 	KeyID      string   `json:"keyId"`
 	HmacKey    string   `json:"hmacKey"`
-	InsertedAt *string  `json:"insertedAt"`
-	UpdatedAt  *string  `json:"updatedAt"`
+	InsertedAt *string  `json:"insertedAt,omitempty"`
+	UpdatedAt  *string  `json:"updatedAt,omitempty"`
 }
 
 type EntityAttributes struct {
@@ -688,17 +745,17 @@ type EntityAttributes struct {
 }
 
 type File struct {
-	ID          string          `json:"id"`
-	MediaType   *MediaType      `json:"mediaType"`
-	Filename    *string         `json:"filename"`
-	Filesize    *int64          `json:"filesize"`
-	Width       *int64          `json:"width"`
-	Height      *int64          `json:"height"`
-	ContentType *string         `json:"contentType"`
-	Blob        string          `json:"blob"`
-	Message     IncidentMessage `json:"message"`
-	InsertedAt  *string         `json:"insertedAt"`
-	UpdatedAt   *string         `json:"updatedAt"`
+	ID          string           `json:"id"`
+	MediaType   *MediaType       `json:"mediaType,omitempty"`
+	Filename    *string          `json:"filename,omitempty"`
+	Filesize    *int64           `json:"filesize,omitempty"`
+	Width       *int64           `json:"width,omitempty"`
+	Height      *int64           `json:"height,omitempty"`
+	ContentType *string          `json:"contentType,omitempty"`
+	Blob        string           `json:"blob"`
+	Message     *IncidentMessage `json:"message"`
+	InsertedAt  *string          `json:"insertedAt,omitempty"`
+	UpdatedAt   *string          `json:"updatedAt,omitempty"`
 }
 
 type FileAttributes struct {
@@ -706,8 +763,8 @@ type FileAttributes struct {
 }
 
 type FileConnection struct {
-	PageInfo PageInfo    `json:"pageInfo"`
-	Edges    []*FileEdge `json:"edges"`
+	PageInfo *PageInfo   `json:"pageInfo"`
+	Edges    []*FileEdge `json:"edges,omitempty"`
 }
 
 type FileContent struct {
@@ -716,17 +773,17 @@ type FileContent struct {
 }
 
 type FileEdge struct {
-	Node   *File   `json:"node"`
-	Cursor *string `json:"cursor"`
+	Node   *File   `json:"node,omitempty"`
+	Cursor *string `json:"cursor,omitempty"`
 }
 
 type Follower struct {
 	ID          string                   `json:"id"`
-	User        User                     `json:"user"`
-	Incident    *Incident                `json:"incident"`
-	Preferences *NotificationPreferences `json:"preferences"`
-	InsertedAt  *string                  `json:"insertedAt"`
-	UpdatedAt   *string                  `json:"updatedAt"`
+	User        *User                    `json:"user"`
+	Incident    *Incident                `json:"incident,omitempty"`
+	Preferences *NotificationPreferences `json:"preferences,omitempty"`
+	InsertedAt  *string                  `json:"insertedAt,omitempty"`
+	UpdatedAt   *string                  `json:"updatedAt,omitempty"`
 }
 
 type FollowerAttributes struct {
@@ -734,13 +791,13 @@ type FollowerAttributes struct {
 }
 
 type FollowerConnection struct {
-	PageInfo PageInfo        `json:"pageInfo"`
-	Edges    []*FollowerEdge `json:"edges"`
+	PageInfo *PageInfo       `json:"pageInfo"`
+	Edges    []*FollowerEdge `json:"edges,omitempty"`
 }
 
 type FollowerEdge struct {
-	Node   *Follower `json:"node"`
-	Cursor *string   `json:"cursor"`
+	Node   *Follower `json:"node,omitempty"`
+	Cursor *string   `json:"cursor,omitempty"`
 }
 
 type GcpShellCredentialsAttributes struct {
@@ -748,24 +805,24 @@ type GcpShellCredentialsAttributes struct {
 }
 
 type GeoMetric struct {
-	Country *string `json:"country"`
-	Count   *int64  `json:"count"`
+	Country *string `json:"country,omitempty"`
+	Count   *int64  `json:"count,omitempty"`
 }
 
 type GitConfiguration struct {
-	URL    *string `json:"url"`
-	Name   *string `json:"name"`
-	Root   *string `json:"root"`
-	Branch *string `json:"branch"`
+	URL    *string `json:"url,omitempty"`
+	Name   *string `json:"name,omitempty"`
+	Root   *string `json:"root,omitempty"`
+	Branch *string `json:"branch,omitempty"`
 }
 
 type Group struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
-	Global      *bool   `json:"global"`
-	Description *string `json:"description"`
-	InsertedAt  *string `json:"insertedAt"`
-	UpdatedAt   *string `json:"updatedAt"`
+	Global      *bool   `json:"global,omitempty"`
+	Description *string `json:"description,omitempty"`
+	InsertedAt  *string `json:"insertedAt,omitempty"`
+	UpdatedAt   *string `json:"updatedAt,omitempty"`
 }
 
 type GroupAttributes struct {
@@ -775,31 +832,31 @@ type GroupAttributes struct {
 }
 
 type GroupConnection struct {
-	PageInfo PageInfo     `json:"pageInfo"`
-	Edges    []*GroupEdge `json:"edges"`
+	PageInfo *PageInfo    `json:"pageInfo"`
+	Edges    []*GroupEdge `json:"edges,omitempty"`
 }
 
 type GroupEdge struct {
-	Node   *Group  `json:"node"`
-	Cursor *string `json:"cursor"`
+	Node   *Group  `json:"node,omitempty"`
+	Cursor *string `json:"cursor,omitempty"`
 }
 
 type GroupMember struct {
 	ID         string  `json:"id"`
-	User       *User   `json:"user"`
-	Group      *Group  `json:"group"`
-	InsertedAt *string `json:"insertedAt"`
-	UpdatedAt  *string `json:"updatedAt"`
+	User       *User   `json:"user,omitempty"`
+	Group      *Group  `json:"group,omitempty"`
+	InsertedAt *string `json:"insertedAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
 }
 
 type GroupMemberConnection struct {
-	PageInfo PageInfo           `json:"pageInfo"`
-	Edges    []*GroupMemberEdge `json:"edges"`
+	PageInfo *PageInfo          `json:"pageInfo"`
+	Edges    []*GroupMemberEdge `json:"edges,omitempty"`
 }
 
 type GroupMemberEdge struct {
-	Node   *GroupMember `json:"node"`
-	Cursor *string      `json:"cursor"`
+	Node   *GroupMember `json:"node,omitempty"`
+	Cursor *string      `json:"cursor,omitempty"`
 }
 
 type GroupedTag struct {
@@ -808,33 +865,33 @@ type GroupedTag struct {
 }
 
 type GroupedTagConnection struct {
-	PageInfo PageInfo          `json:"pageInfo"`
-	Edges    []*GroupedTagEdge `json:"edges"`
+	PageInfo *PageInfo         `json:"pageInfo"`
+	Edges    []*GroupedTagEdge `json:"edges,omitempty"`
 }
 
 type GroupedTagEdge struct {
-	Node   *GroupedTag `json:"node"`
-	Cursor *string     `json:"cursor"`
+	Node   *GroupedTag `json:"node,omitempty"`
+	Cursor *string     `json:"cursor,omitempty"`
 }
 
 type ImageDependency struct {
-	ID         string      `json:"id"`
-	Image      DockerImage `json:"image"`
-	Version    Version     `json:"version"`
-	InsertedAt *string     `json:"insertedAt"`
-	UpdatedAt  *string     `json:"updatedAt"`
+	ID         string       `json:"id"`
+	Image      *DockerImage `json:"image"`
+	Version    *Version     `json:"version"`
+	InsertedAt *string      `json:"insertedAt,omitempty"`
+	UpdatedAt  *string      `json:"updatedAt,omitempty"`
 }
 
 type ImageLayer struct {
-	Digest *string `json:"digest"`
-	DiffID *string `json:"diffId"`
+	Digest *string `json:"digest,omitempty"`
+	DiffID *string `json:"diffId,omitempty"`
 }
 
 type ImpersonationPolicy struct {
 	ID         string                        `json:"id"`
-	Bindings   []*ImpersonationPolicyBinding `json:"bindings"`
-	InsertedAt *string                       `json:"insertedAt"`
-	UpdatedAt  *string                       `json:"updatedAt"`
+	Bindings   []*ImpersonationPolicyBinding `json:"bindings,omitempty"`
+	InsertedAt *string                       `json:"insertedAt,omitempty"`
+	UpdatedAt  *string                       `json:"updatedAt,omitempty"`
 }
 
 type ImpersonationPolicyAttributes struct {
@@ -844,10 +901,10 @@ type ImpersonationPolicyAttributes struct {
 
 type ImpersonationPolicyBinding struct {
 	ID         string  `json:"id"`
-	User       *User   `json:"user"`
-	Group      *Group  `json:"group"`
-	InsertedAt *string `json:"insertedAt"`
-	UpdatedAt  *string `json:"updatedAt"`
+	User       *User   `json:"user,omitempty"`
+	Group      *Group  `json:"group,omitempty"`
+	InsertedAt *string `json:"insertedAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
 }
 
 type ImpersonationPolicyBindingAttributes struct {
@@ -859,25 +916,25 @@ type ImpersonationPolicyBindingAttributes struct {
 type Incident struct {
 	ID                 string                     `json:"id"`
 	Title              string                     `json:"title"`
-	Description        *string                    `json:"description"`
+	Description        *string                    `json:"description,omitempty"`
 	Severity           int64                      `json:"severity"`
 	Status             IncidentStatus             `json:"status"`
-	NextResponseAt     *string                    `json:"nextResponseAt"`
-	Repository         Repository                 `json:"repository"`
-	Creator            User                       `json:"creator"`
-	Owner              *User                      `json:"owner"`
-	Tags               []*Tag                     `json:"tags"`
-	Postmortem         *Postmortem                `json:"postmortem"`
-	ClusterInformation *ClusterInformation        `json:"clusterInformation"`
-	Subscription       *SlimSubscription          `json:"subscription"`
-	NotificationCount  *int64                     `json:"notificationCount"`
-	Follower           *Follower                  `json:"follower"`
-	Messages           *IncidentMessageConnection `json:"messages"`
-	Files              *FileConnection            `json:"files"`
-	History            *IncidentHistoryConnection `json:"history"`
-	Followers          *FollowerConnection        `json:"followers"`
-	InsertedAt         *string                    `json:"insertedAt"`
-	UpdatedAt          *string                    `json:"updatedAt"`
+	NextResponseAt     *string                    `json:"nextResponseAt,omitempty"`
+	Repository         *Repository                `json:"repository"`
+	Creator            *User                      `json:"creator"`
+	Owner              *User                      `json:"owner,omitempty"`
+	Tags               []*Tag                     `json:"tags,omitempty"`
+	Postmortem         *Postmortem                `json:"postmortem,omitempty"`
+	ClusterInformation *ClusterInformation        `json:"clusterInformation,omitempty"`
+	Subscription       *SlimSubscription          `json:"subscription,omitempty"`
+	NotificationCount  *int64                     `json:"notificationCount,omitempty"`
+	Follower           *Follower                  `json:"follower,omitempty"`
+	Messages           *IncidentMessageConnection `json:"messages,omitempty"`
+	Files              *FileConnection            `json:"files,omitempty"`
+	History            *IncidentHistoryConnection `json:"history,omitempty"`
+	Followers          *FollowerConnection        `json:"followers,omitempty"`
+	InsertedAt         *string                    `json:"insertedAt,omitempty"`
+	UpdatedAt          *string                    `json:"updatedAt,omitempty"`
 }
 
 type IncidentAttributes struct {
@@ -891,23 +948,23 @@ type IncidentAttributes struct {
 
 type IncidentChange struct {
 	Key  string  `json:"key"`
-	Prev *string `json:"prev"`
-	Next *string `json:"next"`
+	Prev *string `json:"prev,omitempty"`
+	Next *string `json:"next,omitempty"`
 }
 
 type IncidentConnection struct {
-	PageInfo PageInfo        `json:"pageInfo"`
-	Edges    []*IncidentEdge `json:"edges"`
+	PageInfo *PageInfo       `json:"pageInfo"`
+	Edges    []*IncidentEdge `json:"edges,omitempty"`
 }
 
 type IncidentDelta struct {
-	Delta   *Delta    `json:"delta"`
-	Payload *Incident `json:"payload"`
+	Delta   *Delta    `json:"delta,omitempty"`
+	Payload *Incident `json:"payload,omitempty"`
 }
 
 type IncidentEdge struct {
-	Node   *Incident `json:"node"`
-	Cursor *string   `json:"cursor"`
+	Node   *Incident `json:"node,omitempty"`
+	Cursor *string   `json:"cursor,omitempty"`
 }
 
 type IncidentFilter struct {
@@ -919,33 +976,33 @@ type IncidentFilter struct {
 type IncidentHistory struct {
 	ID         string            `json:"id"`
 	Action     IncidentAction    `json:"action"`
-	Changes    []*IncidentChange `json:"changes"`
-	Actor      User              `json:"actor"`
-	Incident   Incident          `json:"incident"`
-	InsertedAt *string           `json:"insertedAt"`
-	UpdatedAt  *string           `json:"updatedAt"`
+	Changes    []*IncidentChange `json:"changes,omitempty"`
+	Actor      *User             `json:"actor"`
+	Incident   *Incident         `json:"incident"`
+	InsertedAt *string           `json:"insertedAt,omitempty"`
+	UpdatedAt  *string           `json:"updatedAt,omitempty"`
 }
 
 type IncidentHistoryConnection struct {
-	PageInfo PageInfo               `json:"pageInfo"`
-	Edges    []*IncidentHistoryEdge `json:"edges"`
+	PageInfo *PageInfo              `json:"pageInfo"`
+	Edges    []*IncidentHistoryEdge `json:"edges,omitempty"`
 }
 
 type IncidentHistoryEdge struct {
-	Node   *IncidentHistory `json:"node"`
-	Cursor *string          `json:"cursor"`
+	Node   *IncidentHistory `json:"node,omitempty"`
+	Cursor *string          `json:"cursor,omitempty"`
 }
 
 type IncidentMessage struct {
 	ID         string           `json:"id"`
 	Text       string           `json:"text"`
-	Incident   Incident         `json:"incident"`
-	Creator    User             `json:"creator"`
-	Reactions  []*Reaction      `json:"reactions"`
-	File       *File            `json:"file"`
-	Entities   []*MessageEntity `json:"entities"`
-	InsertedAt *string          `json:"insertedAt"`
-	UpdatedAt  *string          `json:"updatedAt"`
+	Incident   *Incident        `json:"incident"`
+	Creator    *User            `json:"creator"`
+	Reactions  []*Reaction      `json:"reactions,omitempty"`
+	File       *File            `json:"file,omitempty"`
+	Entities   []*MessageEntity `json:"entities,omitempty"`
+	InsertedAt *string          `json:"insertedAt,omitempty"`
+	UpdatedAt  *string          `json:"updatedAt,omitempty"`
 }
 
 type IncidentMessageAttributes struct {
@@ -955,18 +1012,18 @@ type IncidentMessageAttributes struct {
 }
 
 type IncidentMessageConnection struct {
-	PageInfo PageInfo               `json:"pageInfo"`
-	Edges    []*IncidentMessageEdge `json:"edges"`
+	PageInfo *PageInfo              `json:"pageInfo"`
+	Edges    []*IncidentMessageEdge `json:"edges,omitempty"`
 }
 
 type IncidentMessageDelta struct {
-	Delta   *Delta           `json:"delta"`
-	Payload *IncidentMessage `json:"payload"`
+	Delta   *Delta           `json:"delta,omitempty"`
+	Payload *IncidentMessage `json:"payload,omitempty"`
 }
 
 type IncidentMessageEdge struct {
-	Node   *IncidentMessage `json:"node"`
-	Cursor *string          `json:"cursor"`
+	Node   *IncidentMessage `json:"node,omitempty"`
+	Cursor *string          `json:"cursor,omitempty"`
 }
 
 // An installation of an application.
@@ -974,30 +1031,30 @@ type Installation struct {
 	// The installation's ID.
 	ID string `json:"id"`
 	// A YAML object of context.
-	Context map[string]interface{} `json:"context"`
+	Context map[string]interface{} `json:"context,omitempty"`
 	// Whether the application should auto upgrade.
-	AutoUpgrade *bool `json:"autoUpgrade"`
+	AutoUpgrade *bool `json:"autoUpgrade,omitempty"`
 	// The application that was installed.
-	Repository *Repository `json:"repository"`
+	Repository *Repository `json:"repository,omitempty"`
 	// The user that installed the application.
-	User *User `json:"user"`
+	User *User `json:"user,omitempty"`
 	// The subscription for the application.
-	Subscription *RepositorySubscription `json:"subscription"`
+	Subscription *RepositorySubscription `json:"subscription,omitempty"`
 	// The OIDC provider for the application.
-	OidcProvider *OidcProvider `json:"oidcProvider"`
+	OidcProvider *OidcProvider `json:"oidcProvider,omitempty"`
 	// The license key for the application.
-	LicenseKey *string `json:"licenseKey"`
+	LicenseKey *string `json:"licenseKey,omitempty"`
 	// The tag to track for auto upgrades.
 	TrackTag string `json:"trackTag"`
 	// The last ping time of an installed application.
-	PingedAt   *string `json:"pingedAt"`
-	AcmeKeyID  *string `json:"acmeKeyId"`
-	AcmeSecret *string `json:"acmeSecret"`
-	Locked     *bool   `json:"locked"`
-	Synced     *bool   `json:"synced"`
-	License    *string `json:"license"`
-	InsertedAt *string `json:"insertedAt"`
-	UpdatedAt  *string `json:"updatedAt"`
+	PingedAt   *string `json:"pingedAt,omitempty"`
+	AcmeKeyID  *string `json:"acmeKeyId,omitempty"`
+	AcmeSecret *string `json:"acmeSecret,omitempty"`
+	Locked     *bool   `json:"locked,omitempty"`
+	Synced     *bool   `json:"synced,omitempty"`
+	License    *string `json:"license,omitempty"`
+	InsertedAt *string `json:"insertedAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
 }
 
 // Input for creating or updating the tag attributes of an application installation.
@@ -1011,28 +1068,28 @@ type InstallationAttributes struct {
 }
 
 type InstallationConnection struct {
-	PageInfo PageInfo            `json:"pageInfo"`
-	Edges    []*InstallationEdge `json:"edges"`
+	PageInfo *PageInfo           `json:"pageInfo"`
+	Edges    []*InstallationEdge `json:"edges,omitempty"`
 }
 
 type InstallationEdge struct {
-	Node   *Installation `json:"node"`
-	Cursor *string       `json:"cursor"`
+	Node   *Installation `json:"node,omitempty"`
+	Cursor *string       `json:"cursor,omitempty"`
 }
 
 type Integration struct {
 	ID          string                 `json:"id"`
 	Name        string                 `json:"name"`
-	SourceURL   *string                `json:"sourceUrl"`
-	Description *string                `json:"description"`
-	Type        *string                `json:"type"`
-	Spec        map[string]interface{} `json:"spec"`
-	Icon        *string                `json:"icon"`
-	Repository  *Repository            `json:"repository"`
-	Publisher   *Publisher             `json:"publisher"`
-	Tags        []*Tag                 `json:"tags"`
-	InsertedAt  *string                `json:"insertedAt"`
-	UpdatedAt   *string                `json:"updatedAt"`
+	SourceURL   *string                `json:"sourceUrl,omitempty"`
+	Description *string                `json:"description,omitempty"`
+	Type        *string                `json:"type,omitempty"`
+	Spec        map[string]interface{} `json:"spec,omitempty"`
+	Icon        *string                `json:"icon,omitempty"`
+	Repository  *Repository            `json:"repository,omitempty"`
+	Publisher   *Publisher             `json:"publisher,omitempty"`
+	Tags        []*Tag                 `json:"tags,omitempty"`
+	InsertedAt  *string                `json:"insertedAt,omitempty"`
+	UpdatedAt   *string                `json:"updatedAt,omitempty"`
 }
 
 type IntegrationAttributes struct {
@@ -1046,25 +1103,25 @@ type IntegrationAttributes struct {
 }
 
 type IntegrationConnection struct {
-	PageInfo PageInfo           `json:"pageInfo"`
-	Edges    []*IntegrationEdge `json:"edges"`
+	PageInfo *PageInfo          `json:"pageInfo"`
+	Edges    []*IntegrationEdge `json:"edges,omitempty"`
 }
 
 type IntegrationEdge struct {
-	Node   *Integration `json:"node"`
-	Cursor *string      `json:"cursor"`
+	Node   *Integration `json:"node,omitempty"`
+	Cursor *string      `json:"cursor,omitempty"`
 }
 
 type IntegrationWebhook struct {
 	ID         string                `json:"id"`
 	Name       string                `json:"name"`
 	URL        string                `json:"url"`
-	Actions    []*string             `json:"actions"`
+	Actions    []*string             `json:"actions,omitempty"`
 	Secret     string                `json:"secret"`
-	Account    *Account              `json:"account"`
-	Logs       *WebhookLogConnection `json:"logs"`
-	InsertedAt *string               `json:"insertedAt"`
-	UpdatedAt  *string               `json:"updatedAt"`
+	Account    *Account              `json:"account,omitempty"`
+	Logs       *WebhookLogConnection `json:"logs,omitempty"`
+	InsertedAt *string               `json:"insertedAt,omitempty"`
+	UpdatedAt  *string               `json:"updatedAt,omitempty"`
 }
 
 type IntegrationWebhookAttributes struct {
@@ -1074,27 +1131,27 @@ type IntegrationWebhookAttributes struct {
 }
 
 type IntegrationWebhookConnection struct {
-	PageInfo PageInfo                  `json:"pageInfo"`
-	Edges    []*IntegrationWebhookEdge `json:"edges"`
+	PageInfo *PageInfo                 `json:"pageInfo"`
+	Edges    []*IntegrationWebhookEdge `json:"edges,omitempty"`
 }
 
 type IntegrationWebhookEdge struct {
-	Node   *IntegrationWebhook `json:"node"`
-	Cursor *string             `json:"cursor"`
+	Node   *IntegrationWebhook `json:"node,omitempty"`
+	Cursor *string             `json:"cursor,omitempty"`
 }
 
 type Invite struct {
 	ID         string   `json:"id"`
-	Admin      *bool    `json:"admin"`
-	SecureID   *string  `json:"secureId"`
+	Admin      *bool    `json:"admin,omitempty"`
+	SecureID   *string  `json:"secureId,omitempty"`
 	Existing   bool     `json:"existing"`
-	Email      *string  `json:"email"`
-	ExpiresAt  *string  `json:"expiresAt"`
-	Account    *Account `json:"account"`
-	User       *User    `json:"user"`
-	Groups     []*Group `json:"groups"`
-	InsertedAt *string  `json:"insertedAt"`
-	UpdatedAt  *string  `json:"updatedAt"`
+	Email      *string  `json:"email,omitempty"`
+	ExpiresAt  *string  `json:"expiresAt,omitempty"`
+	Account    *Account `json:"account,omitempty"`
+	User       *User    `json:"user,omitempty"`
+	Groups     []*Group `json:"groups,omitempty"`
+	InsertedAt *string  `json:"insertedAt,omitempty"`
+	UpdatedAt  *string  `json:"updatedAt,omitempty"`
 }
 
 type InviteAttributes struct {
@@ -1106,13 +1163,13 @@ type InviteAttributes struct {
 }
 
 type InviteConnection struct {
-	PageInfo PageInfo      `json:"pageInfo"`
-	Edges    []*InviteEdge `json:"edges"`
+	PageInfo *PageInfo     `json:"pageInfo"`
+	Edges    []*InviteEdge `json:"edges,omitempty"`
 }
 
 type InviteEdge struct {
-	Node   *Invite `json:"node"`
-	Cursor *string `json:"cursor"`
+	Node   *Invite `json:"node,omitempty"`
+	Cursor *string `json:"cursor,omitempty"`
 }
 
 type Invoice struct {
@@ -1120,38 +1177,38 @@ type Invoice struct {
 	AmountDue        int64          `json:"amountDue"`
 	AmountPaid       int64          `json:"amountPaid"`
 	Currency         string         `json:"currency"`
-	Status           *string        `json:"status"`
-	HostedInvoiceURL *string        `json:"hostedInvoiceUrl"`
-	PaymentIntent    *PaymentIntent `json:"paymentIntent"`
-	CreatedAt        *string        `json:"createdAt"`
-	Lines            []*InvoiceItem `json:"lines"`
+	Status           *string        `json:"status,omitempty"`
+	HostedInvoiceURL *string        `json:"hostedInvoiceUrl,omitempty"`
+	PaymentIntent    *PaymentIntent `json:"paymentIntent,omitempty"`
+	CreatedAt        *string        `json:"createdAt,omitempty"`
+	Lines            []*InvoiceItem `json:"lines,omitempty"`
 }
 
 type InvoiceConnection struct {
-	PageInfo PageInfo       `json:"pageInfo"`
-	Edges    []*InvoiceEdge `json:"edges"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+	Edges    []*InvoiceEdge `json:"edges,omitempty"`
 }
 
 type InvoiceEdge struct {
-	Node   *Invoice `json:"node"`
-	Cursor *string  `json:"cursor"`
+	Node   *Invoice `json:"node,omitempty"`
+	Cursor *string  `json:"cursor,omitempty"`
 }
 
 type InvoiceItem struct {
 	Amount      int64   `json:"amount"`
 	Currency    string  `json:"currency"`
-	Description *string `json:"description"`
+	Description *string `json:"description,omitempty"`
 }
 
 type KeyBackup struct {
 	ID           string   `json:"id"`
 	Name         string   `json:"name"`
-	Repositories []string `json:"repositories"`
+	Repositories []string `json:"repositories,omitempty"`
 	Digest       string   `json:"digest"`
 	Value        string   `json:"value"`
-	User         User     `json:"user"`
-	InsertedAt   *string  `json:"insertedAt"`
-	UpdatedAt    *string  `json:"updatedAt"`
+	User         *User    `json:"user"`
+	InsertedAt   *string  `json:"insertedAt,omitempty"`
+	UpdatedAt    *string  `json:"updatedAt,omitempty"`
 }
 
 type KeyBackupAttributes struct {
@@ -1161,18 +1218,18 @@ type KeyBackupAttributes struct {
 }
 
 type KeyBackupConnection struct {
-	PageInfo PageInfo         `json:"pageInfo"`
-	Edges    []*KeyBackupEdge `json:"edges"`
+	PageInfo *PageInfo        `json:"pageInfo"`
+	Edges    []*KeyBackupEdge `json:"edges,omitempty"`
 }
 
 type KeyBackupEdge struct {
-	Node   *KeyBackup `json:"node"`
-	Cursor *string    `json:"cursor"`
+	Node   *KeyBackup `json:"node,omitempty"`
+	Cursor *string    `json:"cursor,omitempty"`
 }
 
 type License struct {
-	Name *string `json:"name"`
-	URL  *string `json:"url"`
+	Name *string `json:"name,omitempty"`
+	URL  *string `json:"url,omitempty"`
 }
 
 type Limit struct {
@@ -1189,8 +1246,8 @@ type LineItem struct {
 	Name      string    `json:"name"`
 	Dimension string    `json:"dimension"`
 	Cost      int64     `json:"cost"`
-	Period    *string   `json:"period"`
-	Type      *PlanType `json:"type"`
+	Period    *string   `json:"period,omitempty"`
+	Type      *PlanType `json:"type,omitempty"`
 }
 
 type LineItemAttributes struct {
@@ -1207,13 +1264,13 @@ type LockAttributes struct {
 
 type LoginMethodResponse struct {
 	LoginMethod  LoginMethod `json:"loginMethod"`
-	Token        *string     `json:"token"`
-	AuthorizeURL *string     `json:"authorizeUrl"`
+	Token        *string     `json:"token,omitempty"`
+	AuthorizeURL *string     `json:"authorizeUrl,omitempty"`
 }
 
 type LoginRequest struct {
-	RequestedScope []*string `json:"requestedScope"`
-	Subject        *string   `json:"subject"`
+	RequestedScope []*string `json:"requestedScope,omitempty"`
+	Subject        *string   `json:"subject,omitempty"`
 }
 
 type MeetingAttributes struct {
@@ -1224,18 +1281,18 @@ type MeetingAttributes struct {
 type MessageEntity struct {
 	ID         string            `json:"id"`
 	Type       MessageEntityType `json:"type"`
-	Text       *string           `json:"text"`
-	StartIndex *int64            `json:"startIndex"`
-	EndIndex   *int64            `json:"endIndex"`
-	User       *User             `json:"user"`
-	InsertedAt *string           `json:"insertedAt"`
-	UpdatedAt  *string           `json:"updatedAt"`
+	Text       *string           `json:"text,omitempty"`
+	StartIndex *int64            `json:"startIndex,omitempty"`
+	EndIndex   *int64            `json:"endIndex,omitempty"`
+	User       *User             `json:"user,omitempty"`
+	InsertedAt *string           `json:"insertedAt,omitempty"`
+	UpdatedAt  *string           `json:"updatedAt,omitempty"`
 }
 
 type Metric struct {
 	Name   string         `json:"name"`
-	Tags   []*MetricTag   `json:"tags"`
-	Values []*MetricValue `json:"values"`
+	Tags   []*MetricTag   `json:"tags,omitempty"`
+	Values []*MetricValue `json:"values,omitempty"`
 }
 
 type MetricTag struct {
@@ -1244,47 +1301,47 @@ type MetricTag struct {
 }
 
 type MetricValue struct {
-	Time  *string `json:"time"`
-	Value *int64  `json:"value"`
+	Time  *string `json:"time,omitempty"`
+	Value *int64  `json:"value,omitempty"`
 }
 
 type NetworkConfiguration struct {
-	PluralDNS *bool   `json:"pluralDns"`
-	Subdomain *string `json:"subdomain"`
+	PluralDNS *bool   `json:"pluralDns,omitempty"`
+	Subdomain *string `json:"subdomain,omitempty"`
 }
 
 type NextAction struct {
-	Type          *string        `json:"type"`
-	RedirectToURL *RedirectToURL `json:"redirectToUrl"`
+	Type          *string        `json:"type,omitempty"`
+	RedirectToURL *RedirectToURL `json:"redirectToUrl,omitempty"`
 }
 
 type Notification struct {
 	ID         string           `json:"id"`
 	Type       NotificationType `json:"type"`
-	Msg        *string          `json:"msg"`
-	User       User             `json:"user"`
-	Actor      User             `json:"actor"`
-	Incident   *Incident        `json:"incident"`
-	Message    *IncidentMessage `json:"message"`
-	Repository *Repository      `json:"repository"`
-	InsertedAt *string          `json:"insertedAt"`
-	UpdatedAt  *string          `json:"updatedAt"`
+	Msg        *string          `json:"msg,omitempty"`
+	User       *User            `json:"user"`
+	Actor      *User            `json:"actor"`
+	Incident   *Incident        `json:"incident,omitempty"`
+	Message    *IncidentMessage `json:"message,omitempty"`
+	Repository *Repository      `json:"repository,omitempty"`
+	InsertedAt *string          `json:"insertedAt,omitempty"`
+	UpdatedAt  *string          `json:"updatedAt,omitempty"`
 }
 
 type NotificationConnection struct {
-	PageInfo PageInfo            `json:"pageInfo"`
-	Edges    []*NotificationEdge `json:"edges"`
+	PageInfo *PageInfo           `json:"pageInfo"`
+	Edges    []*NotificationEdge `json:"edges,omitempty"`
 }
 
 type NotificationEdge struct {
-	Node   *Notification `json:"node"`
-	Cursor *string       `json:"cursor"`
+	Node   *Notification `json:"node,omitempty"`
+	Cursor *string       `json:"cursor,omitempty"`
 }
 
 type NotificationPreferences struct {
-	Message        *bool `json:"message"`
-	IncidentUpdate *bool `json:"incidentUpdate"`
-	Mention        *bool `json:"mention"`
+	Message        *bool `json:"message,omitempty"`
+	IncidentUpdate *bool `json:"incidentUpdate,omitempty"`
+	Mention        *bool `json:"mention,omitempty"`
 }
 
 type NotificationPreferencesAttributes struct {
@@ -1307,9 +1364,9 @@ type OauthInfo struct {
 type OauthIntegration struct {
 	ID         string       `json:"id"`
 	Service    OauthService `json:"service"`
-	Account    *Account     `json:"account"`
-	InsertedAt *string      `json:"insertedAt"`
-	UpdatedAt  *string      `json:"updatedAt"`
+	Account    *Account     `json:"account,omitempty"`
+	InsertedAt *string      `json:"insertedAt,omitempty"`
+	UpdatedAt  *string      `json:"updatedAt,omitempty"`
 }
 
 type OauthResponse struct {
@@ -1341,56 +1398,56 @@ type OidcAttributes struct {
 
 type OidcLogin struct {
 	ID         string      `json:"id"`
-	IP         *string     `json:"ip"`
-	Country    *string     `json:"country"`
-	City       *string     `json:"city"`
-	Latitude   *string     `json:"latitude"`
-	Longitude  *string     `json:"longitude"`
-	User       *User       `json:"user"`
-	Owner      *User       `json:"owner"`
-	Repository *Repository `json:"repository"`
-	InsertedAt *string     `json:"insertedAt"`
-	UpdatedAt  *string     `json:"updatedAt"`
+	IP         *string     `json:"ip,omitempty"`
+	Country    *string     `json:"country,omitempty"`
+	City       *string     `json:"city,omitempty"`
+	Latitude   *string     `json:"latitude,omitempty"`
+	Longitude  *string     `json:"longitude,omitempty"`
+	User       *User       `json:"user,omitempty"`
+	Owner      *User       `json:"owner,omitempty"`
+	Repository *Repository `json:"repository,omitempty"`
+	InsertedAt *string     `json:"insertedAt,omitempty"`
+	UpdatedAt  *string     `json:"updatedAt,omitempty"`
 }
 
 type OidcLoginConnection struct {
-	PageInfo PageInfo         `json:"pageInfo"`
-	Edges    []*OidcLoginEdge `json:"edges"`
+	PageInfo *PageInfo        `json:"pageInfo"`
+	Edges    []*OidcLoginEdge `json:"edges,omitempty"`
 }
 
 type OidcLoginEdge struct {
-	Node   *OidcLogin `json:"node"`
-	Cursor *string    `json:"cursor"`
+	Node   *OidcLogin `json:"node,omitempty"`
+	Cursor *string    `json:"cursor,omitempty"`
 }
 
 type OidcProvider struct {
 	ID            string                 `json:"id"`
 	ClientSecret  string                 `json:"clientSecret"`
 	ClientID      string                 `json:"clientId"`
-	RedirectUris  []*string              `json:"redirectUris"`
+	RedirectUris  []*string              `json:"redirectUris,omitempty"`
 	AuthMethod    OidcAuthMethod         `json:"authMethod"`
-	Configuration *OuathConfiguration    `json:"configuration"`
-	Consent       *ConsentRequest        `json:"consent"`
-	Invites       []*Invite              `json:"invites"`
-	Bindings      []*OidcProviderBinding `json:"bindings"`
-	InsertedAt    *string                `json:"insertedAt"`
-	UpdatedAt     *string                `json:"updatedAt"`
+	Configuration *OuathConfiguration    `json:"configuration,omitempty"`
+	Consent       *ConsentRequest        `json:"consent,omitempty"`
+	Invites       []*Invite              `json:"invites,omitempty"`
+	Bindings      []*OidcProviderBinding `json:"bindings,omitempty"`
+	InsertedAt    *string                `json:"insertedAt,omitempty"`
+	UpdatedAt     *string                `json:"updatedAt,omitempty"`
 }
 
 type OidcProviderBinding struct {
 	ID         string  `json:"id"`
-	User       *User   `json:"user"`
-	Group      *Group  `json:"group"`
-	InsertedAt *string `json:"insertedAt"`
-	UpdatedAt  *string `json:"updatedAt"`
+	User       *User   `json:"user,omitempty"`
+	Group      *Group  `json:"group,omitempty"`
+	InsertedAt *string `json:"insertedAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
 }
 
 type OidcSettings struct {
-	URIFormat  *string        `json:"uriFormat"`
-	URIFormats []*string      `json:"uriFormats"`
+	URIFormat  *string        `json:"uriFormat,omitempty"`
+	URIFormats []*string      `json:"uriFormats,omitempty"`
 	AuthMethod OidcAuthMethod `json:"authMethod"`
-	DomainKey  *string        `json:"domainKey"`
-	Subdomain  *bool          `json:"subdomain"`
+	DomainKey  *string        `json:"domainKey,omitempty"`
+	Subdomain  *bool          `json:"subdomain,omitempty"`
 }
 
 type OidcSettingsAttributes struct {
@@ -1402,23 +1459,23 @@ type OidcSettingsAttributes struct {
 }
 
 type OidcStepResponse struct {
-	Repository *Repository     `json:"repository"`
-	Login      *LoginRequest   `json:"login"`
-	Consent    *ConsentRequest `json:"consent"`
+	Repository *Repository     `json:"repository,omitempty"`
+	Login      *LoginRequest   `json:"login,omitempty"`
+	Consent    *ConsentRequest `json:"consent,omitempty"`
 }
 
 type OidcTrustRelationship struct {
 	ID         string   `json:"id"`
 	Issuer     string   `json:"issuer"`
 	Trust      string   `json:"trust"`
-	Scopes     []string `json:"scopes"`
-	InsertedAt *string  `json:"insertedAt"`
-	UpdatedAt  *string  `json:"updatedAt"`
+	Scopes     []string `json:"scopes,omitempty"`
+	InsertedAt *string  `json:"insertedAt,omitempty"`
+	UpdatedAt  *string  `json:"updatedAt,omitempty"`
 }
 
 type OnboardingChecklist struct {
-	Status    *OnboardingChecklistState `json:"status"`
-	Dismissed *bool                     `json:"dismissed"`
+	Status    *OnboardingChecklistState `json:"status,omitempty"`
+	Dismissed *bool                     `json:"dismissed,omitempty"`
 }
 
 type OnboardingChecklistAttributes struct {
@@ -1427,20 +1484,20 @@ type OnboardingChecklistAttributes struct {
 }
 
 type OuathConfiguration struct {
-	Issuer                *string `json:"issuer"`
-	AuthorizationEndpoint *string `json:"authorizationEndpoint"`
-	TokenEndpoint         *string `json:"tokenEndpoint"`
-	JwksURI               *string `json:"jwksUri"`
-	UserinfoEndpoint      *string `json:"userinfoEndpoint"`
+	Issuer                *string `json:"issuer,omitempty"`
+	AuthorizationEndpoint *string `json:"authorizationEndpoint,omitempty"`
+	TokenEndpoint         *string `json:"tokenEndpoint,omitempty"`
+	JwksURI               *string `json:"jwksUri,omitempty"`
+	UserinfoEndpoint      *string `json:"userinfoEndpoint,omitempty"`
 }
 
 type PackageScan struct {
 	ID         string           `json:"id"`
-	Grade      *ImageGrade      `json:"grade"`
-	Violations []*ScanViolation `json:"violations"`
-	Errors     []*ScanError     `json:"errors"`
-	InsertedAt *string          `json:"insertedAt"`
-	UpdatedAt  *string          `json:"updatedAt"`
+	Grade      *ImageGrade      `json:"grade,omitempty"`
+	Violations []*ScanViolation `json:"violations,omitempty"`
+	Errors     []*ScanError     `json:"errors,omitempty"`
+	InsertedAt *string          `json:"insertedAt,omitempty"`
+	UpdatedAt  *string          `json:"updatedAt,omitempty"`
 }
 
 type PageInfo struct {
@@ -1449,93 +1506,93 @@ type PageInfo struct {
 	// When paginating forwards, are there more items?
 	HasNextPage bool `json:"hasNextPage"`
 	// When paginating backwards, the cursor to continue.
-	StartCursor *string `json:"startCursor"`
+	StartCursor *string `json:"startCursor,omitempty"`
 	// When paginating forwards, the cursor to continue.
-	EndCursor *string `json:"endCursor"`
+	EndCursor *string `json:"endCursor,omitempty"`
 }
 
 type PaymentIntent struct {
-	ID            *string     `json:"id"`
-	Description   *string     `json:"description"`
-	ClientSecret  *string     `json:"clientSecret"`
-	Amount        *int64      `json:"amount"`
-	CaptureMethod *string     `json:"captureMethod"`
-	Currency      *string     `json:"currency"`
-	NextAction    *NextAction `json:"nextAction"`
-	Status        *string     `json:"status"`
+	ID            *string     `json:"id,omitempty"`
+	Description   *string     `json:"description,omitempty"`
+	ClientSecret  *string     `json:"clientSecret,omitempty"`
+	Amount        *int64      `json:"amount,omitempty"`
+	CaptureMethod *string     `json:"captureMethod,omitempty"`
+	Currency      *string     `json:"currency,omitempty"`
+	NextAction    *NextAction `json:"nextAction,omitempty"`
+	Status        *string     `json:"status,omitempty"`
 }
 
 type PaymentMethod struct {
-	ID        *string `json:"id"`
-	Card      *Card   `json:"card"`
-	Type      *string `json:"type"`
-	IsDefault *bool   `json:"isDefault"`
+	ID        *string `json:"id,omitempty"`
+	Card      *Card   `json:"card,omitempty"`
+	Type      *string `json:"type,omitempty"`
+	IsDefault *bool   `json:"isDefault,omitempty"`
 }
 
 type PaymentMethodConnection struct {
-	PageInfo PageInfo             `json:"pageInfo"`
-	Edges    []*PaymentMethodEdge `json:"edges"`
+	PageInfo *PageInfo            `json:"pageInfo"`
+	Edges    []*PaymentMethodEdge `json:"edges,omitempty"`
 }
 
 type PaymentMethodEdge struct {
-	Node   *PaymentMethod `json:"node"`
-	Cursor *string        `json:"cursor"`
+	Node   *PaymentMethod `json:"node,omitempty"`
+	Cursor *string        `json:"cursor,omitempty"`
 }
 
 type PersistedToken struct {
-	ID         *string                        `json:"id"`
-	Token      *string                        `json:"token"`
-	Audits     *PersistedTokenAuditConnection `json:"audits"`
-	Metrics    []*GeoMetric                   `json:"metrics"`
-	InsertedAt *string                        `json:"insertedAt"`
-	UpdatedAt  *string                        `json:"updatedAt"`
+	ID         *string                        `json:"id,omitempty"`
+	Token      *string                        `json:"token,omitempty"`
+	Audits     *PersistedTokenAuditConnection `json:"audits,omitempty"`
+	Metrics    []*GeoMetric                   `json:"metrics,omitempty"`
+	InsertedAt *string                        `json:"insertedAt,omitempty"`
+	UpdatedAt  *string                        `json:"updatedAt,omitempty"`
 }
 
 type PersistedTokenAudit struct {
-	ID         *string `json:"id"`
-	IP         *string `json:"ip"`
-	Timestamp  *string `json:"timestamp"`
-	Count      *int64  `json:"count"`
-	City       *string `json:"city"`
-	Country    *string `json:"country"`
-	Latitude   *string `json:"latitude"`
-	Longitude  *string `json:"longitude"`
-	InsertedAt *string `json:"insertedAt"`
-	UpdatedAt  *string `json:"updatedAt"`
+	ID         *string `json:"id,omitempty"`
+	IP         *string `json:"ip,omitempty"`
+	Timestamp  *string `json:"timestamp,omitempty"`
+	Count      *int64  `json:"count,omitempty"`
+	City       *string `json:"city,omitempty"`
+	Country    *string `json:"country,omitempty"`
+	Latitude   *string `json:"latitude,omitempty"`
+	Longitude  *string `json:"longitude,omitempty"`
+	InsertedAt *string `json:"insertedAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
 }
 
 type PersistedTokenAuditConnection struct {
-	PageInfo PageInfo                   `json:"pageInfo"`
-	Edges    []*PersistedTokenAuditEdge `json:"edges"`
+	PageInfo *PageInfo                  `json:"pageInfo"`
+	Edges    []*PersistedTokenAuditEdge `json:"edges,omitempty"`
 }
 
 type PersistedTokenAuditEdge struct {
-	Node   *PersistedTokenAudit `json:"node"`
-	Cursor *string              `json:"cursor"`
+	Node   *PersistedTokenAudit `json:"node,omitempty"`
+	Cursor *string              `json:"cursor,omitempty"`
 }
 
 type PersistedTokenConnection struct {
-	PageInfo PageInfo              `json:"pageInfo"`
-	Edges    []*PersistedTokenEdge `json:"edges"`
+	PageInfo *PageInfo             `json:"pageInfo"`
+	Edges    []*PersistedTokenEdge `json:"edges,omitempty"`
 }
 
 type PersistedTokenEdge struct {
-	Node   *PersistedToken `json:"node"`
-	Cursor *string         `json:"cursor"`
+	Node   *PersistedToken `json:"node,omitempty"`
+	Cursor *string         `json:"cursor,omitempty"`
 }
 
 type Plan struct {
 	ID            string          `json:"id"`
 	Name          string          `json:"name"`
-	Default       *bool           `json:"default"`
+	Default       *bool           `json:"default,omitempty"`
 	Visible       bool            `json:"visible"`
 	Cost          int64           `json:"cost"`
-	Period        *string         `json:"period"`
-	LineItems     *PlanLineItems  `json:"lineItems"`
-	Metadata      *PlanMetadata   `json:"metadata"`
-	ServiceLevels []*ServiceLevel `json:"serviceLevels"`
-	InsertedAt    *string         `json:"insertedAt"`
-	UpdatedAt     *string         `json:"updatedAt"`
+	Period        *string         `json:"period,omitempty"`
+	LineItems     *PlanLineItems  `json:"lineItems,omitempty"`
+	Metadata      *PlanMetadata   `json:"metadata,omitempty"`
+	ServiceLevels []*ServiceLevel `json:"serviceLevels,omitempty"`
+	InsertedAt    *string         `json:"insertedAt,omitempty"`
+	UpdatedAt     *string         `json:"updatedAt,omitempty"`
 }
 
 type PlanAttributes struct {
@@ -1559,11 +1616,11 @@ type PlanFeatureAttributes struct {
 }
 
 type PlanFeatures struct {
-	Vpn                *bool `json:"vpn"`
-	UserManagement     *bool `json:"userManagement"`
-	Audit              *bool `json:"audit"`
-	DatabaseManagement *bool `json:"databaseManagement"`
-	Cd                 *bool `json:"cd"`
+	Vpn                *bool `json:"vpn,omitempty"`
+	UserManagement     *bool `json:"userManagement,omitempty"`
+	Audit              *bool `json:"audit,omitempty"`
+	DatabaseManagement *bool `json:"databaseManagement,omitempty"`
+	Cd                 *bool `json:"cd,omitempty"`
 }
 
 type PlanLineItemAttributes struct {
@@ -1572,13 +1629,13 @@ type PlanLineItemAttributes struct {
 }
 
 type PlanLineItems struct {
-	Included []*Limit    `json:"included"`
-	Items    []*LineItem `json:"items"`
+	Included []*Limit    `json:"included,omitempty"`
+	Items    []*LineItem `json:"items,omitempty"`
 }
 
 type PlanMetadata struct {
-	Freeform map[string]interface{} `json:"freeform"`
-	Features []*PlanFeature         `json:"features"`
+	Freeform map[string]interface{} `json:"freeform,omitempty"`
+	Features []*PlanFeature         `json:"features,omitempty"`
 }
 
 type PlanMetadataAttributes struct {
@@ -1587,10 +1644,10 @@ type PlanMetadataAttributes struct {
 }
 
 type PlatformMetrics struct {
-	Repositories *int64 `json:"repositories"`
-	Rollouts     *int64 `json:"rollouts"`
-	Clusters     *int64 `json:"clusters"`
-	Publishers   *int64 `json:"publishers"`
+	Repositories *int64 `json:"repositories,omitempty"`
+	Rollouts     *int64 `json:"rollouts,omitempty"`
+	Clusters     *int64 `json:"clusters,omitempty"`
+	Publishers   *int64 `json:"publishers,omitempty"`
 }
 
 type PlatformPlan struct {
@@ -1599,61 +1656,61 @@ type PlatformPlan struct {
 	Visible    bool                `json:"visible"`
 	Cost       int64               `json:"cost"`
 	Period     PaymentPeriod       `json:"period"`
-	Enterprise *bool               `json:"enterprise"`
-	Trial      *bool               `json:"trial"`
-	Features   *PlanFeatures       `json:"features"`
-	LineItems  []*PlatformPlanItem `json:"lineItems"`
-	InsertedAt *string             `json:"insertedAt"`
-	UpdatedAt  *string             `json:"updatedAt"`
+	Enterprise *bool               `json:"enterprise,omitempty"`
+	Trial      *bool               `json:"trial,omitempty"`
+	Features   *PlanFeatures       `json:"features,omitempty"`
+	LineItems  []*PlatformPlanItem `json:"lineItems,omitempty"`
+	InsertedAt *string             `json:"insertedAt,omitempty"`
+	UpdatedAt  *string             `json:"updatedAt,omitempty"`
 }
 
 type PlatformPlanItem struct {
 	Name       string            `json:"name"`
 	Dimension  LineItemDimension `json:"dimension"`
-	ExternalID *string           `json:"externalId"`
+	ExternalID *string           `json:"externalId,omitempty"`
 	Cost       int64             `json:"cost"`
 	Period     PaymentPeriod     `json:"period"`
 }
 
 type PlatformSubscription struct {
 	ID            string                           `json:"id"`
-	ExternalID    *string                          `json:"externalId"`
-	LineItems     []*PlatformSubscriptionLineItems `json:"lineItems"`
-	Plan          *PlatformPlan                    `json:"plan"`
-	TrialUntil    *string                          `json:"trialUntil"`
-	LatestInvoice *Invoice                         `json:"latestInvoice"`
-	InsertedAt    *string                          `json:"insertedAt"`
-	UpdatedAt     *string                          `json:"updatedAt"`
+	ExternalID    *string                          `json:"externalId,omitempty"`
+	LineItems     []*PlatformSubscriptionLineItems `json:"lineItems,omitempty"`
+	Plan          *PlatformPlan                    `json:"plan,omitempty"`
+	TrialUntil    *string                          `json:"trialUntil,omitempty"`
+	LatestInvoice *Invoice                         `json:"latestInvoice,omitempty"`
+	InsertedAt    *string                          `json:"insertedAt,omitempty"`
+	UpdatedAt     *string                          `json:"updatedAt,omitempty"`
 }
 
 type PlatformSubscriptionLineItems struct {
 	Dimension  LineItemDimension `json:"dimension"`
 	Quantity   int64             `json:"quantity"`
-	ExternalID *string           `json:"externalId"`
+	ExternalID *string           `json:"externalId,omitempty"`
 }
 
 type PluralConfiguration struct {
-	StripeConnectID      *string `json:"stripeConnectId"`
-	StripePublishableKey *string `json:"stripePublishableKey"`
-	Registry             *string `json:"registry"`
-	GitCommit            *string `json:"gitCommit"`
+	StripeConnectID      *string `json:"stripeConnectId,omitempty"`
+	StripePublishableKey *string `json:"stripePublishableKey,omitempty"`
+	Registry             *string `json:"registry,omitempty"`
+	GitCommit            *string `json:"gitCommit,omitempty"`
 }
 
 type PolicyBinding struct {
 	ID         string  `json:"id"`
-	User       *User   `json:"user"`
-	Group      *Group  `json:"group"`
-	InsertedAt *string `json:"insertedAt"`
-	UpdatedAt  *string `json:"updatedAt"`
+	User       *User   `json:"user,omitempty"`
+	Group      *Group  `json:"group,omitempty"`
+	InsertedAt *string `json:"insertedAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
 }
 
 type Postmortem struct {
 	ID          string        `json:"id"`
 	Content     string        `json:"content"`
-	ActionItems []*ActionItem `json:"actionItems"`
-	Creator     User          `json:"creator"`
-	InsertedAt  *string       `json:"insertedAt"`
-	UpdatedAt   *string       `json:"updatedAt"`
+	ActionItems []*ActionItem `json:"actionItems,omitempty"`
+	Creator     *User         `json:"creator"`
+	InsertedAt  *string       `json:"insertedAt,omitempty"`
+	UpdatedAt   *string       `json:"updatedAt,omitempty"`
 }
 
 type PostmortemAttributes struct {
@@ -1666,9 +1723,9 @@ type PublicKey struct {
 	Name       string  `json:"name"`
 	Content    string  `json:"content"`
 	Digest     string  `json:"digest"`
-	User       User    `json:"user"`
-	InsertedAt *string `json:"insertedAt"`
-	UpdatedAt  *string `json:"updatedAt"`
+	User       *User   `json:"user"`
+	InsertedAt *string `json:"insertedAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
 }
 
 type PublicKeyAttributes struct {
@@ -1677,29 +1734,29 @@ type PublicKeyAttributes struct {
 }
 
 type PublicKeyConnection struct {
-	PageInfo PageInfo         `json:"pageInfo"`
-	Edges    []*PublicKeyEdge `json:"edges"`
+	PageInfo *PageInfo        `json:"pageInfo"`
+	Edges    []*PublicKeyEdge `json:"edges,omitempty"`
 }
 
 type PublicKeyEdge struct {
-	Node   *PublicKey `json:"node"`
-	Cursor *string    `json:"cursor"`
+	Node   *PublicKey `json:"node,omitempty"`
+	Cursor *string    `json:"cursor,omitempty"`
 }
 
 type Publisher struct {
-	ID               *string       `json:"id"`
+	ID               *string       `json:"id,omitempty"`
 	Name             string        `json:"name"`
-	Description      *string       `json:"description"`
-	BillingAccountID *string       `json:"billingAccountId"`
-	Phone            *string       `json:"phone"`
-	Address          *Address      `json:"address"`
-	Community        *Community    `json:"community"`
-	Owner            *User         `json:"owner"`
-	Avatar           *string       `json:"avatar"`
-	BackgroundColor  *string       `json:"backgroundColor"`
-	Repositories     []*Repository `json:"repositories"`
-	InsertedAt       *string       `json:"insertedAt"`
-	UpdatedAt        *string       `json:"updatedAt"`
+	Description      *string       `json:"description,omitempty"`
+	BillingAccountID *string       `json:"billingAccountId,omitempty"`
+	Phone            *string       `json:"phone,omitempty"`
+	Address          *Address      `json:"address,omitempty"`
+	Community        *Community    `json:"community,omitempty"`
+	Owner            *User         `json:"owner,omitempty"`
+	Avatar           *string       `json:"avatar,omitempty"`
+	BackgroundColor  *string       `json:"backgroundColor,omitempty"`
+	Repositories     []*Repository `json:"repositories,omitempty"`
+	InsertedAt       *string       `json:"insertedAt,omitempty"`
+	UpdatedAt        *string       `json:"updatedAt,omitempty"`
 }
 
 type PublisherAttributes struct {
@@ -1712,39 +1769,39 @@ type PublisherAttributes struct {
 }
 
 type PublisherConnection struct {
-	PageInfo PageInfo         `json:"pageInfo"`
-	Edges    []*PublisherEdge `json:"edges"`
+	PageInfo *PageInfo        `json:"pageInfo"`
+	Edges    []*PublisherEdge `json:"edges,omitempty"`
 }
 
 type PublisherEdge struct {
-	Node   *Publisher `json:"node"`
-	Cursor *string    `json:"cursor"`
+	Node   *Publisher `json:"node,omitempty"`
+	Cursor *string    `json:"cursor,omitempty"`
 }
 
 type Reaction struct {
-	Name       string          `json:"name"`
-	Creator    User            `json:"creator"`
-	Message    IncidentMessage `json:"message"`
-	InsertedAt *string         `json:"insertedAt"`
-	UpdatedAt  *string         `json:"updatedAt"`
+	Name       string           `json:"name"`
+	Creator    *User            `json:"creator"`
+	Message    *IncidentMessage `json:"message"`
+	InsertedAt *string          `json:"insertedAt,omitempty"`
+	UpdatedAt  *string          `json:"updatedAt,omitempty"`
 }
 
 type Recipe struct {
 	ID                 string           `json:"id"`
 	Name               string           `json:"name"`
-	Description        *string          `json:"description"`
-	Provider           *Provider        `json:"provider"`
-	OidcSettings       *OidcSettings    `json:"oidcSettings"`
-	Private            *bool            `json:"private"`
-	Restricted         *bool            `json:"restricted"`
-	Primary            *bool            `json:"primary"`
-	OidcEnabled        *bool            `json:"oidcEnabled"`
-	Tests              []*RecipeTest    `json:"tests"`
-	Repository         *Repository      `json:"repository"`
-	RecipeSections     []*RecipeSection `json:"recipeSections"`
-	RecipeDependencies []*Recipe        `json:"recipeDependencies"`
-	InsertedAt         *string          `json:"insertedAt"`
-	UpdatedAt          *string          `json:"updatedAt"`
+	Description        *string          `json:"description,omitempty"`
+	Provider           *Provider        `json:"provider,omitempty"`
+	OidcSettings       *OidcSettings    `json:"oidcSettings,omitempty"`
+	Private            *bool            `json:"private,omitempty"`
+	Restricted         *bool            `json:"restricted,omitempty"`
+	Primary            *bool            `json:"primary,omitempty"`
+	OidcEnabled        *bool            `json:"oidcEnabled,omitempty"`
+	Tests              []*RecipeTest    `json:"tests,omitempty"`
+	Repository         *Repository      `json:"repository,omitempty"`
+	RecipeSections     []*RecipeSection `json:"recipeSections,omitempty"`
+	RecipeDependencies []*Recipe        `json:"recipeDependencies,omitempty"`
+	InsertedAt         *string          `json:"insertedAt,omitempty"`
+	UpdatedAt          *string          `json:"updatedAt,omitempty"`
 }
 
 type RecipeAttributes struct {
@@ -1762,7 +1819,7 @@ type RecipeAttributes struct {
 
 type RecipeCondition struct {
 	Field     string    `json:"field"`
-	Value     *string   `json:"value"`
+	Value     *string   `json:"value,omitempty"`
 	Operation Operation `json:"operation"`
 }
 
@@ -1773,17 +1830,17 @@ type RecipeConditionAttributes struct {
 }
 
 type RecipeConfiguration struct {
-	Type          *Datatype         `json:"type"`
-	Name          *string           `json:"name"`
-	Default       *string           `json:"default"`
-	Documentation *string           `json:"documentation"`
-	Placeholder   *string           `json:"placeholder"`
-	Longform      *string           `json:"longform"`
-	Optional      *bool             `json:"optional"`
-	Condition     *RecipeCondition  `json:"condition"`
-	Validation    *RecipeValidation `json:"validation"`
-	FunctionName  *string           `json:"functionName"`
-	Args          []*string         `json:"args"`
+	Type          *Datatype         `json:"type,omitempty"`
+	Name          *string           `json:"name,omitempty"`
+	Default       *string           `json:"default,omitempty"`
+	Documentation *string           `json:"documentation,omitempty"`
+	Placeholder   *string           `json:"placeholder,omitempty"`
+	Longform      *string           `json:"longform,omitempty"`
+	Optional      *bool             `json:"optional,omitempty"`
+	Condition     *RecipeCondition  `json:"condition,omitempty"`
+	Validation    *RecipeValidation `json:"validation,omitempty"`
+	FunctionName  *string           `json:"functionName,omitempty"`
+	Args          []*string         `json:"args,omitempty"`
 }
 
 type RecipeConfigurationAttributes struct {
@@ -1800,23 +1857,23 @@ type RecipeConfigurationAttributes struct {
 }
 
 type RecipeConnection struct {
-	PageInfo PageInfo      `json:"pageInfo"`
-	Edges    []*RecipeEdge `json:"edges"`
+	PageInfo *PageInfo     `json:"pageInfo"`
+	Edges    []*RecipeEdge `json:"edges,omitempty"`
 }
 
 type RecipeEdge struct {
-	Node   *Recipe `json:"node"`
-	Cursor *string `json:"cursor"`
+	Node   *Recipe `json:"node,omitempty"`
+	Cursor *string `json:"cursor,omitempty"`
 }
 
 type RecipeItem struct {
-	ID            *string                `json:"id"`
-	Chart         *Chart                 `json:"chart"`
-	Terraform     *Terraform             `json:"terraform"`
-	RecipeSection *RecipeSection         `json:"recipeSection"`
-	Configuration []*RecipeConfiguration `json:"configuration"`
-	InsertedAt    *string                `json:"insertedAt"`
-	UpdatedAt     *string                `json:"updatedAt"`
+	ID            *string                `json:"id,omitempty"`
+	Chart         *Chart                 `json:"chart,omitempty"`
+	Terraform     *Terraform             `json:"terraform,omitempty"`
+	RecipeSection *RecipeSection         `json:"recipeSection,omitempty"`
+	Configuration []*RecipeConfiguration `json:"configuration,omitempty"`
+	InsertedAt    *string                `json:"insertedAt,omitempty"`
+	UpdatedAt     *string                `json:"updatedAt,omitempty"`
 }
 
 type RecipeItemAttributes struct {
@@ -1831,14 +1888,14 @@ type RecipeReference struct {
 }
 
 type RecipeSection struct {
-	ID            *string                `json:"id"`
-	Repository    *Repository            `json:"repository"`
-	Recipe        *Recipe                `json:"recipe"`
-	Index         *int64                 `json:"index"`
-	RecipeItems   []*RecipeItem          `json:"recipeItems"`
-	Configuration []*RecipeConfiguration `json:"configuration"`
-	InsertedAt    *string                `json:"insertedAt"`
-	UpdatedAt     *string                `json:"updatedAt"`
+	ID            *string                `json:"id,omitempty"`
+	Repository    *Repository            `json:"repository,omitempty"`
+	Recipe        *Recipe                `json:"recipe,omitempty"`
+	Index         *int64                 `json:"index,omitempty"`
+	RecipeItems   []*RecipeItem          `json:"recipeItems,omitempty"`
+	Configuration []*RecipeConfiguration `json:"configuration,omitempty"`
+	InsertedAt    *string                `json:"insertedAt,omitempty"`
+	UpdatedAt     *string                `json:"updatedAt,omitempty"`
 }
 
 type RecipeSectionAttributes struct {
@@ -1850,8 +1907,8 @@ type RecipeSectionAttributes struct {
 type RecipeTest struct {
 	Type    TestType        `json:"type"`
 	Name    string          `json:"name"`
-	Message *string         `json:"message"`
-	Args    []*TestArgument `json:"args"`
+	Message *string         `json:"message,omitempty"`
+	Args    []*TestArgument `json:"args,omitempty"`
 }
 
 type RecipeTestAttributes struct {
@@ -1863,7 +1920,7 @@ type RecipeTestAttributes struct {
 
 type RecipeValidation struct {
 	Type    ValidationType `json:"type"`
-	Regex   *string        `json:"regex"`
+	Regex   *string        `json:"regex,omitempty"`
 	Message string         `json:"message"`
 }
 
@@ -1874,8 +1931,8 @@ type RecipeValidationAttributes struct {
 }
 
 type RedirectToURL struct {
-	URL       *string `json:"url"`
-	ReturnURL *string `json:"returnUrl"`
+	URL       *string `json:"url,omitempty"`
+	ReturnURL *string `json:"returnUrl,omitempty"`
 }
 
 // Container for all resources to create an application.
@@ -1885,65 +1942,65 @@ type Repository struct {
 	// The name of the application.
 	Name string `json:"name"`
 	// The description of the application.
-	Description *string `json:"description"`
+	Description *string `json:"description,omitempty"`
 	// The documentation of the application.
-	Documentation *string `json:"documentation"`
+	Documentation *string `json:"documentation,omitempty"`
 	// The category of the application.
-	Category *Category `json:"category"`
+	Category *Category `json:"category,omitempty"`
 	// release status of the repository
-	ReleaseStatus *ReleaseStatus `json:"releaseStatus"`
+	ReleaseStatus *ReleaseStatus `json:"releaseStatus,omitempty"`
 	// Whether the application is private.
-	Private *bool `json:"private"`
+	Private *bool `json:"private,omitempty"`
 	// Whether the application is verified.
-	Verified *bool `json:"verified"`
+	Verified *bool `json:"verified,omitempty"`
 	// Whether the application is trending.
-	Trending *bool `json:"trending"`
+	Trending *bool `json:"trending,omitempty"`
 	// Notes about the application rendered after deploying and displayed to the user.
-	Notes *string `json:"notes"`
+	Notes *string `json:"notes,omitempty"`
 	// The default tag to deploy.
-	DefaultTag *string `json:"defaultTag"`
+	DefaultTag *string `json:"defaultTag,omitempty"`
 	// The git URL of the application.
-	GitURL *string `json:"gitUrl"`
+	GitURL *string `json:"gitUrl,omitempty"`
 	// The main branch of the application.
-	MainBranch *string `json:"mainBranch"`
+	MainBranch *string `json:"mainBranch,omitempty"`
 	// The README of the application.
-	Readme *string `json:"readme"`
+	Readme *string `json:"readme,omitempty"`
 	// The license of the application.
-	License *License `json:"license"`
+	License *License `json:"license,omitempty"`
 	// The community links of the application.
-	Community *Community `json:"community"`
+	Community *Community `json:"community,omitempty"`
 	// The homepage of the application.
-	Homepage *string `json:"homepage"`
+	Homepage *string `json:"homepage,omitempty"`
 	// The application publisher.
-	Publisher *Publisher `json:"publisher"`
+	Publisher *Publisher `json:"publisher,omitempty"`
 	// The available plans for the application.
-	Plans []*Plan `json:"plans"`
+	Plans []*Plan `json:"plans,omitempty"`
 	// The tags of the application.
-	Tags []*Tag `json:"tags"`
+	Tags []*Tag `json:"tags,omitempty"`
 	// The artifacts of the application.
-	Artifacts []*Artifact `json:"artifacts"`
+	Artifacts []*Artifact `json:"artifacts,omitempty"`
 	// The recipes used to install the application.
-	Recipes []*Recipe `json:"recipes"`
+	Recipes []*Recipe `json:"recipes,omitempty"`
 	// The OAuth settings for the application.
-	OauthSettings *OauthSettings `json:"oauthSettings"`
-	Icon          *string        `json:"icon"`
-	DarkIcon      *string        `json:"darkIcon"`
+	OauthSettings *OauthSettings `json:"oauthSettings,omitempty"`
+	Icon          *string        `json:"icon,omitempty"`
+	DarkIcon      *string        `json:"darkIcon,omitempty"`
 	// The external contributors to this repository
-	Contributors []*Contributor `json:"contributors"`
+	Contributors []*Contributor `json:"contributors,omitempty"`
 	// The installation of the application by a user.
-	Installation *Installation `json:"installation"`
+	Installation *Installation `json:"installation,omitempty"`
 	// version tags that can be followed to control upgrade flow
-	UpgradeChannels []*string `json:"upgradeChannels"`
+	UpgradeChannels []*string `json:"upgradeChannels,omitempty"`
 	// If the application can be edited by the current user.
-	Editable *bool `json:"editable"`
+	Editable *bool `json:"editable,omitempty"`
 	// A map of secrets of the application.
-	Secrets map[string]interface{} `json:"secrets"`
+	Secrets map[string]interface{} `json:"secrets,omitempty"`
 	// The application's public key.
-	PublicKey *string `json:"publicKey"`
+	PublicKey *string `json:"publicKey,omitempty"`
 	// The documentation of the application.
-	Docs       []*FileContent `json:"docs"`
-	InsertedAt *string        `json:"insertedAt"`
-	UpdatedAt  *string        `json:"updatedAt"`
+	Docs       []*FileContent `json:"docs,omitempty"`
+	InsertedAt *string        `json:"insertedAt,omitempty"`
+	UpdatedAt  *string        `json:"updatedAt,omitempty"`
 }
 
 // Input for creating or updating an application's attributes.
@@ -1995,43 +2052,43 @@ type RepositoryAttributes struct {
 }
 
 type RepositoryConnection struct {
-	PageInfo PageInfo          `json:"pageInfo"`
-	Edges    []*RepositoryEdge `json:"edges"`
+	PageInfo *PageInfo         `json:"pageInfo"`
+	Edges    []*RepositoryEdge `json:"edges,omitempty"`
 }
 
 type RepositoryEdge struct {
-	Node   *Repository `json:"node"`
-	Cursor *string     `json:"cursor"`
+	Node   *Repository `json:"node,omitempty"`
+	Cursor *string     `json:"cursor,omitempty"`
 }
 
 type RepositorySubscription struct {
 	ID           string                 `json:"id"`
-	ExternalID   *string                `json:"externalId"`
-	CustomerID   *string                `json:"customerId"`
-	LineItems    *SubscriptionLineItems `json:"lineItems"`
-	Installation *Installation          `json:"installation"`
-	Plan         *Plan                  `json:"plan"`
-	Invoices     *InvoiceConnection     `json:"invoices"`
+	ExternalID   *string                `json:"externalId,omitempty"`
+	CustomerID   *string                `json:"customerId,omitempty"`
+	LineItems    *SubscriptionLineItems `json:"lineItems,omitempty"`
+	Installation *Installation          `json:"installation,omitempty"`
+	Plan         *Plan                  `json:"plan,omitempty"`
+	Invoices     *InvoiceConnection     `json:"invoices,omitempty"`
 }
 
 type RepositorySubscriptionConnection struct {
-	PageInfo PageInfo                      `json:"pageInfo"`
-	Edges    []*RepositorySubscriptionEdge `json:"edges"`
+	PageInfo *PageInfo                     `json:"pageInfo"`
+	Edges    []*RepositorySubscriptionEdge `json:"edges,omitempty"`
 }
 
 type RepositorySubscriptionEdge struct {
-	Node   *RepositorySubscription `json:"node"`
-	Cursor *string                 `json:"cursor"`
+	Node   *RepositorySubscription `json:"node,omitempty"`
+	Cursor *string                 `json:"cursor,omitempty"`
 }
 
 type ResetToken struct {
 	ID         string         `json:"id"`
 	ExternalID string         `json:"externalId"`
 	Type       ResetTokenType `json:"type"`
-	User       User           `json:"user"`
+	User       *User          `json:"user"`
 	Email      string         `json:"email"`
-	InsertedAt *string        `json:"insertedAt"`
-	UpdatedAt  *string        `json:"updatedAt"`
+	InsertedAt *string        `json:"insertedAt,omitempty"`
+	UpdatedAt  *string        `json:"updatedAt,omitempty"`
 }
 
 type ResetTokenAttributes struct {
@@ -2051,13 +2108,13 @@ type ResourceDefinitionAttributes struct {
 type Role struct {
 	ID           string         `json:"id"`
 	Name         string         `json:"name"`
-	Description  *string        `json:"description"`
-	Repositories []*string      `json:"repositories"`
-	Permissions  []*Permission  `json:"permissions"`
-	RoleBindings []*RoleBinding `json:"roleBindings"`
-	Account      *Account       `json:"account"`
-	InsertedAt   *string        `json:"insertedAt"`
-	UpdatedAt    *string        `json:"updatedAt"`
+	Description  *string        `json:"description,omitempty"`
+	Repositories []*string      `json:"repositories,omitempty"`
+	Permissions  []*Permission  `json:"permissions,omitempty"`
+	RoleBindings []*RoleBinding `json:"roleBindings,omitempty"`
+	Account      *Account       `json:"account,omitempty"`
+	InsertedAt   *string        `json:"insertedAt,omitempty"`
+	UpdatedAt    *string        `json:"updatedAt,omitempty"`
 }
 
 type RoleAttributes struct {
@@ -2070,24 +2127,24 @@ type RoleAttributes struct {
 
 type RoleBinding struct {
 	ID         string  `json:"id"`
-	User       *User   `json:"user"`
-	Group      *Group  `json:"group"`
-	InsertedAt *string `json:"insertedAt"`
-	UpdatedAt  *string `json:"updatedAt"`
+	User       *User   `json:"user,omitempty"`
+	Group      *Group  `json:"group,omitempty"`
+	InsertedAt *string `json:"insertedAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
 }
 
 type RoleConnection struct {
-	PageInfo PageInfo    `json:"pageInfo"`
-	Edges    []*RoleEdge `json:"edges"`
+	PageInfo *PageInfo   `json:"pageInfo"`
+	Edges    []*RoleEdge `json:"edges,omitempty"`
 }
 
 type RoleEdge struct {
-	Node   *Role   `json:"node"`
-	Cursor *string `json:"cursor"`
+	Node   *Role   `json:"node,omitempty"`
+	Cursor *string `json:"cursor,omitempty"`
 }
 
 type Roles struct {
-	Admin *bool `json:"admin"`
+	Admin *bool `json:"admin,omitempty"`
 }
 
 type RolesAttributes struct {
@@ -2097,51 +2154,60 @@ type RolesAttributes struct {
 type Rollout struct {
 	ID         string        `json:"id"`
 	Status     RolloutStatus `json:"status"`
-	Heartbeat  *string       `json:"heartbeat"`
-	Cursor     *string       `json:"cursor"`
-	Count      *int64        `json:"count"`
-	Event      *string       `json:"event"`
-	Repository *Repository   `json:"repository"`
-	InsertedAt *string       `json:"insertedAt"`
-	UpdatedAt  *string       `json:"updatedAt"`
+	Heartbeat  *string       `json:"heartbeat,omitempty"`
+	Cursor     *string       `json:"cursor,omitempty"`
+	Count      *int64        `json:"count,omitempty"`
+	Event      *string       `json:"event,omitempty"`
+	Repository *Repository   `json:"repository,omitempty"`
+	InsertedAt *string       `json:"insertedAt,omitempty"`
+	UpdatedAt  *string       `json:"updatedAt,omitempty"`
 }
 
 type RolloutConnection struct {
-	PageInfo PageInfo       `json:"pageInfo"`
-	Edges    []*RolloutEdge `json:"edges"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+	Edges    []*RolloutEdge `json:"edges,omitempty"`
 }
 
 type RolloutDelta struct {
-	Delta   *Delta   `json:"delta"`
-	Payload *Rollout `json:"payload"`
+	Delta   *Delta   `json:"delta,omitempty"`
+	Payload *Rollout `json:"payload,omitempty"`
 }
 
 type RolloutEdge struct {
-	Node   *Rollout `json:"node"`
-	Cursor *string  `json:"cursor"`
+	Node   *Rollout `json:"node,omitempty"`
+	Cursor *string  `json:"cursor,omitempty"`
+}
+
+type RootMutationType struct {
+}
+
+type RootQueryType struct {
+}
+
+type RootSubscriptionType struct {
 }
 
 type ScaffoldFile struct {
-	Path    *string `json:"path"`
-	Content *string `json:"content"`
+	Path    *string `json:"path,omitempty"`
+	Content *string `json:"content,omitempty"`
 }
 
 type ScanError struct {
-	Message *string `json:"message"`
+	Message *string `json:"message,omitempty"`
 }
 
 type ScanViolation struct {
-	RuleName     *string    `json:"ruleName"`
-	Description  *string    `json:"description"`
-	RuleID       *string    `json:"ruleId"`
-	Severity     *VulnGrade `json:"severity"`
-	Category     *string    `json:"category"`
-	ResourceName *string    `json:"resourceName"`
-	ResourceType *string    `json:"resourceType"`
-	Line         *int64     `json:"line"`
-	File         *string    `json:"file"`
-	InsertedAt   *string    `json:"insertedAt"`
-	UpdatedAt    *string    `json:"updatedAt"`
+	RuleName     *string    `json:"ruleName,omitempty"`
+	Description  *string    `json:"description,omitempty"`
+	RuleID       *string    `json:"ruleId,omitempty"`
+	Severity     *VulnGrade `json:"severity,omitempty"`
+	Category     *string    `json:"category,omitempty"`
+	ResourceName *string    `json:"resourceName,omitempty"`
+	ResourceType *string    `json:"resourceType,omitempty"`
+	Line         *int64     `json:"line,omitempty"`
+	File         *string    `json:"file,omitempty"`
+	InsertedAt   *string    `json:"insertedAt,omitempty"`
+	UpdatedAt    *string    `json:"updatedAt,omitempty"`
 }
 
 type ScmAttributes struct {
@@ -2161,9 +2227,9 @@ type ServiceAccountAttributes struct {
 }
 
 type ServiceLevel struct {
-	MaxSeverity  *int64 `json:"maxSeverity"`
-	MinSeverity  *int64 `json:"minSeverity"`
-	ResponseTime *int64 `json:"responseTime"`
+	MaxSeverity  *int64 `json:"maxSeverity,omitempty"`
+	MinSeverity  *int64 `json:"minSeverity,omitempty"`
+	ResponseTime *int64 `json:"responseTime,omitempty"`
 }
 
 type ServiceLevelAttributes struct {
@@ -2173,19 +2239,19 @@ type ServiceLevelAttributes struct {
 }
 
 type SetupIntent struct {
-	ID                 *string     `json:"id"`
-	ClientSecret       *string     `json:"clientSecret"`
-	NextAction         *NextAction `json:"nextAction"`
-	PaymentMethodTypes []*string   `json:"paymentMethodTypes"`
-	Status             *string     `json:"status"`
+	ID                 *string     `json:"id,omitempty"`
+	ClientSecret       *string     `json:"clientSecret,omitempty"`
+	NextAction         *NextAction `json:"nextAction,omitempty"`
+	PaymentMethodTypes []*string   `json:"paymentMethodTypes,omitempty"`
+	Status             *string     `json:"status,omitempty"`
 }
 
 type ShellConfiguration struct {
-	Workspace            *ShellWorkspace        `json:"workspace"`
-	Git                  *GitConfiguration      `json:"git"`
-	ContextConfiguration map[string]interface{} `json:"contextConfiguration"`
-	Buckets              []*string              `json:"buckets"`
-	Domains              []*string              `json:"domains"`
+	Workspace            *ShellWorkspace        `json:"workspace,omitempty"`
+	Git                  *GitConfiguration      `json:"git,omitempty"`
+	ContextConfiguration map[string]interface{} `json:"contextConfiguration,omitempty"`
+	Buckets              []*string              `json:"buckets,omitempty"`
+	Domains              []*string              `json:"domains,omitempty"`
 }
 
 type ShellCredentialsAttributes struct {
@@ -2195,23 +2261,23 @@ type ShellCredentialsAttributes struct {
 }
 
 type ShellStatus struct {
-	Ready           *bool `json:"ready"`
-	Initialized     *bool `json:"initialized"`
-	ContainersReady *bool `json:"containersReady"`
-	PodScheduled    *bool `json:"podScheduled"`
+	Ready           *bool `json:"ready,omitempty"`
+	Initialized     *bool `json:"initialized,omitempty"`
+	ContainersReady *bool `json:"containersReady,omitempty"`
+	PodScheduled    *bool `json:"podScheduled,omitempty"`
 }
 
 type ShellWorkspace struct {
-	Network      *NetworkConfiguration `json:"network"`
-	BucketPrefix *string               `json:"bucketPrefix"`
-	Cluster      *string               `json:"cluster"`
-	Region       *string               `json:"region"`
+	Network      *NetworkConfiguration `json:"network,omitempty"`
+	BucketPrefix *string               `json:"bucketPrefix,omitempty"`
+	Cluster      *string               `json:"cluster,omitempty"`
+	Region       *string               `json:"region,omitempty"`
 }
 
 type SlimSubscription struct {
 	ID        string                 `json:"id"`
-	LineItems *SubscriptionLineItems `json:"lineItems"`
-	Plan      *Plan                  `json:"plan"`
+	LineItems *SubscriptionLineItems `json:"lineItems,omitempty"`
+	Plan      *Plan                  `json:"plan,omitempty"`
 }
 
 type SpecificationAttributes struct {
@@ -2225,16 +2291,16 @@ type SpecificationAttributes struct {
 type Stack struct {
 	ID          string             `json:"id"`
 	Name        string             `json:"name"`
-	Description *string            `json:"description"`
-	Featured    *bool              `json:"featured"`
-	Community   *Community         `json:"community"`
-	DisplayName *string            `json:"displayName"`
-	Collections []*StackCollection `json:"collections"`
-	Creator     *User              `json:"creator"`
-	Bundles     []*Recipe          `json:"bundles"`
-	Sections    []*RecipeSection   `json:"sections"`
-	InsertedAt  *string            `json:"insertedAt"`
-	UpdatedAt   *string            `json:"updatedAt"`
+	Description *string            `json:"description,omitempty"`
+	Featured    *bool              `json:"featured,omitempty"`
+	Community   *Community         `json:"community,omitempty"`
+	DisplayName *string            `json:"displayName,omitempty"`
+	Collections []*StackCollection `json:"collections,omitempty"`
+	Creator     *User              `json:"creator,omitempty"`
+	Bundles     []*Recipe          `json:"bundles,omitempty"`
+	Sections    []*RecipeSection   `json:"sections,omitempty"`
+	InsertedAt  *string            `json:"insertedAt,omitempty"`
+	UpdatedAt   *string            `json:"updatedAt,omitempty"`
 }
 
 type StackAttributes struct {
@@ -2249,9 +2315,9 @@ type StackAttributes struct {
 type StackCollection struct {
 	ID         string         `json:"id"`
 	Provider   Provider       `json:"provider"`
-	Bundles    []*StackRecipe `json:"bundles"`
-	InsertedAt *string        `json:"insertedAt"`
-	UpdatedAt  *string        `json:"updatedAt"`
+	Bundles    []*StackRecipe `json:"bundles,omitempty"`
+	InsertedAt *string        `json:"insertedAt,omitempty"`
+	UpdatedAt  *string        `json:"updatedAt,omitempty"`
 }
 
 type StackCollectionAttributes struct {
@@ -2260,25 +2326,25 @@ type StackCollectionAttributes struct {
 }
 
 type StackConnection struct {
-	PageInfo PageInfo     `json:"pageInfo"`
-	Edges    []*StackEdge `json:"edges"`
+	PageInfo *PageInfo    `json:"pageInfo"`
+	Edges    []*StackEdge `json:"edges,omitempty"`
 }
 
 type StackEdge struct {
-	Node   *Stack  `json:"node"`
-	Cursor *string `json:"cursor"`
+	Node   *Stack  `json:"node,omitempty"`
+	Cursor *string `json:"cursor,omitempty"`
 }
 
 type StackRecipe struct {
 	ID         string  `json:"id"`
-	Recipe     Recipe  `json:"recipe"`
-	InsertedAt *string `json:"insertedAt"`
-	UpdatedAt  *string `json:"updatedAt"`
+	Recipe     *Recipe `json:"recipe"`
+	InsertedAt *string `json:"insertedAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
 }
 
 type StepLogs struct {
-	Step *TestStep `json:"step"`
-	Logs []*string `json:"logs"`
+	Step *TestStep `json:"step,omitempty"`
+	Logs []*string `json:"logs,omitempty"`
 }
 
 type SubscriptionAttributes struct {
@@ -2290,7 +2356,7 @@ type SubscriptionLineItemAttributes struct {
 }
 
 type SubscriptionLineItems struct {
-	Items []*Limit `json:"items"`
+	Items []*Limit `json:"items,omitempty"`
 }
 
 type Tag struct {
@@ -2303,19 +2369,19 @@ type TagAttributes struct {
 }
 
 type Terraform struct {
-	ID             *string                `json:"id"`
-	Name           *string                `json:"name"`
-	Readme         *string                `json:"readme"`
-	Description    *string                `json:"description"`
-	ValuesTemplate *string                `json:"valuesTemplate"`
-	LatestVersion  *string                `json:"latestVersion"`
-	Dependencies   *Dependencies          `json:"dependencies"`
-	Package        *string                `json:"package"`
-	Repository     *Repository            `json:"repository"`
-	Editable       *bool                  `json:"editable"`
-	Installation   *TerraformInstallation `json:"installation"`
-	InsertedAt     *string                `json:"insertedAt"`
-	UpdatedAt      *string                `json:"updatedAt"`
+	ID             *string                `json:"id,omitempty"`
+	Name           *string                `json:"name,omitempty"`
+	Readme         *string                `json:"readme,omitempty"`
+	Description    *string                `json:"description,omitempty"`
+	ValuesTemplate *string                `json:"valuesTemplate,omitempty"`
+	LatestVersion  *string                `json:"latestVersion,omitempty"`
+	Dependencies   *Dependencies          `json:"dependencies,omitempty"`
+	Package        *string                `json:"package,omitempty"`
+	Repository     *Repository            `json:"repository,omitempty"`
+	Editable       *bool                  `json:"editable,omitempty"`
+	Installation   *TerraformInstallation `json:"installation,omitempty"`
+	InsertedAt     *string                `json:"insertedAt,omitempty"`
+	UpdatedAt      *string                `json:"updatedAt,omitempty"`
 }
 
 type TerraformAttributes struct {
@@ -2327,22 +2393,22 @@ type TerraformAttributes struct {
 }
 
 type TerraformConnection struct {
-	PageInfo PageInfo         `json:"pageInfo"`
-	Edges    []*TerraformEdge `json:"edges"`
+	PageInfo *PageInfo        `json:"pageInfo"`
+	Edges    []*TerraformEdge `json:"edges,omitempty"`
 }
 
 type TerraformEdge struct {
-	Node   *Terraform `json:"node"`
-	Cursor *string    `json:"cursor"`
+	Node   *Terraform `json:"node,omitempty"`
+	Cursor *string    `json:"cursor,omitempty"`
 }
 
 type TerraformInstallation struct {
-	ID           *string       `json:"id"`
-	Terraform    *Terraform    `json:"terraform"`
-	Installation *Installation `json:"installation"`
-	Version      *Version      `json:"version"`
-	InsertedAt   *string       `json:"insertedAt"`
-	UpdatedAt    *string       `json:"updatedAt"`
+	ID           *string       `json:"id,omitempty"`
+	Terraform    *Terraform    `json:"terraform,omitempty"`
+	Installation *Installation `json:"installation,omitempty"`
+	Version      *Version      `json:"version,omitempty"`
+	InsertedAt   *string       `json:"insertedAt,omitempty"`
+	UpdatedAt    *string       `json:"updatedAt,omitempty"`
 }
 
 type TerraformInstallationAttributes struct {
@@ -2351,32 +2417,32 @@ type TerraformInstallationAttributes struct {
 }
 
 type TerraformInstallationConnection struct {
-	PageInfo PageInfo                     `json:"pageInfo"`
-	Edges    []*TerraformInstallationEdge `json:"edges"`
+	PageInfo *PageInfo                    `json:"pageInfo"`
+	Edges    []*TerraformInstallationEdge `json:"edges,omitempty"`
 }
 
 type TerraformInstallationEdge struct {
-	Node   *TerraformInstallation `json:"node"`
-	Cursor *string                `json:"cursor"`
+	Node   *TerraformInstallation `json:"node,omitempty"`
+	Cursor *string                `json:"cursor,omitempty"`
 }
 
 type TerraformProvider struct {
-	Name    *Provider `json:"name"`
-	Content *string   `json:"content"`
+	Name    *Provider `json:"name,omitempty"`
+	Content *string   `json:"content,omitempty"`
 }
 
 type Test struct {
 	ID         string      `json:"id"`
-	Name       *string     `json:"name"`
+	Name       *string     `json:"name,omitempty"`
 	Status     TestStatus  `json:"status"`
 	SourceTag  string      `json:"sourceTag"`
 	PromoteTag string      `json:"promoteTag"`
-	Tags       []string    `json:"tags"`
-	Steps      []*TestStep `json:"steps"`
-	Creator    *User       `json:"creator"`
-	Repository *Repository `json:"repository"`
-	InsertedAt *string     `json:"insertedAt"`
-	UpdatedAt  *string     `json:"updatedAt"`
+	Tags       []string    `json:"tags,omitempty"`
+	Steps      []*TestStep `json:"steps,omitempty"`
+	Creator    *User       `json:"creator,omitempty"`
+	Repository *Repository `json:"repository,omitempty"`
+	InsertedAt *string     `json:"insertedAt,omitempty"`
+	UpdatedAt  *string     `json:"updatedAt,omitempty"`
 }
 
 type TestArgument struct {
@@ -2400,18 +2466,18 @@ type TestAttributes struct {
 }
 
 type TestConnection struct {
-	PageInfo PageInfo    `json:"pageInfo"`
-	Edges    []*TestEdge `json:"edges"`
+	PageInfo *PageInfo   `json:"pageInfo"`
+	Edges    []*TestEdge `json:"edges,omitempty"`
 }
 
 type TestDelta struct {
-	Delta   *Delta `json:"delta"`
-	Payload *Test  `json:"payload"`
+	Delta   *Delta `json:"delta,omitempty"`
+	Payload *Test  `json:"payload,omitempty"`
 }
 
 type TestEdge struct {
-	Node   *Test   `json:"node"`
-	Cursor *string `json:"cursor"`
+	Node   *Test   `json:"node,omitempty"`
+	Cursor *string `json:"cursor,omitempty"`
 }
 
 type TestStep struct {
@@ -2419,9 +2485,9 @@ type TestStep struct {
 	Status      TestStatus `json:"status"`
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
-	HasLogs     *bool      `json:"hasLogs"`
-	InsertedAt  *string    `json:"insertedAt"`
-	UpdatedAt   *string    `json:"updatedAt"`
+	HasLogs     *bool      `json:"hasLogs,omitempty"`
+	InsertedAt  *string    `json:"insertedAt,omitempty"`
+	UpdatedAt   *string    `json:"updatedAt,omitempty"`
 }
 
 type TestStepAttributes struct {
@@ -2445,12 +2511,12 @@ type UpdatablePlanAttributes struct {
 
 type Upgrade struct {
 	ID         string         `json:"id"`
-	Type       *UpgradeType   `json:"type"`
-	Message    *string        `json:"message"`
-	Config     *UpgradeConfig `json:"config"`
-	Repository *Repository    `json:"repository"`
-	InsertedAt *string        `json:"insertedAt"`
-	UpdatedAt  *string        `json:"updatedAt"`
+	Type       *UpgradeType   `json:"type,omitempty"`
+	Message    *string        `json:"message,omitempty"`
+	Config     *UpgradeConfig `json:"config,omitempty"`
+	Repository *Repository    `json:"repository,omitempty"`
+	InsertedAt *string        `json:"insertedAt,omitempty"`
+	UpdatedAt  *string        `json:"updatedAt,omitempty"`
 }
 
 // The information for this upgrade
@@ -2464,7 +2530,7 @@ type UpgradeAttributes struct {
 }
 
 type UpgradeConfig struct {
-	Paths []*UpgradePath `json:"paths"`
+	Paths []*UpgradePath `json:"paths,omitempty"`
 }
 
 // the attributes of the config upgrade
@@ -2474,19 +2540,19 @@ type UpgradeConfigAttributes struct {
 }
 
 type UpgradeConnection struct {
-	PageInfo PageInfo       `json:"pageInfo"`
-	Edges    []*UpgradeEdge `json:"edges"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+	Edges    []*UpgradeEdge `json:"edges,omitempty"`
 }
 
 type UpgradeEdge struct {
-	Node   *Upgrade `json:"node"`
-	Cursor *string  `json:"cursor"`
+	Node   *Upgrade `json:"node,omitempty"`
+	Cursor *string  `json:"cursor,omitempty"`
 }
 
 // The pending upgrades for a repository
 type UpgradeInfo struct {
-	Installation *Installation `json:"installation"`
-	Count        *int64        `json:"count"`
+	Installation *Installation `json:"installation,omitempty"`
+	Count        *int64        `json:"count,omitempty"`
 }
 
 type UpgradePath struct {
@@ -2507,16 +2573,16 @@ type UpgradePathAttributes struct {
 
 type UpgradeQueue struct {
 	ID         string             `json:"id"`
-	Acked      *string            `json:"acked"`
-	Name       *string            `json:"name"`
-	Domain     *string            `json:"domain"`
-	Git        *string            `json:"git"`
-	Provider   *Provider          `json:"provider"`
-	PingedAt   *string            `json:"pingedAt"`
-	User       User               `json:"user"`
-	Upgrades   *UpgradeConnection `json:"upgrades"`
-	InsertedAt *string            `json:"insertedAt"`
-	UpdatedAt  *string            `json:"updatedAt"`
+	Acked      *string            `json:"acked,omitempty"`
+	Name       *string            `json:"name,omitempty"`
+	Domain     *string            `json:"domain,omitempty"`
+	Git        *string            `json:"git,omitempty"`
+	Provider   *Provider          `json:"provider,omitempty"`
+	PingedAt   *string            `json:"pingedAt,omitempty"`
+	User       *User              `json:"user"`
+	Upgrades   *UpgradeConnection `json:"upgrades,omitempty"`
+	InsertedAt *string            `json:"insertedAt,omitempty"`
+	UpdatedAt  *string            `json:"updatedAt,omitempty"`
 }
 
 type UpgradeQueueAttributes struct {
@@ -2527,45 +2593,45 @@ type UpgradeQueueAttributes struct {
 }
 
 type UpgradeQueueDelta struct {
-	Delta   *Delta        `json:"delta"`
-	Payload *UpgradeQueue `json:"payload"`
+	Delta   *Delta        `json:"delta,omitempty"`
+	Payload *UpgradeQueue `json:"payload,omitempty"`
 }
 
 type User struct {
 	ID                  string               `json:"id"`
 	Name                string               `json:"name"`
 	Email               string               `json:"email"`
-	Phone               *string              `json:"phone"`
-	Address             *Address             `json:"address"`
-	LoginMethod         *LoginMethod         `json:"loginMethod"`
-	Onboarding          *OnboardingState     `json:"onboarding"`
-	OnboardingChecklist *OnboardingChecklist `json:"onboardingChecklist"`
-	DefaultQueueID      *string              `json:"defaultQueueId"`
-	ServiceAccount      *bool                `json:"serviceAccount"`
-	EmailConfirmed      *bool                `json:"emailConfirmed"`
-	EmailConfirmBy      *string              `json:"emailConfirmBy"`
-	Provider            *Provider            `json:"provider"`
-	Roles               *Roles               `json:"roles"`
+	Phone               *string              `json:"phone,omitempty"`
+	Address             *Address             `json:"address,omitempty"`
+	LoginMethod         *LoginMethod         `json:"loginMethod,omitempty"`
+	Onboarding          *OnboardingState     `json:"onboarding,omitempty"`
+	OnboardingChecklist *OnboardingChecklist `json:"onboardingChecklist,omitempty"`
+	DefaultQueueID      *string              `json:"defaultQueueId,omitempty"`
+	ServiceAccount      *bool                `json:"serviceAccount,omitempty"`
+	EmailConfirmed      *bool                `json:"emailConfirmed,omitempty"`
+	EmailConfirmBy      *string              `json:"emailConfirmBy,omitempty"`
+	Provider            *Provider            `json:"provider,omitempty"`
+	Roles               *Roles               `json:"roles,omitempty"`
 	// the groups attached to this user, only fetch this when querying an individual user
-	Groups []*Group `json:"groups"`
+	Groups []*Group `json:"groups,omitempty"`
 	// the roles attached to this user, only fetch this when querying an individual user
-	BoundRoles          []*Role                  `json:"boundRoles"`
-	Publisher           *Publisher               `json:"publisher"`
-	Account             Account                  `json:"account"`
-	ImpersonationPolicy *ImpersonationPolicy     `json:"impersonationPolicy"`
-	TrustRelationships  []*OidcTrustRelationship `json:"trustRelationships"`
-	Invites             []*Invite                `json:"invites"`
-	Jwt                 *string                  `json:"jwt"`
-	HasInstallations    *bool                    `json:"hasInstallations"`
-	Demoing             *bool                    `json:"demoing"`
-	HasShell            *bool                    `json:"hasShell"`
-	Avatar              *string                  `json:"avatar"`
-	BackgroundColor     *string                  `json:"backgroundColor"`
+	BoundRoles          []*Role                  `json:"boundRoles,omitempty"`
+	Publisher           *Publisher               `json:"publisher,omitempty"`
+	Account             *Account                 `json:"account"`
+	ImpersonationPolicy *ImpersonationPolicy     `json:"impersonationPolicy,omitempty"`
+	TrustRelationships  []*OidcTrustRelationship `json:"trustRelationships,omitempty"`
+	Invites             []*Invite                `json:"invites,omitempty"`
+	Jwt                 *string                  `json:"jwt,omitempty"`
+	HasInstallations    *bool                    `json:"hasInstallations,omitempty"`
+	Demoing             *bool                    `json:"demoing,omitempty"`
+	HasShell            *bool                    `json:"hasShell,omitempty"`
+	Avatar              *string                  `json:"avatar,omitempty"`
+	BackgroundColor     *string                  `json:"backgroundColor,omitempty"`
 	// If a user has reached the demo project usage limit.
-	Demoed     *bool           `json:"demoed"`
-	Cards      *CardConnection `json:"cards"`
-	InsertedAt *string         `json:"insertedAt"`
-	UpdatedAt  *string         `json:"updatedAt"`
+	Demoed     *bool           `json:"demoed,omitempty"`
+	Cards      *CardConnection `json:"cards,omitempty"`
+	InsertedAt *string         `json:"insertedAt,omitempty"`
+	UpdatedAt  *string         `json:"updatedAt,omitempty"`
 }
 
 type UserAttributes struct {
@@ -2582,13 +2648,13 @@ type UserAttributes struct {
 }
 
 type UserConnection struct {
-	PageInfo PageInfo    `json:"pageInfo"`
-	Edges    []*UserEdge `json:"edges"`
+	PageInfo *PageInfo   `json:"pageInfo"`
+	Edges    []*UserEdge `json:"edges,omitempty"`
 }
 
 type UserEdge struct {
-	Node   *User   `json:"node"`
-	Cursor *string `json:"cursor"`
+	Node   *User   `json:"node,omitempty"`
+	Cursor *string `json:"cursor,omitempty"`
 }
 
 type UserEventAttributes struct {
@@ -2601,21 +2667,21 @@ type UserEventAttributes struct {
 type Version struct {
 	ID             string  `json:"id"`
 	Version        string  `json:"version"`
-	Readme         *string `json:"readme"`
-	ValuesTemplate *string `json:"valuesTemplate"`
+	Readme         *string `json:"readme,omitempty"`
+	ValuesTemplate *string `json:"valuesTemplate,omitempty"`
 	// The template engine used to render the valuesTemplate.
-	TemplateType      *TemplateType          `json:"templateType"`
-	Helm              map[string]interface{} `json:"helm"`
-	Tags              []*VersionTag          `json:"tags"`
-	Dependencies      *Dependencies          `json:"dependencies"`
-	Package           *string                `json:"package"`
-	Chart             *Chart                 `json:"chart"`
-	Terraform         *Terraform             `json:"terraform"`
-	Crds              []*Crd                 `json:"crds"`
-	Scan              *PackageScan           `json:"scan"`
-	ImageDependencies []*ImageDependency     `json:"imageDependencies"`
-	InsertedAt        *string                `json:"insertedAt"`
-	UpdatedAt         *string                `json:"updatedAt"`
+	TemplateType      *TemplateType          `json:"templateType,omitempty"`
+	Helm              map[string]interface{} `json:"helm,omitempty"`
+	Tags              []*VersionTag          `json:"tags,omitempty"`
+	Dependencies      *Dependencies          `json:"dependencies,omitempty"`
+	Package           *string                `json:"package,omitempty"`
+	Chart             *Chart                 `json:"chart,omitempty"`
+	Terraform         *Terraform             `json:"terraform,omitempty"`
+	Crds              []*Crd                 `json:"crds,omitempty"`
+	Scan              *PackageScan           `json:"scan,omitempty"`
+	ImageDependencies []*ImageDependency     `json:"imageDependencies,omitempty"`
+	InsertedAt        *string                `json:"insertedAt,omitempty"`
+	UpdatedAt         *string                `json:"updatedAt,omitempty"`
 }
 
 type VersionAttributes struct {
@@ -2623,13 +2689,13 @@ type VersionAttributes struct {
 }
 
 type VersionConnection struct {
-	PageInfo PageInfo       `json:"pageInfo"`
-	Edges    []*VersionEdge `json:"edges"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+	Edges    []*VersionEdge `json:"edges,omitempty"`
 }
 
 type VersionEdge struct {
-	Node   *Version `json:"node"`
-	Cursor *string  `json:"cursor"`
+	Node   *Version `json:"node,omitempty"`
+	Cursor *string  `json:"cursor,omitempty"`
 }
 
 type VersionSpec struct {
@@ -2642,10 +2708,10 @@ type VersionSpec struct {
 type VersionTag struct {
 	ID         string   `json:"id"`
 	Tag        string   `json:"tag"`
-	Version    *Version `json:"version"`
-	Chart      *Chart   `json:"chart"`
-	InsertedAt *string  `json:"insertedAt"`
-	UpdatedAt  *string  `json:"updatedAt"`
+	Version    *Version `json:"version,omitempty"`
+	Chart      *Chart   `json:"chart,omitempty"`
+	InsertedAt *string  `json:"insertedAt,omitempty"`
+	UpdatedAt  *string  `json:"updatedAt,omitempty"`
 }
 
 type VersionTagAttributes struct {
@@ -2655,29 +2721,29 @@ type VersionTagAttributes struct {
 
 type Vulnerability struct {
 	ID               string      `json:"id"`
-	Title            *string     `json:"title"`
-	Description      *string     `json:"description"`
-	VulnerabilityID  *string     `json:"vulnerabilityId"`
-	Package          *string     `json:"package"`
-	InstalledVersion *string     `json:"installedVersion"`
-	FixedVersion     *string     `json:"fixedVersion"`
-	Source           *string     `json:"source"`
-	URL              *string     `json:"url"`
-	Severity         *VulnGrade  `json:"severity"`
-	Score            *float64    `json:"score"`
-	Cvss             *Cvss       `json:"cvss"`
-	Layer            *ImageLayer `json:"layer"`
-	InsertedAt       *string     `json:"insertedAt"`
-	UpdatedAt        *string     `json:"updatedAt"`
+	Title            *string     `json:"title,omitempty"`
+	Description      *string     `json:"description,omitempty"`
+	VulnerabilityID  *string     `json:"vulnerabilityId,omitempty"`
+	Package          *string     `json:"package,omitempty"`
+	InstalledVersion *string     `json:"installedVersion,omitempty"`
+	FixedVersion     *string     `json:"fixedVersion,omitempty"`
+	Source           *string     `json:"source,omitempty"`
+	URL              *string     `json:"url,omitempty"`
+	Severity         *VulnGrade  `json:"severity,omitempty"`
+	Score            *float64    `json:"score,omitempty"`
+	Cvss             *Cvss       `json:"cvss,omitempty"`
+	Layer            *ImageLayer `json:"layer,omitempty"`
+	InsertedAt       *string     `json:"insertedAt,omitempty"`
+	UpdatedAt        *string     `json:"updatedAt,omitempty"`
 }
 
 type Webhook struct {
-	ID         *string `json:"id"`
-	URL        *string `json:"url"`
-	Secret     *string `json:"secret"`
-	User       *User   `json:"user"`
-	InsertedAt *string `json:"insertedAt"`
-	UpdatedAt  *string `json:"updatedAt"`
+	ID         *string `json:"id,omitempty"`
+	URL        *string `json:"url,omitempty"`
+	Secret     *string `json:"secret,omitempty"`
+	User       *User   `json:"user,omitempty"`
+	InsertedAt *string `json:"insertedAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
 }
 
 type WebhookAttributes struct {
@@ -2685,45 +2751,45 @@ type WebhookAttributes struct {
 }
 
 type WebhookConnection struct {
-	PageInfo PageInfo       `json:"pageInfo"`
-	Edges    []*WebhookEdge `json:"edges"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+	Edges    []*WebhookEdge `json:"edges,omitempty"`
 }
 
 type WebhookEdge struct {
-	Node   *Webhook `json:"node"`
-	Cursor *string  `json:"cursor"`
+	Node   *Webhook `json:"node,omitempty"`
+	Cursor *string  `json:"cursor,omitempty"`
 }
 
 type WebhookLog struct {
 	ID         string                 `json:"id"`
 	State      WebhookLogState        `json:"state"`
-	Status     *int64                 `json:"status"`
-	Response   *string                `json:"response"`
-	Payload    map[string]interface{} `json:"payload"`
-	Webhook    *IntegrationWebhook    `json:"webhook"`
-	InsertedAt *string                `json:"insertedAt"`
-	UpdatedAt  *string                `json:"updatedAt"`
+	Status     *int64                 `json:"status,omitempty"`
+	Response   *string                `json:"response,omitempty"`
+	Payload    map[string]interface{} `json:"payload,omitempty"`
+	Webhook    *IntegrationWebhook    `json:"webhook,omitempty"`
+	InsertedAt *string                `json:"insertedAt,omitempty"`
+	UpdatedAt  *string                `json:"updatedAt,omitempty"`
 }
 
 type WebhookLogConnection struct {
-	PageInfo PageInfo          `json:"pageInfo"`
-	Edges    []*WebhookLogEdge `json:"edges"`
+	PageInfo *PageInfo         `json:"pageInfo"`
+	Edges    []*WebhookLogEdge `json:"edges,omitempty"`
 }
 
 type WebhookLogEdge struct {
-	Node   *WebhookLog `json:"node"`
-	Cursor *string     `json:"cursor"`
+	Node   *WebhookLog `json:"node,omitempty"`
+	Cursor *string     `json:"cursor,omitempty"`
 }
 
 type WebhookResponse struct {
 	StatusCode int64                  `json:"statusCode"`
-	Body       *string                `json:"body"`
-	Headers    map[string]interface{} `json:"headers"`
+	Body       *string                `json:"body,omitempty"`
+	Headers    map[string]interface{} `json:"headers,omitempty"`
 }
 
 type Wirings struct {
-	Terraform map[string]interface{} `json:"terraform"`
-	Helm      map[string]interface{} `json:"helm"`
+	Terraform map[string]interface{} `json:"terraform,omitempty"`
+	Helm      map[string]interface{} `json:"helm,omitempty"`
 }
 
 type WorkspaceAttributes struct {
@@ -2736,7 +2802,7 @@ type WorkspaceAttributes struct {
 
 type ZoomMeeting struct {
 	JoinURL  string  `json:"joinUrl"`
-	Password *string `json:"password"`
+	Password *string `json:"password,omitempty"`
 }
 
 type ActionItemType string
@@ -2927,6 +2993,137 @@ func (e *Category) UnmarshalGQL(v interface{}) error {
 }
 
 func (e Category) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CloudProvider string
+
+const (
+	CloudProviderAws CloudProvider = "AWS"
+)
+
+var AllCloudProvider = []CloudProvider{
+	CloudProviderAws,
+}
+
+func (e CloudProvider) IsValid() bool {
+	switch e {
+	case CloudProviderAws:
+		return true
+	}
+	return false
+}
+
+func (e CloudProvider) String() string {
+	return string(e)
+}
+
+func (e *CloudProvider) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CloudProvider(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CloudProvider", str)
+	}
+	return nil
+}
+
+func (e CloudProvider) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ConsoleInstanceStatus string
+
+const (
+	ConsoleInstanceStatusPending           ConsoleInstanceStatus = "PENDING"
+	ConsoleInstanceStatusDatabaseCreated   ConsoleInstanceStatus = "DATABASE_CREATED"
+	ConsoleInstanceStatusDeploymentCreated ConsoleInstanceStatus = "DEPLOYMENT_CREATED"
+	ConsoleInstanceStatusProvisioned       ConsoleInstanceStatus = "PROVISIONED"
+	ConsoleInstanceStatusDeploymentDeleted ConsoleInstanceStatus = "DEPLOYMENT_DELETED"
+	ConsoleInstanceStatusDatabaseDeleted   ConsoleInstanceStatus = "DATABASE_DELETED"
+)
+
+var AllConsoleInstanceStatus = []ConsoleInstanceStatus{
+	ConsoleInstanceStatusPending,
+	ConsoleInstanceStatusDatabaseCreated,
+	ConsoleInstanceStatusDeploymentCreated,
+	ConsoleInstanceStatusProvisioned,
+	ConsoleInstanceStatusDeploymentDeleted,
+	ConsoleInstanceStatusDatabaseDeleted,
+}
+
+func (e ConsoleInstanceStatus) IsValid() bool {
+	switch e {
+	case ConsoleInstanceStatusPending, ConsoleInstanceStatusDatabaseCreated, ConsoleInstanceStatusDeploymentCreated, ConsoleInstanceStatusProvisioned, ConsoleInstanceStatusDeploymentDeleted, ConsoleInstanceStatusDatabaseDeleted:
+		return true
+	}
+	return false
+}
+
+func (e ConsoleInstanceStatus) String() string {
+	return string(e)
+}
+
+func (e *ConsoleInstanceStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ConsoleInstanceStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ConsoleInstanceStatus", str)
+	}
+	return nil
+}
+
+func (e ConsoleInstanceStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ConsoleSize string
+
+const (
+	ConsoleSizeSmall  ConsoleSize = "SMALL"
+	ConsoleSizeMedium ConsoleSize = "MEDIUM"
+	ConsoleSizeLarge  ConsoleSize = "LARGE"
+)
+
+var AllConsoleSize = []ConsoleSize{
+	ConsoleSizeSmall,
+	ConsoleSizeMedium,
+	ConsoleSizeLarge,
+}
+
+func (e ConsoleSize) IsValid() bool {
+	switch e {
+	case ConsoleSizeSmall, ConsoleSizeMedium, ConsoleSizeLarge:
+		return true
+	}
+	return false
+}
+
+func (e ConsoleSize) String() string {
+	return string(e)
+}
+
+func (e *ConsoleSize) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ConsoleSize(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ConsoleSize", str)
+	}
+	return nil
+}
+
+func (e ConsoleSize) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -4098,6 +4295,7 @@ const (
 	ProviderEquinix    Provider = "EQUINIX"
 	ProviderKind       Provider = "KIND"
 	ProviderGeneric    Provider = "GENERIC"
+	ProviderLinode     Provider = "LINODE"
 )
 
 var AllProvider = []Provider{
@@ -4109,11 +4307,12 @@ var AllProvider = []Provider{
 	ProviderEquinix,
 	ProviderKind,
 	ProviderGeneric,
+	ProviderLinode,
 }
 
 func (e Provider) IsValid() bool {
 	switch e {
-	case ProviderGcp, ProviderAws, ProviderAzure, ProviderCustom, ProviderKubernetes, ProviderEquinix, ProviderKind, ProviderGeneric:
+	case ProviderGcp, ProviderAws, ProviderAzure, ProviderCustom, ProviderKubernetes, ProviderEquinix, ProviderKind, ProviderGeneric, ProviderLinode:
 		return true
 	}
 	return false

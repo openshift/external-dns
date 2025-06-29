@@ -22,6 +22,9 @@ cloud.google.com/go/compute/metadata
 # code.cloudfoundry.org/gofileutils v0.0.0-20170111115228-4d0c80011a0f
 ## explicit
 code.cloudfoundry.org/gofileutils/fileutils
+# github.com/99designs/gqlgen v0.17.44
+## explicit; go 1.20
+github.com/99designs/gqlgen/graphql
 # github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1
 ## explicit; go 1.18
 github.com/Azure/azure-sdk-for-go/sdk/azcore
@@ -105,9 +108,9 @@ github.com/IBM/networking-go-sdk/zonesv1
 # github.com/Masterminds/semver v1.4.2
 ## explicit
 github.com/Masterminds/semver
-# github.com/Yamashou/gqlgenc v0.14.0
-## explicit; go 1.19
-github.com/Yamashou/gqlgenc/client
+# github.com/Yamashou/gqlgenc v0.23.2
+## explicit; go 1.21
+github.com/Yamashou/gqlgenc/clientv2
 github.com/Yamashou/gqlgenc/graphqljson
 # github.com/akamai/AkamaiOPEN-edgegrid-golang v1.2.2
 ## explicit; go 1.14
@@ -714,8 +717,8 @@ github.com/pkg/browser
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
-# github.com/pluralsh/gqlclient v1.11.0
-## explicit; go 1.18
+# github.com/pluralsh/gqlclient v1.12.2
+## explicit; go 1.22.0
 github.com/pluralsh/gqlclient
 github.com/pluralsh/gqlclient/pkg/utils
 # github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
@@ -768,8 +771,6 @@ github.com/scaleway/scaleway-sdk-go/validation
 # github.com/schollz/progressbar/v3 v3.8.6
 ## explicit; go 1.13
 github.com/schollz/progressbar/v3
-# github.com/sergi/go-diff v1.2.0
-## explicit; go 1.12
 # github.com/shopspring/decimal v1.3.1
 ## explicit; go 1.13
 github.com/shopspring/decimal
@@ -784,6 +785,9 @@ github.com/smartystreets/go-aws-auth
 # github.com/sony/gobreaker v0.5.0
 ## explicit; go 1.12
 github.com/sony/gobreaker
+# github.com/sosodev/duration v1.2.0
+## explicit; go 1.17
+github.com/sosodev/duration
 # github.com/sourcegraph/conc v0.3.0
 ## explicit; go 1.19
 github.com/sourcegraph/conc
@@ -852,8 +856,8 @@ github.com/transip/gotransip/v6/rest
 # github.com/ultradns/ultradns-sdk-go v1.3.7
 ## explicit
 github.com/ultradns/ultradns-sdk-go
-# github.com/vektah/gqlparser/v2 v2.5.1
-## explicit; go 1.16
+# github.com/vektah/gqlparser/v2 v2.5.11
+## explicit; go 1.19
 github.com/vektah/gqlparser/v2/ast
 github.com/vektah/gqlparser/v2/gqlerror
 # github.com/vinyldns/go-vinyldns v0.9.16
