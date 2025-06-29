@@ -42,7 +42,7 @@ require (
 	github.com/nesv/go-dynect v0.6.0
 	github.com/nic-at/rc0go v1.1.1
 	github.com/onsi/ginkgo v1.16.5
-	github.com/openshift/api v0.0.0-20230607130528-611114dca681
+	github.com/openshift/api 41708f612339
 	github.com/openshift/client-go v0.0.0-20230607134213-3cd0021bbee3
 	github.com/oracle/oci-go-sdk/v65 v65.65.2
 	github.com/ovh/go-ovh v1.5.1
