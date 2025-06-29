@@ -1,6 +1,8 @@
 module sigs.k8s.io/external-dns
 
-go 1.22.2
+go 1.23
+
+toolchain go1.23.9
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0
@@ -24,7 +26,7 @@ require (
 	github.com/cloudfoundry-community/go-cfclient v0.0.0-20190201205600-f136f9222381
 	github.com/datawire/ambassador v1.12.4
 	github.com/denverdino/aliyungo v0.0.0-20230411124812-ab98a9173ace
-	github.com/digitalocean/godo v1.115.0
+	github.com/digitalocean/godo v1.155.0
 	github.com/dnsimple/dnsimple-go v1.7.0
 	github.com/exoscale/egoscale v0.102.3
 	github.com/ffledgling/pdns-go v0.0.0-20180219074714-524e7daccd99
@@ -65,9 +67,9 @@ require (
 	go.etcd.io/etcd/client/v3 v3.5.13
 	go.uber.org/ratelimit v0.3.1
 	golang.org/x/net v0.25.0
-	golang.org/x/oauth2 v0.20.0
+	golang.org/x/oauth2 v0.23.0
 	golang.org/x/sync v0.7.0
-	golang.org/x/time v0.5.0
+	golang.org/x/time v0.6.0
 	google.golang.org/api v0.180.0
 	gopkg.in/ns1/ns1-go.v2 v2.10.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -132,7 +134,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/hashicorp/go-retryablehttp v0.7.5 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
@@ -200,7 +202,7 @@ require (
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f // indirect
 	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/term v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/tools v0.20.0 // indirect
