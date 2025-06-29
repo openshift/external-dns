@@ -262,8 +262,8 @@ github.com/deepmap/oapi-codegen/pkg/types
 ## explicit; go 1.15
 github.com/denverdino/aliyungo/metadata
 github.com/denverdino/aliyungo/util
-# github.com/digitalocean/godo v1.115.0
-## explicit; go 1.20
+# github.com/digitalocean/godo v1.155.0
+## explicit; go 1.23
 github.com/digitalocean/godo
 github.com/digitalocean/godo/metrics
 # github.com/dnsimple/dnsimple-go v1.7.0
@@ -468,8 +468,8 @@ github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-multierror v1.1.1
 ## explicit; go 1.13
 github.com/hashicorp/go-multierror
-# github.com/hashicorp/go-retryablehttp v0.7.5
-## explicit; go 1.13
+# github.com/hashicorp/go-retryablehttp v0.7.7
+## explicit; go 1.19
 github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-uuid v1.0.3
 ## explicit
@@ -997,7 +997,7 @@ golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 golang.org/x/net/publicsuffix
 golang.org/x/net/trace
-# golang.org/x/oauth2 v0.20.0
+# golang.org/x/oauth2 v0.23.0
 ## explicit; go 1.18
 golang.org/x/oauth2
 golang.org/x/oauth2/authhandler
@@ -1013,7 +1013,7 @@ golang.org/x/oauth2/jwt
 # golang.org/x/sync v0.7.0
 ## explicit; go 1.18
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.20.0
+# golang.org/x/sys v0.25.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu
 golang.org/x/sys/plan9
@@ -1040,7 +1040,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/time v0.5.0
+# golang.org/x/time v0.6.0
 ## explicit; go 1.18
 golang.org/x/time/rate
 # golang.org/x/tools v0.20.0
