@@ -686,7 +686,7 @@ github.com/openshift/gssapi
 github.com/opentracing/opentracing-go
 github.com/opentracing/opentracing-go/ext
 github.com/opentracing/opentracing-go/log
-# github.com/oracle/oci-go-sdk/v65 v65.65.2
+# github.com/oracle/oci-go-sdk/v65 v65.94.0
 ## explicit; go 1.13
 github.com/oracle/oci-go-sdk/v65/common
 github.com/oracle/oci-go-sdk/v65/common/auth
@@ -865,6 +865,9 @@ github.com/vultr/govultr/v2
 # github.com/xhit/go-str2duration/v2 v2.1.0
 ## explicit; go 1.13
 github.com/xhit/go-str2duration/v2
+# github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78
+## explicit; go 1.17
+github.com/youmark/pkcs8
 # go.etcd.io/etcd/api/v3 v3.5.13
 ## explicit; go 1.21
 go.etcd.io/etcd/api/v3/authpb
@@ -968,6 +971,7 @@ golang.org/x/crypto/md4
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/pkcs12
 golang.org/x/crypto/pkcs12/internal/rc2
+golang.org/x/crypto/scrypt
 golang.org/x/crypto/sha3
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f
