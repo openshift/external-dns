@@ -86,7 +86,7 @@ require (
 	code.cloudfoundry.org/gofileutils v0.0.0-20170111115228-4d0c80011a0f // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.5.2 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2 // indirect
-	github.com/Masterminds/semver v1.4.2 // indirect
+	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Yamashou/gqlgenc v0.14.0 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/alexbrainman/sspi v0.0.0-20180613141037-e580b900e9f5 // indirect
