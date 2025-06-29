@@ -1,6 +1,8 @@
 module sigs.k8s.io/external-dns
 
-go 1.22.2
+go 1.23.0
+
+toolchain go1.23.9
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0
@@ -30,13 +32,13 @@ require (
 	github.com/ffledgling/pdns-go v0.0.0-20180219074714-524e7daccd99
 	github.com/go-gandi/go-gandi v0.7.0
 	github.com/go-logr/logr v1.4.1
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/gophercloud/gophercloud v1.11.0
 	github.com/hooklift/gowsdl v0.5.0
 	github.com/infobloxopen/infoblox-go-client/v2 v2.6.0
 	github.com/linki/instrumented_http v0.3.0
-	github.com/linode/linodego v1.33.1
+	github.com/linode/linodego v1.52.1
 	github.com/maxatome/go-testdeep v1.14.0
 	github.com/miekg/dns v1.1.59
 	github.com/nesv/go-dynect v0.6.0
@@ -53,7 +55,7 @@ require (
 	github.com/prometheus/client_golang v1.19.1
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.26
 	github.com/sirupsen/logrus v1.9.3
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.921
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod v1.0.921
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/privatedns v1.0.921
@@ -64,10 +66,10 @@ require (
 	go.etcd.io/etcd/api/v3 v3.5.13
 	go.etcd.io/etcd/client/v3 v3.5.13
 	go.uber.org/ratelimit v0.3.1
-	golang.org/x/net v0.25.0
-	golang.org/x/oauth2 v0.20.0
-	golang.org/x/sync v0.7.0
-	golang.org/x/time v0.5.0
+	golang.org/x/net v0.40.0
+	golang.org/x/oauth2 v0.30.0
+	golang.org/x/sync v0.14.0
+	golang.org/x/time v0.6.0
 	google.golang.org/api v0.180.0
 	gopkg.in/ns1/ns1-go.v2 v2.10.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -114,7 +116,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.19.0 // indirect
-	github.com/go-resty/resty/v2 v2.12.0 // indirect
+	github.com/go-resty/resty/v2 v2.16.5 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
@@ -197,13 +199,13 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
-	golang.org/x/crypto v0.23.0 // indirect
+	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f // indirect
 	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/term v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
-	golang.org/x/tools v0.20.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/term v0.32.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
+	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240429193739-8cf5692501f6 // indirect
 	google.golang.org/grpc v1.63.2 // indirect

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"strconv"
+	"reflect"
 )
 
 // paginatedResponse represents a single response from a paginated
@@ -30,8 +30,6 @@ func getPaginatedResults[T any](
 
 	result := make([]T, 0)
 
-	req := client.R(ctx).SetResult(resultType)
-
 	if opts == nil {
 		opts = &ListOptions{PageOptions: &PageOptions{Page: 0}}
 	}
@@ -40,15 +38,20 @@ func getPaginatedResults[T any](
 		opts.PageOptions = &PageOptions{Page: 0}
 	}
 
-	// Apply all user-provided list options to the base request
-	if err := applyListOptionsToRequest(opts, req); err != nil {
-		return nil, err
-	}
-
 	// Makes a request to a particular page and
 	// appends the response to the result
 	handlePage := func(page int) error {
-		req.SetQueryParam("page", strconv.Itoa(page))
+		// Override the page to be applied in applyListOptionsToRequest(...)
+		opts.Page = page
+
+		// This request object cannot be reused for each page request
+		// because it can lead to possible data corruption
+		req := client.R(ctx).SetResult(resultType)
+
+		// Apply all user-provided list options to the request
+		if err := applyListOptionsToRequest(opts, req); err != nil {
+			return err
+		}
 
 		res, err := coupleAPIErrors(req.Get(endpoint))
 		if err != nil {
@@ -130,12 +133,11 @@ func doPOSTRequest[T, O any](
 
 	req := client.R(ctx).SetResult(&resultType)
 
-	if numOpts > 0 {
+	if numOpts > 0 && !isNil(options[0]) {
 		body, err := json.Marshal(options[0])
 		if err != nil {
 			return nil, err
 		}
-
 		req.SetBody(string(body))
 	}
 
@@ -145,6 +147,28 @@ func doPOSTRequest[T, O any](
 	}
 
 	return r.Result().(*T), nil
+}
+
+// doPOSTRequestNoResponseBody runs a POST request using the given client, API endpoint,
+// and options/body. It expects only empty response from the endpoint.
+func doPOSTRequestNoResponseBody[T any](
+	ctx context.Context,
+	client *Client,
+	endpoint string,
+	options ...T,
+) error {
+	_, err := doPOSTRequest[any, T](ctx, client, endpoint, options...)
+	return err
+}
+
+// doPOSTRequestNoRequestResponseBody runs a POST request where no request body is needed and no response body
+// is expected from the endpoints.
+func doPOSTRequestNoRequestResponseBody(
+	ctx context.Context,
+	client *Client,
+	endpoint string,
+) error {
+	return doPOSTRequestNoResponseBody(ctx, client, endpoint, struct{}{})
 }
 
 // doPUTRequest runs a PUT request using the given client, API endpoint,
@@ -165,12 +189,11 @@ func doPUTRequest[T, O any](
 
 	req := client.R(ctx).SetResult(&resultType)
 
-	if numOpts > 0 {
+	if numOpts > 0 && !isNil(options[0]) {
 		body, err := json.Marshal(options[0])
 		if err != nil {
 			return nil, err
 		}
-
 		req.SetBody(string(body))
 	}
 
@@ -206,4 +229,14 @@ func formatAPIPath(format string, args ...any) string {
 	}
 
 	return fmt.Sprintf(format, escapedArgs...)
+}
+
+func isNil(i interface{}) bool {
+	if i == nil {
+		return true
+	}
+
+	// Check for nil pointers
+	v := reflect.ValueOf(i)
+	return v.Kind() == reflect.Ptr && v.IsNil()
 }
