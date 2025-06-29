@@ -37,3 +37,11 @@ type ClientNotFoundError struct {
 func (e *ClientNotFoundError) Error() string {
 	return fmt.Sprintf("Client not found with ID [%d]", e.ID)
 }
+
+type ApplicationNotFoundError struct {
+	ID string
+}
+
+func (e *ApplicationNotFoundError) Error() string {
+	return fmt.Sprintf("Application not found with ID [%s]", e.ID)
+}

@@ -180,6 +180,7 @@ type ECloudService interface {
 	CreateInstanceImage(instanceID string, req CreateInstanceImageRequest) (TaskReference, error)
 	EncryptInstance(instanceID string) (string, error)
 	DecryptInstance(instanceID string) (string, error)
+	ExecuteInstanceScript(instanceID string, req ExecuteInstanceScriptRequest) (string, error)
 
 	// Floating IP
 	GetFloatingIPs(parameters connection.APIRequestParameters) ([]FloatingIP, error)
@@ -357,7 +358,7 @@ type ECloudService interface {
 	PatchNetworkRulePort(ruleID string, req PatchNetworkRulePortRequest) (TaskReference, error)
 	DeleteNetworkRulePort(ruleID string) (string, error)
 
-	//Volume Groups
+	// Volume Groups
 	GetVolumeGroups(parameters connection.APIRequestParameters) ([]VolumeGroup, error)
 	GetVolumeGroupsPaginated(parameters connection.APIRequestParameters) (*connection.Paginated[VolumeGroup], error)
 	GetVolumeGroup(groupID string) (VolumeGroup, error)
@@ -398,6 +399,31 @@ type ECloudService interface {
 	GetVPNProfileGroupsPaginated(parameters connection.APIRequestParameters) (*connection.Paginated[VPNProfileGroup], error)
 	GetVPNProfileGroup(groupID string) (VPNProfileGroup, error)
 
+	// VPN Gateways
+	GetVPNGateways(parameters connection.APIRequestParameters) ([]VPNGateway, error)
+	GetVPNGatewaysPaginated(parameters connection.APIRequestParameters) (*connection.Paginated[VPNGateway], error)
+	GetVPNGateway(gatewayID string) (VPNGateway, error)
+	CreateVPNGateway(req CreateVPNGatewayRequest) (TaskReference, error)
+	PatchVPNGateway(gatewayID string, req PatchVPNGatewayRequest) (TaskReference, error)
+	DeleteVPNGateway(gatewayID string) (string, error)
+	GetVPNGatewayTasks(gatewayID string, parameters connection.APIRequestParameters) ([]Task, error)
+	GetVPNGatewayTasksPaginated(gatewayID string, parameters connection.APIRequestParameters) (*connection.Paginated[Task], error)
+
+	// VPN Gateway Users
+	GetVPNGatewayUsers(parameters connection.APIRequestParameters) ([]VPNGatewayUser, error)
+	GetVPNGatewayUsersPaginated(parameters connection.APIRequestParameters) (*connection.Paginated[VPNGatewayUser], error)
+	GetVPNGatewayUser(userID string) (VPNGatewayUser, error)
+	CreateVPNGatewayUser(req CreateVPNGatewayUserRequest) (TaskReference, error)
+	PatchVPNGatewayUser(userID string, req PatchVPNGatewayUserRequest) (TaskReference, error)
+	DeleteVPNGatewayUser(userID string) (string, error)
+
+	// VPN Gateway Specifications
+	GetVPNGatewaySpecifications(parameters connection.APIRequestParameters) ([]VPNGatewaySpecification, error)
+	GetVPNGatewaySpecificationsPaginated(parameters connection.APIRequestParameters) (*connection.Paginated[VPNGatewaySpecification], error)
+	GetVPNGatewaySpecification(specificationID string) (VPNGatewaySpecification, error)
+	GetVPNGatewaySpecificationAvailabilityZones(specificationID string, parameters connection.APIRequestParameters) ([]AvailabilityZone, error)
+	GetVPNGatewaySpecificationAvailabilityZonesPaginated(specificationID string, parameters connection.APIRequestParameters) (*connection.Paginated[AvailabilityZone], error)
+
 	// Load Balancer
 	GetLoadBalancers(parameters connection.APIRequestParameters) ([]LoadBalancer, error)
 	GetLoadBalancersPaginated(parameters connection.APIRequestParameters) (*connection.Paginated[LoadBalancer], error)
@@ -419,7 +445,7 @@ type ECloudService interface {
 	PatchVIP(vipID string, patch PatchVIPRequest) (TaskReference, error)
 	DeleteVIP(vipID string) (string, error)
 
-	//IP Addresses
+	// IP Addresses
 	GetIPAddresses(parameters connection.APIRequestParameters) ([]IPAddress, error)
 	GetIPAddressesPaginated(parameters connection.APIRequestParameters) (*connection.Paginated[IPAddress], error)
 	GetIPAddress(ipID string) (IPAddress, error)
@@ -427,7 +453,7 @@ type ECloudService interface {
 	PatchIPAddress(ipID string, patch PatchIPAddressRequest) (TaskReference, error)
 	DeleteIPAddress(ipID string) (string, error)
 
-	//Affinity Rules
+	// Affinity Rules
 	GetAffinityRules(parameters connection.APIRequestParameters) ([]AffinityRule, error)
 	GetAffinityRulesPaginated(parameters connection.APIRequestParameters) (*connection.Paginated[AffinityRule], error)
 	GetAffinityRule(ruleID string) (AffinityRule, error)
@@ -435,14 +461,14 @@ type ECloudService interface {
 	PatchAffinityRule(ruleID string, patch PatchAffinityRuleRequest) (TaskReference, error)
 	DeleteAffinityRule(ruleID string) (string, error)
 
-	//Affinity Rule Members
+	// Affinity Rule Members
 	GetAffinityRuleMembers(ruleID string, parameters connection.APIRequestParameters) ([]AffinityRuleMember, error)
 	GetAffinityRuleMembersPaginated(ruleID string, parameters connection.APIRequestParameters) (*connection.Paginated[AffinityRuleMember], error)
 	GetAffinityRuleMember(memberID string) (AffinityRuleMember, error)
 	CreateAffinityRuleMember(req CreateAffinityRuleMemberRequest) (TaskReference, error)
 	DeleteAffinityRuleMember(memberID string) (string, error)
 
-	//Resource Tiers
+	// Resource Tiers
 	GetResourceTiers(parameters connection.APIRequestParameters) ([]ResourceTier, error)
 	GetResourceTiersPaginated(parameters connection.APIRequestParameters) (*connection.Paginated[ResourceTier], error)
 	GetResourceTier(tierID string) (ResourceTier, error)
@@ -455,10 +481,28 @@ type ECloudService interface {
 	PatchNATOverloadRule(ruleID string, req PatchNATOverloadRuleRequest) (TaskReference, error)
 	DeleteNATOverloadRule(ruleID string) (string, error)
 
-	//IOPS Tiers
+	// IOPS Tiers
 	GetIOPSTiers(parameters connection.APIRequestParameters) ([]IOPSTier, error)
 	GetIOPSTiersPaginated(parameters connection.APIRequestParameters) (*connection.Paginated[IOPSTier], error)
 	GetIOPSTier(iopsID string) (IOPSTier, error)
+
+	// Backup Gateway Specifications
+	GetBackupGatewaySpecifications(parameters connection.APIRequestParameters) ([]BackupGatewaySpecification, error)
+	GetBackupGatewaySpecificationsPaginated(parameters connection.APIRequestParameters) (*connection.Paginated[BackupGatewaySpecification], error)
+	GetBackupGatewaySpecification(specificationID string) (BackupGatewaySpecification, error)
+
+	// Backup Gateways
+	GetBackupGateways(parameters connection.APIRequestParameters) ([]BackupGateway, error)
+	GetBackupGatewaysPaginated(parameters connection.APIRequestParameters) (*connection.Paginated[BackupGateway], error)
+	GetBackupGateway(gatewayID string) (BackupGateway, error)
+	CreateBackupGateway(req CreateBackupGatewayRequest) (TaskReference, error)
+	PatchBackupGateway(gatewayID string, req PatchBackupGatewayRequest) (TaskReference, error)
+	DeleteBackupGateway(gatewayID string) (string, error)
+
+	// Monitoring Gateways
+	GetMonitoringGateways(parameters connection.APIRequestParameters) ([]MonitoringGateway, error)
+	GetMonitoringGatewaysPaginated(parameters connection.APIRequestParameters) (*connection.Paginated[MonitoringGateway], error)
+	GetMonitoringGateway(gatewayID string) (MonitoringGateway, error)
 }
 
 // Service implements ECloudService for managing

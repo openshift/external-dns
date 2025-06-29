@@ -60,12 +60,16 @@ func NewAPIConnection(credentials Credentials) *APIConnection {
 	}
 }
 
-// composeURI returns a composed URI for given resource and request modifiers
-func (c *APIConnection) composeURI(resource string, pagination APIRequestPagination, sorting APIRequestSorting, filtering []APIRequestFiltering) string {
-	data := url.Values{}
-	c.hydratePaginationQuery(&data, pagination)
-	c.hydrateSortingQuery(&data, sorting)
-	c.hydrateFilteringQuery(&data, filtering)
+// composeURI returns a composed URI for given API request
+func (c *APIConnection) composeURI(request APIRequest) string {
+	data := request.Query
+	if data == nil {
+		data = url.Values{}
+	}
+
+	c.hydratePaginationQuery(&data, request.Parameters.Pagination)
+	c.hydrateSortingQuery(&data, request.Parameters.Sorting)
+	c.hydrateFilteringQuery(&data, request.Parameters.Filtering)
 
 	q := data.Encode()
 	// Add query parameter start
@@ -73,7 +77,7 @@ func (c *APIConnection) composeURI(resource string, pagination APIRequestPaginat
 		q = "?" + q
 	}
 
-	return fmt.Sprintf("%s://%s/%s%s", c.APIScheme, c.APIURI, strings.Trim(resource, "/"), q)
+	return fmt.Sprintf("%s://%s/%s%s", c.APIScheme, c.APIURI, strings.Trim(request.Resource, "/"), q)
 }
 
 // hydratePaginationQuery populates query parameters with pagination query parameters, if any
@@ -89,7 +93,7 @@ func (c *APIConnection) hydratePaginationQuery(q *url.Values, pagination APIRequ
 // hydrateFilteringQuery populates query parameters with filtering query parameters, if any
 func (c *APIConnection) hydrateFilteringQuery(q *url.Values, filtering []APIRequestFiltering) {
 	for _, filter := range filtering {
-		q.Add(fmt.Sprintf("%s:%s", filter.Property, filter.Operator.String()), strings.Join(filter.Value, ","))
+		q.Add(fmt.Sprintf("%s:%s", filter.Property, filter.Operator), strings.Join(filter.Value, ","))
 	}
 }
 
@@ -197,7 +201,7 @@ func (c *APIConnection) getBody(request APIRequest) (io.Reader, error) {
 
 // NewRequest generates a new Request from given parameters
 func (c *APIConnection) NewRequest(request APIRequest) (*http.Request, error) {
-	uri := c.composeURI(request.Resource, request.Parameters.Pagination, request.Parameters.Sorting, request.Parameters.Filtering)
+	uri := c.composeURI(request)
 
 	logging.Debugf("Generated URI: %s", uri)
 
@@ -219,9 +223,18 @@ func (c *APIConnection) NewRequest(request APIRequest) (*http.Request, error) {
 		req.Header.Add(headerKey, headerValue)
 	}
 
-	// Append additional headers if defined
+	// Append additional connection headers, if defined
 	if c.Headers != nil {
 		for headerKey, headerValues := range c.Headers {
+			for _, headerValue := range headerValues {
+				req.Header.Add(headerKey, headerValue)
+			}
+		}
+	}
+
+	// Append additional request headers, if defined
+	if request.Headers != nil {
+		for headerKey, headerValues := range request.Headers {
 			for _, headerValue := range headerValues {
 				req.Header.Add(headerKey, headerValue)
 			}
@@ -236,6 +249,11 @@ func (c *APIConnection) InvokeRequest(req *http.Request) (*APIResponse, error) {
 	resp := &APIResponse{}
 
 	logging.Debugf("Executing request: %s %s", req.Method, req.URL.String())
+	if req.Header != nil {
+		for k, v := range req.Header {
+			logging.Debugf("%s: %s", k, strings.Join(v, ", "))
+		}
+	}
 
 	r, err := c.HTTPClient.Do(req)
 	if err != nil {

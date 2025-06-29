@@ -131,7 +131,7 @@ func APIResponseJSONDeserializer(r *APIResponse, out interface{}) error {
 }
 
 // HandleResponse deserializes the response body into provided respBody, and validates
-// the response using the optionally provided ResponseHandler handler
+// the response using the optionally provided ResponseHandler handlers
 func (r *APIResponse) HandleResponse(respBody interface{}, handlers ...ResponseHandler) error {
 	if respBody != nil {
 		if respBodyDeserializer, ok := respBody.(ResponseDeserializer); ok {
