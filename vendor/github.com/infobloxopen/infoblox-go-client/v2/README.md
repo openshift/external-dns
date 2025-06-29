@@ -14,11 +14,11 @@ This library is compatible with Go 1.2+
 
 
 ## Prerequisites
-   * Infoblox GRID with 2.5 or above WAPI support
-   * Go 1.2 or above
+   * Infoblox GRID with 2.9 or above WAPI support
+   * Go 1.21 or above
 
 ## Installation
-   To get the latest released version [v2.6.0](https://github.com/infobloxopen/infoblox-go-client/releases/tag/v2.6.0) of Go Client use below command.
+   To get the latest released version [v2.10.0](https://github.com/infobloxopen/infoblox-go-client/releases/tag/v2.10.0) of Go Client use below command.
    
    `go get github.com/infobloxopen/infoblox-go-client/v2`
 
@@ -67,13 +67,17 @@ This library is compatible with Go 1.2+
 ## Supported NIOS operations
 
    * AllocateIP
+   * AllocateNextAvailableIp
    * AllocateNetwork
+   * AllocateNetworkByEA
+   * AllocateNetworkContainerByEA
    * AllocateNetworkContainer
    * CreateARecord
    * CreateAAAARecord
    * CreateZoneAuth
    * CreateCNAMERecord
    * CreateDefaultNetviews
+   * CreateZoneForward
    * CreateEADefinition
    * CreateHostRecord
    * CreateNetwork
@@ -85,6 +89,7 @@ This library is compatible with Go 1.2+
    * DeleteARecord
    * DeleteAAAARecord
    * DeleteZoneAuth
+   * DeleteZoneForward
    * DeleteCNAMERecord
    * DeleteFixedAddress
    * DeleteHostRecord
@@ -125,6 +130,8 @@ This library is compatible with Go 1.2+
    * GetZoneDelegated
    * GetUpgradeStatus (2.7 or above)
    * GetAllMembers
+   * GetZoneForwardByRef
+   * GetZoneForwardFilters
    * GetGridInfo
    * GetGridLicense
    * ReleaseIP
@@ -141,5 +148,48 @@ This library is compatible with Go 1.2+
    * UpdateTXTRecord
    * UpdateARecord
    * UpdateZoneDelegated
-
-
+   * UpdateZoneForward
+   * CreateDtcLbdn
+   * CreateDtcPool
+   * CreateDtcServer
+   * DeleteDtcLbdn
+   * DeleteDtcPool
+   * DeleteDtcServer
+   * GetAllDtcPool
+   * GetDtcPool
+   * GetDtcPoolByRef
+   * GetAllDtcServer
+   * GetDtcServer
+   * GetDtcServerByRef
+   * GetAllDtcLbdn
+   * GetDtcLbdn
+   * GetDtcLbdnByRef
+   * UpdateDtcPool
+   * UpdateDtcServer
+   * UpdateDtcLbdn
+   * CreateAliasRecord
+   * CreateNSRecord
+   * CreateIpv4SharedNetwork
+   * CreateNetworkRange
+   * CreateRangeTemplate
+   * DeleteAliasRecord
+   * DeleteNSRecord
+   * DeleteIpv4SharedNetwork
+   * DeleteNetworkRange
+   * DeleteRangeTemplate
+   * GetAllAliasRecord
+   * GetAllRecordNS
+   * GetAllIpv4SharedNetwork
+   * GetAllFixedAddress
+   * GetNetworkRange
+   * GetAllRangeTemplate
+   * GetAliasRecordByRef
+   * GetNSRecordByRef
+   * GetIpv4SharedNetworkByRef
+   * GetNetworkRangeByRef
+   * GetRangeTemplateByRef
+   * UpdateAliasRecord
+   * UpdateNSRecord
+   * UpdateIpv4SharedNetwork
+   * UpdateNetworkRange
+   * UpdateRangeTemplate
