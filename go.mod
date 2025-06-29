@@ -32,7 +32,7 @@ require (
 	github.com/go-logr/logr v1.4.1
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
-	github.com/gophercloud/gophercloud v1.11.0
+	github.com/gophercloud/gophercloud v1.14.1
 	github.com/hooklift/gowsdl v0.5.0
 	github.com/infobloxopen/infoblox-go-client/v2 v2.6.0
 	github.com/linki/instrumented_http v0.3.0
