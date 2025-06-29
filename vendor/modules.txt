@@ -768,8 +768,6 @@ github.com/scaleway/scaleway-sdk-go/validation
 # github.com/schollz/progressbar/v3 v3.8.6
 ## explicit; go 1.13
 github.com/schollz/progressbar/v3
-# github.com/sergi/go-diff v1.2.0
-## explicit; go 1.12
 # github.com/shopspring/decimal v1.3.1
 ## explicit; go 1.13
 github.com/shopspring/decimal
@@ -815,9 +813,10 @@ github.com/spf13/viper/internal/encoding/yaml
 # github.com/stretchr/objx v0.5.2
 ## explicit; go 1.20
 github.com/stretchr/objx
-# github.com/stretchr/testify v1.9.0
+# github.com/stretchr/testify v1.10.0
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
+github.com/stretchr/testify/assert/yaml
 github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
 github.com/stretchr/testify/suite
@@ -852,8 +851,8 @@ github.com/transip/gotransip/v6/rest
 # github.com/ultradns/ultradns-sdk-go v1.3.7
 ## explicit
 github.com/ultradns/ultradns-sdk-go
-# github.com/vektah/gqlparser/v2 v2.5.1
-## explicit; go 1.16
+# github.com/vektah/gqlparser/v2 v2.5.30
+## explicit; go 1.22
 github.com/vektah/gqlparser/v2/ast
 github.com/vektah/gqlparser/v2/gqlerror
 # github.com/vinyldns/go-vinyldns v0.9.16
