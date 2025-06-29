@@ -667,3 +667,17 @@ func (s *Service) decryptInstanceResponseBody(instanceID string) (*connection.AP
 
 	return connection.Put[TaskReference](s.connection, fmt.Sprintf("/ecloud/v2/instances/%s/decrypt", instanceID), nil, connection.NotFoundResponseHandler(&InstanceNotFoundError{ID: instanceID}))
 }
+
+func (s *Service) ExecuteInstanceScript(instanceID string, req ExecuteInstanceScriptRequest) (string, error) {
+	body, err := s.executeInstanceScriptResponseBody(instanceID, req)
+
+	return body.Data.TaskID, err
+}
+
+func (s *Service) executeInstanceScriptResponseBody(instanceID string, req ExecuteInstanceScriptRequest) (*connection.APIResponseBodyData[TaskReference], error) {
+	if instanceID == "" {
+		return &connection.APIResponseBodyData[TaskReference]{}, fmt.Errorf("invalid instance id")
+	}
+
+	return connection.Post[TaskReference](s.connection, fmt.Sprintf("/ecloud/v2/instances/%s/user-script", instanceID), &req, connection.NotFoundResponseHandler(&InstanceNotFoundError{ID: instanceID}))
+}

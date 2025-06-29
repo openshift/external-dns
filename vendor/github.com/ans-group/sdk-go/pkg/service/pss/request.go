@@ -55,3 +55,49 @@ type CreateFeedbackRequest struct {
 	NPSScore          int    `json:"nps_score"`
 	ThirdPartyConsent bool   `json:"thirdparty_consent"`
 }
+
+// CreateChangeCaseRequest represents a request to create PSS change case
+type CreateChangeCaseRequest struct {
+	CaseType           CaseType         `json:"case_type"`
+	Title              string           `json:"title"`
+	Description        string           `json:"description"`
+	IsSecurity         bool             `json:"is_security"`
+	CustomerReference  string           `json:"customer_reference"`
+	Reason             string           `json:"reason"`
+	Impact             ChangeCaseImpact `json:"impact"`
+	Risk               ChangeCaseRisk   `json:"risk"`
+	CategoryID         string           `json:"category_id"`
+	SupportedServiceID string           `json:"supported_service_id"`
+}
+
+// CreateIncidentCaseRequest represents a request to create PSS incident case
+type CreateIncidentCaseRequest struct {
+	CaseType           CaseType           `json:"case_type"`
+	Title              string             `json:"title"`
+	Description        string             `json:"description"`
+	IsSecurity         bool               `json:"is_security"`
+	Type               IncidentCaseType   `json:"type"`
+	CustomerReference  string             `json:"customer_reference,omitempty"`
+	ContactID          int                `json:"contact_id,omitempty"`
+	CategoryID         string             `json:"category_id"`
+	SupportedServiceID string             `json:"supported_service_id"`
+	Impact             IncidentCaseImpact `json:"impact"`
+}
+
+// ApproveChangeCaseRequest represents a request to approve a PSS change case
+type ApproveChangeCaseRequest struct {
+	Reason    string `json:"reason,omitempty"`
+	ContactID int    `json:"contact_id,omitempty"`
+}
+
+// CloseIncidentCaseRequest represents a request to close a PSS incident case
+type CloseIncidentCaseRequest struct {
+	Reason    string `json:"reason"`
+	ContactID int    `json:"contact_id,omitempty"`
+}
+
+// CreateCaseUpdateRequest represents a request to create a PSS incident case update
+type CreateCaseUpdateRequest struct {
+	Description string `json:"description"`
+	ContactID   int    `json:"contact_id,omitempty"`
+}

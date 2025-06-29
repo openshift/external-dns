@@ -12,15 +12,7 @@ const (
 	VirtualMachineStatusBeingBuilt VirtualMachineStatus = "Being Built"
 )
 
-func (s VirtualMachineStatus) String() string {
-	return string(s)
-}
-
 type VirtualMachineDiskType string
-
-func (e VirtualMachineDiskType) String() string {
-	return string(e)
-}
 
 const (
 	VirtualMachineDiskTypeStandard VirtualMachineDiskType = "Standard"
@@ -38,26 +30,12 @@ const (
 	VirtualMachinePowerStatusOffline VirtualMachinePowerStatus = "Offline"
 )
 
-var VirtualMachinePowerStatusEnum connection.EnumSlice = []connection.Enum{
+var VirtualMachinePowerStatusEnum connection.Enum[VirtualMachinePowerStatus] = []VirtualMachinePowerStatus{
 	VirtualMachinePowerStatusOnline,
 	VirtualMachinePowerStatusOffline,
 }
 
-// ParseVirtualMachinePowerStatus attempts to parse a VirtualMachinePowerStatus from string
-func ParseVirtualMachinePowerStatus(s string) (VirtualMachinePowerStatus, error) {
-	e, err := connection.ParseEnum(s, VirtualMachinePowerStatusEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(VirtualMachinePowerStatus), err
-}
-
 type DatastoreStatus string
-
-func (s DatastoreStatus) String() string {
-	return string(s)
-}
 
 const (
 	DatastoreStatusCompleted DatastoreStatus = "Completed"
@@ -73,15 +51,7 @@ const (
 	SolutionEnvironmentPrivate SolutionEnvironment = "Private"
 )
 
-func (s SolutionEnvironment) String() string {
-	return string(s)
-}
-
 type FirewallRole string
-
-func (r FirewallRole) String() string {
-	return string(r)
-}
 
 const (
 	FirewallRoleNA     FirewallRole = "N/A"
@@ -274,28 +244,18 @@ type ActiveDirectoryDomain struct {
 
 type TemplateType string
 
+func (s TemplateType) String() string {
+	return string(s)
+}
+
 const (
 	TemplateTypeSolution TemplateType = "solution"
 	TemplateTypePod      TemplateType = "pod"
 )
 
-var TemplateTypeEnum connection.EnumSlice = []connection.Enum{
+var TemplateTypeEnum connection.Enum[TemplateType] = []TemplateType{
 	TemplateTypeSolution,
 	TemplateTypePod,
-}
-
-// ParseTemplateType attempts to parse a TemplateType from string
-func ParseTemplateType(s string) (TemplateType, error) {
-	e, err := connection.ParseEnum(s, TemplateTypeEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(TemplateType), err
-}
-
-func (s TemplateType) String() string {
-	return string(s)
 }
 
 // ConsoleSession represents an eCloud Virtual Machine console session
@@ -339,30 +299,20 @@ type ResourceTask struct {
 
 type TaskStatus string
 
+func (s TaskStatus) String() string {
+	return string(s)
+}
+
 const (
 	TaskStatusComplete   TaskStatus = "complete"
 	TaskStatusFailed     TaskStatus = "failed"
 	TaskStatusInProgress TaskStatus = "in-progress"
 )
 
-var TaskStatusEnum connection.EnumSlice = []connection.Enum{
+var TaskStatusEnum connection.Enum[TaskStatus] = []TaskStatus{
 	TaskStatusComplete,
 	TaskStatusFailed,
 	TaskStatusInProgress,
-}
-
-// ParseTaskStatus attempts to parse a TaskStatus from string
-func ParseTaskStatus(s string) (TaskStatus, error) {
-	e, err := connection.ParseEnum(s, TaskStatusEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(TaskStatus), err
-}
-
-func (s TaskStatus) String() string {
-	return string(s)
 }
 
 // VPC represents an eCloud VPC
@@ -431,6 +381,8 @@ type Instance struct {
 	RAMCapacity        int                 `json:"ram_capacity"`
 	Locked             bool                `json:"locked"`
 	BackupEnabled      bool                `json:"backup_enabled"`
+	BackupGatewayID    string              `json:"backup_gateway_id"`
+	BackupAgentEnabled bool                `json:"secure_backup"` // TODO: Change tag to 'backup_agent_enabled' when ADO#34659 released
 	IsEncrypted        bool                `json:"is_encrypted"`
 	Platform           string              `json:"platform"`
 	VolumeCapacity     int                 `json:"volume_capacity"`
@@ -473,33 +425,27 @@ type FirewallPolicy struct {
 
 type FirewallRuleAction string
 
+func (s FirewallRuleAction) String() string {
+	return string(s)
+}
+
 const (
 	FirewallRuleActionAllow  FirewallRuleAction = "ALLOW"
 	FirewallRuleActionDrop   FirewallRuleAction = "DROP"
 	FirewallRuleActionReject FirewallRuleAction = "REJECT"
 )
 
-var FirewallRuleActionEnum connection.EnumSlice = []connection.Enum{
+var FirewallRuleActionEnum connection.Enum[FirewallRuleAction] = []FirewallRuleAction{
 	FirewallRuleActionAllow,
 	FirewallRuleActionDrop,
 	FirewallRuleActionReject,
 }
 
-// ParseFirewallRuleAction attempts to parse a FirewallRuleAction from string
-func ParseFirewallRuleAction(s string) (FirewallRuleAction, error) {
-	e, err := connection.ParseEnum(s, FirewallRuleActionEnum)
-	if err != nil {
-		return "", err
-	}
+type FirewallRuleDirection string
 
-	return e.(FirewallRuleAction), err
-}
-
-func (s FirewallRuleAction) String() string {
+func (s FirewallRuleDirection) String() string {
 	return string(s)
 }
-
-type FirewallRuleDirection string
 
 const (
 	FirewallRuleDirectionIn    FirewallRuleDirection = "IN"
@@ -507,24 +453,10 @@ const (
 	FirewallRuleDirectionInOut FirewallRuleDirection = "IN_OUT"
 )
 
-var FirewallRuleDirectionEnum connection.EnumSlice = []connection.Enum{
+var FirewallRuleDirectionEnum connection.Enum[FirewallRuleDirection] = []FirewallRuleDirection{
 	FirewallRuleDirectionIn,
 	FirewallRuleDirectionOut,
 	FirewallRuleDirectionInOut,
-}
-
-// ParseFirewallRuleDirection attempts to parse a FirewallRuleDirection from string
-func ParseFirewallRuleDirection(s string) (FirewallRuleDirection, error) {
-	e, err := connection.ParseEnum(s, FirewallRuleDirectionEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(FirewallRuleDirection), err
-}
-
-func (s FirewallRuleDirection) String() string {
-	return string(s)
 }
 
 // FirewallRule represents an eCloud firewall rule
@@ -544,30 +476,20 @@ type FirewallRule struct {
 
 type FirewallRulePortProtocol string
 
+func (s FirewallRulePortProtocol) String() string {
+	return string(s)
+}
+
 const (
 	FirewallRulePortProtocolTCP    FirewallRulePortProtocol = "TCP"
 	FirewallRulePortProtocolUDP    FirewallRulePortProtocol = "UDP"
 	FirewallRulePortProtocolICMPv4 FirewallRulePortProtocol = "ICMPv4"
 )
 
-var FirewallRulePortProtocolEnum connection.EnumSlice = []connection.Enum{
+var FirewallRulePortProtocolEnum connection.Enum[FirewallRulePortProtocol] = []FirewallRulePortProtocol{
 	FirewallRulePortProtocolTCP,
 	FirewallRulePortProtocolUDP,
 	FirewallRulePortProtocolICMPv4,
-}
-
-// ParseFirewallRulePortProtocol attempts to parse a FirewallRulePortProtocol from string
-func ParseFirewallRulePortProtocol(s string) (FirewallRulePortProtocol, error) {
-	e, err := connection.ParseEnum(s, FirewallRulePortProtocolEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(FirewallRulePortProtocol), err
-}
-
-func (s FirewallRulePortProtocol) String() string {
-	return string(s)
 }
 
 // FirewallRulePort represents an eCloud firewall rule port
@@ -638,6 +560,7 @@ type Volume struct {
 	VolumeGroupID      string              `json:"volume_group_id"`
 	IsShared           bool                `json:"is_shared"`
 	IsEncrypted        bool                `json:"is_encrypted"`
+	Port               int                 `json:"port"`
 	Sync               ResourceSync        `json:"sync"`
 	Task               ResourceTask        `json:"task"`
 	CreatedAt          connection.DateTime `json:"created_at"`
@@ -807,33 +730,27 @@ type NetworkPolicy struct {
 
 type NetworkRuleAction string
 
+func (s NetworkRuleAction) String() string {
+	return string(s)
+}
+
 const (
 	NetworkRuleActionAllow  NetworkRuleAction = "ALLOW"
 	NetworkRuleActionDrop   NetworkRuleAction = "DROP"
 	NetworkRuleActionReject NetworkRuleAction = "REJECT"
 )
 
-var NetworkRuleActionEnum connection.EnumSlice = []connection.Enum{
+var NetworkRuleActionEnum connection.Enum[NetworkRuleAction] = []NetworkRuleAction{
 	NetworkRuleActionAllow,
 	NetworkRuleActionDrop,
 	NetworkRuleActionReject,
 }
 
-// ParseNetworkRuleAction attempts to parse a NetworkRuleAction from string
-func ParseNetworkRuleAction(s string) (NetworkRuleAction, error) {
-	e, err := connection.ParseEnum(s, NetworkRuleActionEnum)
-	if err != nil {
-		return "", err
-	}
+type NetworkRuleDirection string
 
-	return e.(NetworkRuleAction), err
-}
-
-func (s NetworkRuleAction) String() string {
+func (s NetworkRuleDirection) String() string {
 	return string(s)
 }
-
-type NetworkRuleDirection string
 
 const (
 	NetworkRuleDirectionIn    NetworkRuleDirection = "IN"
@@ -841,24 +758,10 @@ const (
 	NetworkRuleDirectionInOut NetworkRuleDirection = "IN_OUT"
 )
 
-var NetworkRuleDirectionEnum connection.EnumSlice = []connection.Enum{
+var NetworkRuleDirectionEnum connection.Enum[NetworkRuleDirection] = []NetworkRuleDirection{
 	NetworkRuleDirectionIn,
 	NetworkRuleDirectionOut,
 	NetworkRuleDirectionInOut,
-}
-
-// ParseNetworkRuleDirection attempts to parse a NetworkRuleDirection from string
-func ParseNetworkRuleDirection(s string) (NetworkRuleDirection, error) {
-	e, err := connection.ParseEnum(s, NetworkRuleDirectionEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(NetworkRuleDirection), err
-}
-
-func (s NetworkRuleDirection) String() string {
-	return string(s)
 }
 
 // NetworkRule represents an eCloud network rule
@@ -879,30 +782,20 @@ type NetworkRule struct {
 
 type NetworkRulePortProtocol string
 
+func (s NetworkRulePortProtocol) String() string {
+	return string(s)
+}
+
 const (
 	NetworkRulePortProtocolTCP    NetworkRulePortProtocol = "TCP"
 	NetworkRulePortProtocolUDP    NetworkRulePortProtocol = "UDP"
 	NetworkRulePortProtocolICMPv4 NetworkRulePortProtocol = "ICMPv4"
 )
 
-var NetworkRulePortProtocolEnum connection.EnumSlice = []connection.Enum{
+var NetworkRulePortProtocolEnum connection.Enum[NetworkRulePortProtocol] = []NetworkRulePortProtocol{
 	NetworkRulePortProtocolTCP,
 	NetworkRulePortProtocolUDP,
 	NetworkRulePortProtocolICMPv4,
-}
-
-// ParseNetworkRulePortProtocol attempts to parse a NetworkRulePortProtocol from string
-func ParseNetworkRulePortProtocol(s string) (NetworkRulePortProtocol, error) {
-	e, err := connection.ParseEnum(s, NetworkRulePortProtocolEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(NetworkRulePortProtocol), err
-}
-
-func (s NetworkRulePortProtocol) String() string {
-	return string(s)
 }
 
 // NetworkRulePort represents an eCloud network rule port
@@ -1055,28 +948,18 @@ type IPAddress struct {
 
 type AffinityRuleType string
 
+func (s AffinityRuleType) String() string {
+	return string(s)
+}
+
 const (
 	Affinity     AffinityRuleType = "affinity"
 	AntiAffinity AffinityRuleType = "anti-affinity"
 )
 
-var AffinityRuleTypeEnum connection.EnumSlice = []connection.Enum{
+var AffinityRuleTypeEnum connection.Enum[AffinityRuleType] = []AffinityRuleType{
 	Affinity,
 	AntiAffinity,
-}
-
-// ParseAffinityRuleType attempts to parse an AffinityRuleType from string
-func ParseAffinityRuleType(s string) (AffinityRuleType, error) {
-	e, err := connection.ParseEnum(s, AffinityRuleTypeEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(AffinityRuleType), err
-}
-
-func (s AffinityRuleType) String() string {
-	return string(s)
 }
 
 // AffinityRule represents an eCloud Affinity or Anti-Affinity Rule
@@ -1111,28 +994,18 @@ type ResourceTier struct {
 
 type NATOverloadRuleAction string
 
+func (s NATOverloadRuleAction) String() string {
+	return string(s)
+}
+
 const (
 	NATOverloadRuleActionAllow NATOverloadRuleAction = "allow"
 	NATOverloadRuleActionDeny  NATOverloadRuleAction = "deny"
 )
 
-var NATOverloadRuleActionEnum connection.EnumSlice = []connection.Enum{
+var NATOverloadRuleActionEnum connection.Enum[NATOverloadRuleAction] = []NATOverloadRuleAction{
 	NATOverloadRuleActionAllow,
 	NATOverloadRuleActionDeny,
-}
-
-// ParseNATOverloadRuleAction attempts to parse a NATOverloadRuleAction from string
-func ParseNATOverloadRuleAction(s string) (NATOverloadRuleAction, error) {
-	e, err := connection.ParseEnum(s, NATOverloadRuleActionEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(NATOverloadRuleAction), err
-}
-
-func (s NATOverloadRuleAction) String() string {
-	return string(s)
 }
 
 // NATOverloadRule represents an eCloud NAT overload rule
@@ -1156,4 +1029,71 @@ type IOPSTier struct {
 	Level     int                 `json:"level"`
 	CreatedAt connection.DateTime `json:"created_at"`
 	UpdatedAt connection.DateTime `json:"updated_at"`
+}
+
+// VPNGateway represents a VPN gateway
+type VPNGateway struct {
+	ID              string              `json:"id"`
+	Name            string              `json:"name"`
+	RouterID        string              `json:"router_id"`
+	SpecificationID string              `json:"specification_id"`
+	Hostname        string              `json:"hostname"`
+	FQDN            string              `json:"fqdn"`
+	Sync            ResourceSync        `json:"sync"`
+	Task            ResourceTask        `json:"task"`
+	CreatedAt       connection.DateTime `json:"created_at"`
+	UpdatedAt       connection.DateTime `json:"updated_at"`
+}
+
+// VPNGatewaySpecification represents a VPN gateway specification
+type VPNGatewaySpecification struct {
+	ID          string              `json:"id"`
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	CreatedAt   connection.DateTime `json:"created_at"`
+	UpdatedAt   connection.DateTime `json:"updated_at"`
+}
+
+// VPNGatewayUser represents a VPN gateway user
+type VPNGatewayUser struct {
+	ID           string              `json:"id"`
+	Name         string              `json:"name"`
+	VPNGatewayID string              `json:"vpn_gateway_id"`
+	Username     string              `json:"username,omitempty"`
+	Sync         ResourceSync        `json:"sync"`
+	Task         ResourceTask        `json:"task"`
+	CreatedAt    connection.DateTime `json:"created_at"`
+	UpdatedAt    connection.DateTime `json:"updated_at"`
+}
+
+// BackupGatewaySpecification represents a Backup Gateway specification
+type BackupGatewaySpecification struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+// BackupGateway represents a Backup Gateway
+type BackupGateway struct {
+	ID                 string              `json:"id"`
+	VPCID              string              `json:"vpc_id"`
+	Name               string              `json:"name"`
+	AvailabilityZoneID string              `json:"availability_zone_id"`
+	GatewaySpecID      string              `json:"gateway_spec_id"`
+	Sync               ResourceSync        `json:"sync"`
+	Task               ResourceTask        `json:"task"`
+	CreatedAt          connection.DateTime `json:"created_at"`
+	UpdatedAt          connection.DateTime `json:"updated_at"`
+}
+
+type MonitoringGateway struct {
+	ID                 string              `json:"id"`
+	VPCID              string              `json:"vpc_id"`
+	Name               string              `json:"name"`
+	AvailabilityZoneID string              `json:"availability_zone_id"`
+	RouterID           string              `json:"router_id"`
+	SpecificationID    string              `json:"specification_id"`
+	Sync               ResourceSync        `json:"sync"`
+	CreatedAt          connection.DateTime `json:"created_at"`
+	UpdatedAt          connection.DateTime `json:"updated_at"`
 }

@@ -9,10 +9,6 @@ import (
 
 type DomainStatus string
 
-func (s DomainStatus) String() string {
-	return string(s)
-}
-
 const (
 	DomainStatusConfigured    DomainStatus = "Configured"
 	DomainStatusNotConfigured DomainStatus = "Not Configured"
@@ -24,8 +20,8 @@ const (
 
 type DomainPropertyName string
 
-func (e DomainPropertyName) String() string {
-	return string(e)
+func (s DomainPropertyName) String() string {
+	return string(s)
 }
 
 const (
@@ -35,21 +31,11 @@ const (
 	DomainPropertyNameSecureOrigin      DomainPropertyName = "secure_origin"
 )
 
-var DomainPropertyNameEnum connection.EnumSlice = []connection.Enum{
+var DomainPropertyNameEnum connection.Enum[DomainPropertyName] = []DomainPropertyName{
 	DomainPropertyNameClientMaxBodySize,
 	DomainPropertyNameProxyTimeout,
 	DomainPropertyNameIPv6Enabled,
 	DomainPropertyNameSecureOrigin,
-}
-
-// ParseDomainPropertyName attempts to parse a DomainPropertyName from string
-func ParseDomainPropertyName(s string) (DomainPropertyName, error) {
-	e, err := connection.ParseEnum(s, DomainPropertyNameEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(DomainPropertyName), err
 }
 
 type RecordType string
@@ -63,6 +49,11 @@ const (
 	RecordTypeAAAA RecordType = "AAAA"
 )
 
+var RecordTypeEnum connection.Enum[RecordType] = []RecordType{
+	RecordTypeA,
+	RecordTypeAAAA,
+}
+
 type WAFMode string
 
 func (s WAFMode) String() string {
@@ -75,20 +66,10 @@ const (
 	WAFModeDetectionOnly WAFMode = "DetectionOnly"
 )
 
-var WAFModeEnum connection.EnumSlice = []connection.Enum{
+var WAFModeEnum connection.Enum[WAFMode] = []WAFMode{
 	WAFModeOn,
 	WAFModeOff,
 	WAFModeDetectionOnly,
-}
-
-// ParseWAFMode attempts to parse a WAFMode from string
-func ParseWAFMode(s string) (WAFMode, error) {
-	e, err := connection.ParseEnum(s, WAFModeEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(WAFMode), err
 }
 
 type WAFParanoiaLevel string
@@ -104,28 +85,14 @@ const (
 	WAFParanoiaLevelHighest WAFParanoiaLevel = "Highest"
 )
 
-var WAFParanoiaLevelEnum connection.EnumSlice = []connection.Enum{
+var WAFParanoiaLevelEnum connection.Enum[WAFParanoiaLevel] = []WAFParanoiaLevel{
 	WAFParanoiaLevelLow,
 	WAFParanoiaLevelMedium,
 	WAFParanoiaLevelHigh,
 	WAFParanoiaLevelHighest,
 }
 
-// ParseWAFParanoiaLevel attempts to parse a WAFParanoiaLevel from string
-func ParseWAFParanoiaLevel(s string) (WAFParanoiaLevel, error) {
-	e, err := connection.ParseEnum(s, WAFParanoiaLevelEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(WAFParanoiaLevel), err
-}
-
 type WAFRuleSetName string
-
-func (s WAFRuleSetName) String() string {
-	return string(s)
-}
 
 const (
 	WAFRuleSetNameIPRepution                             WAFRuleSetName = "IP Reputation"
@@ -163,7 +130,7 @@ const (
 	WAFAdvancedRuleSectionRequestURI     WAFAdvancedRuleSection = "REQUEST_URI"
 )
 
-var WAFAdvancedRuleSectionEnum connection.EnumSlice = []connection.Enum{
+var WAFAdvancedRuleSectionEnum connection.Enum[WAFAdvancedRuleSection] = []WAFAdvancedRuleSection{
 	WAFAdvancedRuleSectionArgs,
 	WAFAdvancedRuleSectionMatchedVars,
 	WAFAdvancedRuleSectionRemoteHost,
@@ -171,16 +138,6 @@ var WAFAdvancedRuleSectionEnum connection.EnumSlice = []connection.Enum{
 	WAFAdvancedRuleSectionRequestCookies,
 	WAFAdvancedRuleSectionRequestHeaders,
 	WAFAdvancedRuleSectionRequestURI,
-}
-
-// ParseWAFAdvancedRuleSection attempts to parse a WAFAdvancedRuleSection from string
-func ParseWAFAdvancedRuleSection(s string) (WAFAdvancedRuleSection, error) {
-	e, err := connection.ParseEnum(s, WAFAdvancedRuleSectionEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(WAFAdvancedRuleSection), err
 }
 
 type WAFAdvancedRuleModifier string
@@ -196,21 +153,11 @@ const (
 	WAFAdvancedRuleModifierContainsWord WAFAdvancedRuleModifier = "containsWord"
 )
 
-var WAFAdvancedRuleModifierEnum connection.EnumSlice = []connection.Enum{
+var WAFAdvancedRuleModifierEnum connection.Enum[WAFAdvancedRuleModifier] = []WAFAdvancedRuleModifier{
 	WAFAdvancedRuleModifierBeginsWith,
 	WAFAdvancedRuleModifierEndsWith,
 	WAFAdvancedRuleModifierContains,
 	WAFAdvancedRuleModifierContainsWord,
-}
-
-// ParseWAFAdvancedRuleModifier attempts to parse a WAFAdvancedRuleModifier from string
-func ParseWAFAdvancedRuleModifier(s string) (WAFAdvancedRuleModifier, error) {
-	e, err := connection.ParseEnum(s, WAFAdvancedRuleModifierEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(WAFAdvancedRuleModifier), err
 }
 
 type ACLIPMode string
@@ -224,19 +171,9 @@ const (
 	ACLIPModeDeny  ACLIPMode = "Deny"
 )
 
-var ACLIPModeEnum connection.EnumSlice = []connection.Enum{
+var ACLIPModeEnum connection.Enum[ACLIPMode] = []ACLIPMode{
 	ACLIPModeAllow,
 	ACLIPModeDeny,
-}
-
-// ParseACLIPMode attempts to parse a ACLIPMode from string
-func ParseACLIPMode(s string) (ACLIPMode, error) {
-	e, err := connection.ParseEnum(s, ACLIPModeEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(ACLIPMode), err
 }
 
 type ACLGeoIPRulesMode string
@@ -250,25 +187,15 @@ const (
 	ACLGeoIPRulesModeBlacklist ACLGeoIPRulesMode = "Blacklist"
 )
 
-var ACLGeoIPRulesModeEnum connection.EnumSlice = []connection.Enum{
+var ACLGeoIPRulesModeEnum connection.Enum[ACLGeoIPRulesMode] = []ACLGeoIPRulesMode{
 	ACLGeoIPRulesModeWhitelist,
 	ACLGeoIPRulesModeBlacklist,
 }
 
-// ParseACLGeoIPRulesMode attempts to parse a ACLGeoIPRulesMode from string
-func ParseACLGeoIPRulesMode(s string) (ACLGeoIPRulesMode, error) {
-	e, err := connection.ParseEnum(s, ACLGeoIPRulesModeEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(ACLGeoIPRulesMode), err
-}
-
 type CDNRuleCacheControl string
 
-func (e CDNRuleCacheControl) String() string {
-	return string(e)
+func (s CDNRuleCacheControl) String() string {
+	return string(s)
 }
 
 const (
@@ -276,25 +203,15 @@ const (
 	CDNRuleCacheControlOrigin CDNRuleCacheControl = "Origin"
 )
 
-var CDNRuleCacheControlEnum connection.EnumSlice = []connection.Enum{
+var CDNRuleCacheControlEnum connection.Enum[CDNRuleCacheControl] = []CDNRuleCacheControl{
 	CDNRuleCacheControlCustom,
 	CDNRuleCacheControlOrigin,
 }
 
-// ParseCDNRuleCacheControl attempts to parse a CDNRuleCacheControl from string
-func ParseCDNRuleCacheControl(s string) (CDNRuleCacheControl, error) {
-	e, err := connection.ParseEnum(s, CDNRuleCacheControlEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(CDNRuleCacheControl), err
-}
-
 type CDNRuleType string
 
-func (e CDNRuleType) String() string {
-	return string(e)
+func (s CDNRuleType) String() string {
+	return string(s)
 }
 
 const (
@@ -302,22 +219,12 @@ const (
 	CDNRuleTypePerURI CDNRuleType = "per-uri"
 )
 
-var CDNRuleTypeEnum connection.EnumSlice = []connection.Enum{CDNRuleTypeGlobal, CDNRuleTypePerURI}
-
-// ParseCDNRuleType attempts to parse a CDNRuleType from string
-func ParseCDNRuleType(s string) (CDNRuleType, error) {
-	e, err := connection.ParseEnum(s, CDNRuleTypeEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(CDNRuleType), err
-}
+var CDNRuleTypeEnum connection.Enum[CDNRuleType] = []CDNRuleType{CDNRuleTypeGlobal, CDNRuleTypePerURI}
 
 type HSTSRuleType string
 
-func (e HSTSRuleType) String() string {
-	return string(e)
+func (s HSTSRuleType) String() string {
+	return string(s)
 }
 
 const (
@@ -325,17 +232,7 @@ const (
 	HSTSRuleTypeRecord HSTSRuleType = "record"
 )
 
-var HSTSRuleTypeEnum connection.EnumSlice = []connection.Enum{HSTSRuleTypeDomain, HSTSRuleTypeRecord}
-
-// ParseHSTSRuleType attempts to parse a HSTSRuleType from string
-func ParseHSTSRuleType(s string) (HSTSRuleType, error) {
-	e, err := connection.ParseEnum(s, HSTSRuleTypeEnum)
-	if err != nil {
-		return "", err
-	}
-
-	return e.(HSTSRuleType), err
-}
+var HSTSRuleTypeEnum connection.Enum[HSTSRuleType] = []HSTSRuleType{HSTSRuleTypeDomain, HSTSRuleTypeRecord}
 
 // Domain represents a DDoSX domain
 type Domain struct {
