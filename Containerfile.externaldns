@@ -24,12 +24,15 @@ RUN git config --global --add safe.directory /workspace
 # Build
 RUN make build
 
+#Define build arguments to recieve dynamic values
+ARG FULL_COMMIT
+
 FROM registry.access.redhat.com/ubi9/ubi:9.6-1752625787
 LABEL maintainer="Red Hat, Inc."
 LABEL com.redhat.component="external-dns-container"
 LABEL name="external-dns"
-LABEL version="1.3.0"
-LABEL commit="76d92ad82b22c92c191a8c0145d3712e4012d987"
+LABEL version="1.3.1"
+LABEL commit=${FULL_COMMIT}
 WORKDIR /
 COPY --from=builder /workspace/build/external-dns /
 COPY LICENSE /licenses/
