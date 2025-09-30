@@ -55,7 +55,7 @@ func TestBluecatExpandZones(t *testing.T) {
 			got := expandZone(tc.input)
 			diff := cmp.Diff(tc.want, got)
 			if diff != "" {
-				t.Fatalf(diff)
+				t.Fatalf("%s", diff)
 			}
 		})
 	}
@@ -91,7 +91,7 @@ func TestBluecatSplitProperties(t *testing.T) {
 			got := SplitProperties(tc.input)
 			diff := cmp.Diff(tc.want, got)
 			if diff != "" {
-				t.Fatalf(diff)
+				t.Fatalf("%s", diff)
 			}
 		})
 	}
