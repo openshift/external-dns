@@ -258,7 +258,7 @@ func dealWithError(action Action, request string, err error) bool {
 }
 
 func APIErrorRecord(apiAction Action, request string, response string, err error) {
-	log.Infof(fmt.Sprintf("APIError API: %s/%s Request: %s, Response: %s, Error: %s", apiAction.Service, apiAction.Name, request, response, err.Error()))
+	log.Infof("APIError API: %s/%s Request: %s, Response: %s, Error: %s", apiAction.Service, apiAction.Name, request, response, err.Error())
 }
 
 func APIRecord(apiAction Action, request string, response string) {
@@ -267,7 +267,7 @@ func APIRecord(apiAction Action, request string, response string) {
 	if apiAction.ReadOnly {
 		// log.Infof(message)
 	} else {
-		log.Infof(message)
+		log.Infof("%s", message)
 	}
 }
 
