@@ -1,0 +1,38 @@
+# Detect the drift from the upstream Dockerfile
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS drift
+WORKDIR /app
+COPY drift-cache/Dockerfile Dockerfile.cached
+COPY Dockerfile.openshift Dockerfile
+# If the command below fails it means that the Dockerfile from this repository changed.
+# You have to update the Konflux Containerfile accordingly.
+# drift-cache/Dockerfile can be updated with the upstream contents once the Konflux version is aligned.
+RUN test "$(sha1sum Dockerfile.cached | cut -d' ' -f1)" = "$(sha1sum Dockerfile | cut -d' ' -f1)"
+
+FROM registry.access.redhat.com/ubi8/go-toolset:1.18.10 as builder
+# dummy copy to trigger the drift detection
+COPY --from=drift /app/Dockerfile.cached .
+WORKDIR /workspace
+# Dummy RUN to create /workspace directory.
+# WORKDIR doesn't create the directory (at least for Podman).
+# Without this step, the following COPY may create /workspace
+# as root-owned (instead of go-toolset's default 1001)
+# leading to "Permission denied" errors during "make build"
+# when trying to write output.
+RUN ls .
+COPY . /workspace
+RUN git config --global --add safe.directory /workspace
+# Build
+RUN make build
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest@sha256:41c6aeb7c681d89b63b35dbb8168875cd2e7b00e9ebe1d2d3d6a3c205c9dba10
+ARG FULL_COMMIT
+LABEL maintainer="Red Hat, Inc."
+LABEL com.redhat.component="external-dns-container"
+LABEL name="external-dns"
+LABEL version="1.2.2"
+LABEL commit=${FULL_COMMIT}
+WORKDIR /
+COPY --from=builder /workspace/build/external-dns /
+COPY LICENSE /licenses/
+USER 65532:65532
+ENTRYPOINT ["/external-dns"]
