@@ -21,8 +21,8 @@ WORKDIR /workspace
 RUN ls .
 COPY . /workspace
 RUN git config --global --add safe.directory /workspace
-# Build
-RUN make build
+# Build with FIPS compliance
+RUN make build.fips
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 ARG FULL_COMMIT
