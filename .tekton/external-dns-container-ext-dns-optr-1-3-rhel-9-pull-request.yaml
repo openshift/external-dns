@@ -28,6 +28,10 @@ spec:
     value: 5d
   - name: dockerfile
     value: Containerfile.externaldns
+  - name: build-platforms
+    value:
+      - linux/x86_64
+      - linux/arm64
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while maintaining trust after pipeline customization.
@@ -111,6 +115,8 @@ spec:
       default: docker
       type: string
       description: The format for the resulting image's mediaType. Valid values are oci or docker.
+    - name: build-platforms
+      type: array
     results:
     - description: ""
       name: IMAGE_URL
@@ -197,7 +203,12 @@ spec:
         workspace: git-auth
       - name: netrc
         workspace: netrc
-    - name: build-container
+    - matrix:
+        params:
+        - name: PLATFORM
+          value:
+          - $(params.build-platforms)
+      name: build-images
       params:
       - name: IMAGE
         value: $(params.output-image)
@@ -221,20 +232,24 @@ spec:
         value: $(params.build-args-file)
       - name: PRIVILEGED_NESTED
         value: $(params.privileged-nested)
+      - name: SOURCE_URL
+        value: $(tasks.clone-repository.results.url)
+      - name: BUILDAH_FORMAT
+        value: $(params.buildah-format)
       - name: SOURCE_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       - name: CACHI2_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
-      - name: BUILDAH_FORMAT
-        value: $(params.buildah-format)
+      - name: IMAGE_APPEND_PLATFORM
+        value: "true"
       runAfter:
       - prefetch-dependencies
       taskRef:
         params:
         - name: name
-          value: buildah-oci-ta
+          value: buildah-remote-oci-ta
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta:0.7@sha256:916781b75e5f42a2e0b578b3ab3418e8bcc305168b2cd26ff41c8057e5c9ec28
+          value: quay.io/konflux-ci/tekton-catalog/task-buildah-remote-oci-ta:0.8@sha256:4c6e3e4c3fe8a289161dfbc38a162d28a0289eb4d51f835e847f8c3677a211f3
         - name: kind
           value: task
         resolver: bundles
@@ -255,11 +270,11 @@ spec:
         value: $(params.build-image-index)
       - name: IMAGES
         value:
-        - $(tasks.build-container.results.IMAGE_URL)@$(tasks.build-container.results.IMAGE_DIGEST)
+        - $(tasks.build-images.results.IMAGE_REF[*])
       - name: BUILDAH_FORMAT
         value: $(params.buildah-format)
       runAfter:
-      - build-container
+      - build-images
       taskRef:
         params:
         - name: name
