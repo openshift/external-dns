@@ -1,3 +1,5 @@
+//go:build upstream_only
+
 /*
 Copyright 2021 The Kubernetes Authors.
 
