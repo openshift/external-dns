@@ -1,7 +1,8 @@
 FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.25-openshift-4.22 AS builder
 WORKDIR /sigs.k8s.io/external-dns
 COPY . .
-RUN make build
+RUN git config --global --add safe.directory /sigs.k8s.io/external-dns
+RUN make build.fips
 
 FROM registry.ci.openshift.org/ocp/4.12:base
 COPY --from=builder /sigs.k8s.io/external-dns/build/external-dns /usr/bin/
