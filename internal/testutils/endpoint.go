@@ -42,7 +42,10 @@ func (b byAllFields) Less(i, j int) bool {
 	if b[i].DNSName == b[j].DNSName {
 		// This rather bad, we need a more complex comparison for Targets, which considers all elements
 		if b[i].Targets.Same(b[j].Targets) {
-			return b[i].RecordType <= b[j].RecordType
+			if b[i].RecordType != b[j].RecordType {
+				return b[i].RecordType < b[j].RecordType
+			}
+			return len(b[i].ProviderSpecific) < len(b[j].ProviderSpecific)
 		}
 		return b[i].Targets.String() <= b[j].Targets.String()
 	}
