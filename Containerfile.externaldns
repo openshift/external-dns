@@ -21,15 +21,15 @@ WORKDIR /workspace
 RUN ls .
 COPY . /workspace
 RUN git config --global --add safe.directory /workspace
-# Build
-RUN make build
+# Build with FIPS compliance
+RUN make build.fips
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 ARG FULL_COMMIT
 LABEL maintainer="Red Hat, Inc."
 LABEL com.redhat.component="external-dns-container"
 LABEL name="external-dns"
-LABEL version="1.1.1"
+LABEL version="1.1.2"
 LABEL commit=${FULL_COMMIT}
 WORKDIR /
 COPY --from=builder /workspace/build/external-dns /

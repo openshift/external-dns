@@ -99,6 +99,13 @@ build: build/$(BINARY)
 build/$(BINARY): $(SOURCES)
 	CGO_ENABLED=0 go build -o build/$(BINARY) $(BUILD_FLAGS) -ldflags "$(LDFLAGS)" .
 
+# Downstream FIPS-compliant build
+.PHONY: build.fips
+build.fips: build.fips/$(BINARY)
+
+build.fips/$(BINARY): $(SOURCES)
+	CGO_ENABLED=1 go build -tags strictfipsruntime -o build/$(BINARY) $(BUILD_FLAGS) -ldflags "$(LDFLAGS)" .
+
 build.push/multiarch:
 	arch_specific_tags=()
 	for arch in $(ARCHS); do \
