@@ -28,8 +28,9 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 ARG FULL_COMMIT
 LABEL maintainer="Red Hat, Inc."
 LABEL com.redhat.component="external-dns-container"
-LABEL name="external-dns"
+LABEL name="edo/external-dns-rhel8"
 LABEL version="1.1.2"
+LABEL cpe="cpe:/a:redhat:ext_dns_optr:1.1::el8"
 LABEL commit=${FULL_COMMIT}
 WORKDIR /
 COPY --from=builder /workspace/build/external-dns /
