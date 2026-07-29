@@ -99,7 +99,7 @@ func getTTLFromAnnotations(annotations map[string]string, resource string) endpo
 		return ttlNotConfigured
 	}
 	if ttlValue < ttlMinimum || ttlValue > ttlMaximum {
-		log.Warnf("TTL value %q must be between [%d, %d]", ttlValue, ttlMinimum, ttlMaximum)
+		log.Warnf("TTL value %d must be between [%d, %d]", ttlValue, ttlMinimum, ttlMaximum)
 		return ttlNotConfigured
 	}
 	return endpoint.TTL(ttlValue)
