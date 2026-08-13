@@ -117,7 +117,11 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	go serveMetrics(cfg.MetricsAddress)
+	if cfg.MetricsTLSCertDir != "" {
+		go serveSecureMetrics(cfg)
+	} else {
+		go serveMetrics(cfg.MetricsAddress)
+	}
 	go handleSigterm(cancel)
 
 	// error is explicitly ignored because the filter is already validated in validation.ValidateConfig
