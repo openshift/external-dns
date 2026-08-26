@@ -164,6 +164,7 @@ type Config struct {
 	UpdateEvents                       bool
 	LogFormat                          string
 	MetricsAddress                     string
+	MetricsTLSCertDir                  string
 	LogLevel                           string
 	TXTCacheInterval                   time.Duration
 	TXTWildcardReplacement             string
@@ -636,6 +637,7 @@ func (cfg *Config) ParseFlags(args []string) error {
 	// Miscellaneous flags
 	app.Flag("log-format", "The format in which log messages are printed (default: text, options: text, json)").Default(defaultConfig.LogFormat).EnumVar(&cfg.LogFormat, "text", "json")
 	app.Flag("metrics-address", "Specify where to serve the metrics and health check endpoint (default: :7979)").Default(defaultConfig.MetricsAddress).StringVar(&cfg.MetricsAddress)
+	app.Flag("metrics-tls-cert-dir", "Directory containing tls.crt and tls.key for serving metrics over HTTPS with TokenReview/SAR authentication. If empty, metrics are served over plain HTTP (default: \"\")").Default("").StringVar(&cfg.MetricsTLSCertDir)
 	app.Flag("log-level", "Set the level of logging. (default: info, options: panic, debug, info, warning, error, fatal)").Default(defaultConfig.LogLevel).EnumVar(&cfg.LogLevel, allLogLevelsAsStrings()...)
 
 	// Webhook provider
