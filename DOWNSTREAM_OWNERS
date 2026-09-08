@@ -10,6 +10,7 @@ approvers:
   - rikatz
   - davidesalerno
   - bentito
+  - pedjak
 reviewers:
   - rfredette
   - alebedev87
@@ -19,4 +20,5 @@ reviewers:
   - rikatz
   - davidesalerno
   - bentito
+  - pedjak
 component: DNS
