@@ -24,7 +24,7 @@ RUN git config --global --add safe.directory /workspace
 # Build with FIPS compliance
 RUN make build.fips
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest@sha256:fd1e6b927c67a5d6ccad9baadc1781c60e71e4856274347344bdfb367eeaa1f7
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest@sha256:5ecc5772d424daeac58b5fe58f7f51afc9123060f000a737cf1baa4f7dc174f1
 ARG FULL_COMMIT
 LABEL maintainer="Red Hat, Inc."
 LABEL com.redhat.component="external-dns-container"
