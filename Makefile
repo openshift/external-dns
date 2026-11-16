@@ -100,12 +100,12 @@ build: build/$(BINARY)
 build/$(BINARY): $(SOURCES)
 	CGO_ENABLED=0 go build -o build/$(BINARY) $(BUILD_FLAGS) -ldflags "$(LDFLAGS)" .
 
-# Downstream FIPS-compliant build
+# Downstream FIPS-compliant build (native Go FIPS 140-3 module)
 .PHONY: build.fips
 build.fips: build.fips/$(BINARY)
 
 build.fips/$(BINARY): $(SOURCES)
-	CGO_ENABLED=1 go build -tags strictfipsruntime -o build/$(BINARY) $(BUILD_FLAGS) -ldflags "$(LDFLAGS)" .
+	CGO_ENABLED=0 GOFIPS140=certified go build -o build/$(BINARY) $(BUILD_FLAGS) -ldflags "$(LDFLAGS)" .
 
 build.push/multiarch: ko
 	KO_DOCKER_REPO=${IMAGE} \
