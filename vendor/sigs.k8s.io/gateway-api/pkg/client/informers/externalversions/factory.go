@@ -29,6 +29,7 @@ import (
 	cache "k8s.io/client-go/tools/cache"
 	versioned "sigs.k8s.io/gateway-api/pkg/client/clientset/versioned"
 	apis "sigs.k8s.io/gateway-api/pkg/client/informers/externalversions/apis"
+	apisx "sigs.k8s.io/gateway-api/pkg/client/informers/externalversions/apisx"
 	internalinterfaces "sigs.k8s.io/gateway-api/pkg/client/informers/externalversions/internalinterfaces"
 )
 
@@ -228,6 +229,7 @@ type SharedInformerFactory interface {
 
 	// Start initializes all requested informers. They are handled in goroutines
 	// which run until the stop channel gets closed.
+	// Warning: Start does not block. When run in a go-routine, it will race with a later WaitForCacheSync.
 	Start(stopCh <-chan struct{})
 
 	// Shutdown marks a factory as shutting down. At that point no new
@@ -254,8 +256,13 @@ type SharedInformerFactory interface {
 	InformerFor(obj runtime.Object, newFunc internalinterfaces.NewInformerFunc) cache.SharedIndexInformer
 
 	Gateway() apis.Interface
+	Experimental() apisx.Interface
 }
 
 func (f *sharedInformerFactory) Gateway() apis.Interface {
 	return apis.New(f, f.namespace, f.tweakListOptions)
+}
+
+func (f *sharedInformerFactory) Experimental() apisx.Interface {
+	return apisx.New(f, f.namespace, f.tweakListOptions)
 }
