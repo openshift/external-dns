@@ -2,9 +2,9 @@ FROM registry.access.redhat.com/ubi9/go-toolset:1.26 as builder
 WORKDIR /sigs.k8s.io/external-dns
 COPY . .
 RUN git config --global --add safe.directory /sigs.k8s.io/external-dns
-RUN make build.fips
+RUN GOEXPERIMENT=strictfipsruntime make build.fips
 
-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
+FROM registry.access.redhat.com/hi/static:latest
 COPY --from=builder /sigs.k8s.io/external-dns/build/external-dns /usr/bin/
 ENTRYPOINT ["/usr/bin/external-dns"]
 LABEL io.openshift.release.operator="true"

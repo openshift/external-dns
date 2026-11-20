@@ -9,7 +9,7 @@
       "enabled": false
     },
     {
-      "description": "Enable Docker image updates for Red Hat UBI images on major version 9",
+      "description": "Enable Docker image updates for the ubi-minimal image used by the drift-detection stage",
       "matchManagers": ["dockerfile"],
       "matchFileNames": [
         "Containerfile.externaldns"
@@ -20,6 +20,21 @@
       ],
       "enabled": true,
       "versioning": "redhat",
+      "schedule": [
+        "after 5am on tuesday"
+      ]
+    },
+    {
+      "description": "Keep the Red Hat Hardened static (distroless) runtime base image digest fresh",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": [
+        "Containerfile.externaldns"
+      ],
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "registry.access.redhat.com/hi/static"
+      ],
+      "enabled": true,
       "schedule": [
         "after 5am on tuesday"
       ]
